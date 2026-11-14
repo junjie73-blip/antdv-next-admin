@@ -172,23 +172,28 @@ const noticeFormSchemas: FormSchema[] = [
 // 加载全部数据用于统计和 Tab 过滤
 async function loadAllData() {
   try {
+    // request.ts 的 get() 已剥掉 `{ code, data, message }` 外层，拿到的是 `{ list, total }`
     const res = await getNoticeList({ pageSize: 1000 });
-    const data = res?.data ?? res;
-    allData.value = data?.list || [];
+    allData.value = res?.list || [];
   } catch {
     allData.value = [];
   }
 }
 
+/**
+ * BasicTable 的分页字段是 `pageNum` / `pageSize`（DEFAULT_FETCH_SETTING）。
+ * 之前这里解构的是 `page`，永远是默认值 1 —— 点第 2 页拿到的仍是第一页。
+ */
 async function mockApi(params: Record<string, any>) {
-  const { page = 1, pageSize = 10 } = params;
+  const page = Number(params.pageNum ?? params.page ?? 1) || 1;
+  const pageSize = Number(params.pageSize ?? 10) || 10;
   const data = [...filteredData.value];
   data.sort(
     (a, b) => dayjs(b.sendTime).valueOf() - dayjs(a.sendTime).valueOf(),
   );
   const total = data.length;
-  const startIdx = (Number(page) - 1) * Number(pageSize);
-  return { items: data.slice(startIdx, startIdx + Number(pageSize)), total };
+  const startIdx = (page - 1) * pageSize;
+  return { items: data.slice(startIdx, startIdx + pageSize), total };
 }
 
 function handleTabChange(key: number | string) {

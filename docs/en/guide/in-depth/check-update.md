@@ -30,7 +30,9 @@ What is NOT here — do not look for vue-vben-admin's mechanisms
 
 - No endpoint polling of a published version / no `buildTime` diff service;
 - `__APP_INFO__` (build time + dependency manifest, injected by `defineApplicationConfig`) exists, but nothing consumes it for update detection — it is build metadata only;
-- No version-info page. To get the full "new version detected" experience, step one is mounting `<ReloadPrompt />` in a layout (e.g. next to the root of `apps/web/src/layouts/index.vue`); everything else is already written. :::
+- No version-info page. To get the full "new version detected" experience, step one is mounting `<ReloadPrompt />` in a layout (e.g. next to the root of `apps/web/src/layouts/index.vue`); everything else is already written.
+
+:::
 
 ## Verifying locally
 

@@ -135,6 +135,7 @@ export type UseModalInnerReturnType = [
 ];
 
 export interface ModalWrapperProps {
+  bodyStyle?: CSSProperties;
   footerOffset?: number;
   height?: number;
   loading?: boolean;

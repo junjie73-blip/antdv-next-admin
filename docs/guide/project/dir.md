@@ -20,7 +20,7 @@ internal/   构建期工具：只在 Node 里跑，不进产物
 | --- | --- | --- |
 | `@antdv/types`（`core/base/typings`） | 共享类型契约：布局设置、菜单、标签页、Mock 信封 | 纯类型，无运行时代码 |
 | `@antdv/shared`（`core/base/shared`） | 四个目录 + 一个出口：`cache` 缓存（含 SM4 加密）、`color` 色值换算、`constants` 跨层字面量（CSS 变量名 `css-vars.ts` / DOM class / 默认主色）、`utils` 一个文件一件工具（`cn`、日期、下载、Excel、脱敏、XSS、事件总线……），`store.ts` 只转发 `@tanstack/vue-store` | store / api |
-| `@antdv/design`（`core/base/design`） | 两个二级目录：`token/`（default / dark 两套 shadcn 变量 + `@theme inline` 映射）与 `css/`（基础层、NProgress、无障碍、权限降级、滚动条兜底），由 Tailwind v4 入口 `src/index.css` 引齐 | 只写变量与 CSS，不含组件逻辑 |
+| `@antdv/design`（`core/base/design`） | 两个二级目录：`token/`（default / dark 两套 shadcn 变量 + `@theme inline` 映射）与 `css/`（基础层、NProgress、无障碍、权限降级、滚动条兜底），由 Tailwind v4 入口 `src/index.css` 引齐 | 只写变量与 CSS，不含组件逻辑，也**不代管任何子包的内容登记** —— 各包的 `@source` 随包走（`<pkg>/src/index.css` + `exports['./style.css']`），由 `apps/web/src/styles/index.css` 装配进唯一的 Tailwind root |
 | `@antdv/icons`（`core/base/icons`） | 只管图标：Iconify 包装、SVG 雪碧图图标、图标选择器（shadcn 实现），5 个 `@iconify-json/*` 集合声明在本包 `dependencies` | pinia / vue-router / 业务 store / 应用配置 / antdv-next |
 | `@antdv/hooks`（`core/hooks`） | 组合式函数：`use-cache`、`use-chunk-upload`、`use-crud`、`use-file-reader`、`use-permission`、`use-print`、`use-route-loading`、`use-watermark` + `echarts/` 子入口 | store / api / 路由实例 |
 | `@antdv/preferences`（`core/preferences`） | 偏好默认值（`src/config.ts`）、持久化、`applyPreferencesToDom()` 落 DOM（`src/update-css-variables.ts`）、启动主题快照（`src/boot-theme.ts`） | pinia / store；**不认识 antd，也不认识任何组件库** —— 偏好直接落成 `<html>` 上的 `--primary` / `--radius` / `--font-size` / `--filter`，没有"偏好 → `ThemeConfig`"这一层翻译（曾经承担这件事的 `apps/web/src/settings/theme/` 已随 antd 一起删除） |
@@ -42,7 +42,9 @@ internal/   构建期工具：只在 Node 里跑，不进产物
 
 ::: tip
 
-为什么每张表都多一列"不许 import" 这是这些包能被客户项目单独复用的唯一原因。凡是"要读用户权限 / 要拿菜单 / 要看偏好"的地方，一律通过**依赖注入**把函数或 ref 传进来，包自己不认识 pinia。于是包能保持纯 TS + Vue 组合式、能脱离应用做单测，也不会出现"store 引包、包又反过来引 store"的环。新增能力时先想清楚这条边界，再决定放应用里还是放子包里 —— 需要 store 的薄壳留在 `apps/web`。:::
+为什么每张表都多一列"不许 import" 这是这些包能被客户项目单独复用的唯一原因。凡是"要读用户权限 / 要拿菜单 / 要看偏好"的地方，一律通过**依赖注入**把函数或 ref 传进来，包自己不认识 pinia。于是包能保持纯 TS + Vue 组合式、能脱离应用做单测，也不会出现"store 引包、包又反过来引 store"的环。新增能力时先想清楚这条边界，再决定放应用里还是放子包里 —— 需要 store 的薄壳留在 `apps/web`。
+
+:::
 
 ## 依赖方向
 
@@ -68,7 +70,7 @@ packages/*  ──►  packages/*，且必须单向（types ← 其他所有包�
 ## 构建：tsdown + turbo（两类包不一样）
 
 - **dist 发布的包**（运行时 6 个：`shared` / `types` / `hooks` / `preferences` / `router` / `directives`；构建期的 `node-utils` / `vite-config` 同理）：`build` 就是 `tsdown`（Rolldown 系），产物在 `dist/`，`files` 只带 `dist`；`exports` 支持**子路径即模块**：`@antdv/shared/utils/cn` → `dist/utils/cn.js`（`./*` 通配符），多文件目录模块（`cache` / `color` / `constants` / `utils` 与 `utils/crypto`、`utils/event`）显式列出。 `apps/web` 读的是这些包的 `dist`，所以改这 6 个包的 `src` 必须重新构建 + 重启 dev 才看得见。
-- **源码发布的包**（运行时 15 个）：`ui-kit` 那八个、`design`、`icons`、`layouts`、`request`、`stores`、`utils`、`enums`。`files: ["src"]`、`main`/`types` 直指 `./src/index.ts`（`design` 是 `./src/index.css`），**没有 build 脚本**，由宿主 Vite 直接编译。改这类包保存即热更，不需要重新构建 —— 但也意味着宿主必须能编译 `.vue` 与 Tailwind 入口。口径见[外部模块](/guide/essentials/external)。
+- **源码发布的包**（运行时 20 个）：`ui-kit` 那十三个、`design`、`icons`、`layouts`、`request`、`stores`、`utils`、`enums`。`files: ["src"]`、`main`/`types` 直指 `./src/index.ts`（`design` 是 `./src/index.css`），由宿主 Vite 直接编译 —— 改这类包保存即热更，不需要重新构建（这也意味着宿主必须能编译 `.vue` 与 Tailwind 入口）。它们**仍然带 `build: vite build`**：那是全仓统一的构建口径（`pnpm check:builds` / `scripts/check-uniform-build.mjs` 要求每个包都有），产物用于校验公共面而不是给宿主消费 —— 每个 `exports` 子路径都得对上一份产物（`antdv:validate-dist`）。带模板的包还多一个 `./style.css` 出口指向 `./src/index.css`（内容登记随包走），库构建据此推出一个 CSS 入口并自动开 `cssCodeSplit`，见 `internal/vite-config/src/config/library.ts`。口径见[外部模块](/guide/essentials/external)。
 - `turbo.json` 的任务图：`build` / `type-check` / `test:unit` / `test:e2e` 全部 `dependsOn: ["^build"]`，即"先构建我的依赖"；`dev` 是 `persistent` 且不吃缓存，同样先 `^build`（没有 build 脚本的包这一步直接跳过）。
 
 ## 发布：changesets

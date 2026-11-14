@@ -3,9 +3,9 @@ import type { ComboboxInputEmits, ComboboxInputProps } from 'reka-ui';
 
 import type { HTMLAttributes } from 'vue';
 
-import { cn } from '@antdv/shared/utils/cn';
 import { SearchIcon } from '@lucide/vue';
 import { reactiveOmit } from '@vueuse/core';
+import { cn } from 'cn';
 import { ComboboxInput, useForwardPropsEmits } from 'reka-ui';
 
 defineOptions({

@@ -105,4 +105,6 @@ features:
 
 ::: info
 
-约定文档里的命令行都在仓库根目录执行，包管理器固定 `pnpm@10.12.4`（`packageManager` 字段已锁），Node 要求 `>=22`，本地用 `.node-version` 里的 24.0.0。:::
+约定文档里的命令行都在仓库根目录执行，包管理器固定 `pnpm@10.12.4`（`packageManager` 字段已锁），Node 要求 `>=22`，本地用 `.node-version` 里的 24.0.0。
+
+:::

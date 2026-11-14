@@ -49,7 +49,7 @@ pnpm shadcn add <component>
 pnpm check:dep && pnpm check:circular && pnpm check:builds
 ```
 
-带 `.vue` 模板的新包（或新库的样式类名）要同步：`@source` 登记、`design.test.ts` 反查、必要时补 `@plugin`。类型入口靠 `vite-plugin-dts`/`unplugin-dts` 与包内 `antdv:validate-dist` 保证，不在应用侧手写 `.d.ts`。
+带 `.vue` 模板的新包（或新库的样式类名）要同步内容登记三环：包自己的 `src/index.css`（只有 `@source './';`）、`exports['./style.css']`、应用装配入口 `apps/web/src/styles/index.css` 里那一行 `@import`；`boundary.test.ts` 与 `design.test.ts` 会反查，必要时补 `@plugin`。新库自带的 CSS 由组件自己 `import`（先例：`popup-ui/src/message/index.ts` 引 `vue-sonner/style.css`），不要塞进全局样式包。类型入口靠 `vite-plugin-dts`/`unplugin-dts` 与包内 `antdv:validate-dist` 保证，不在应用侧手写 `.d.ts`。
 
 ## 5. 二次开发限制
 

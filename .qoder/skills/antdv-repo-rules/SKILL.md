@@ -23,7 +23,7 @@ description: 本仓库（Vue 3 + shadcn-vue + reka-ui 的 pnpm/turbo monorepo，
 2. 包与包之间**只走包名导入**：不许 `../../../<别包>/src/...`，不许盘符/绝对路径（同文件「跨包只走包名导入」，判据是常量 `ABSOLUTE_SPECIFIER`）。
 3. 只有 `apps/web/src/plugins/**` 可以碰 `~/stores`、`~/api`、`~/views`、`~/locales`；子包要宿主能力就暴露可变 runtime + `configureX()`，反向 import 会造成 turbo 建不了的环。
 4. design token 只有 shadcn **裸规范名**一套（`--primary`、`--radius`…），变量里存**颜色通道**、颜色由 `hsl(var(--x))` 组合；`--app-*` 与 `--ant-*` 一律不许出现在声明里（`packages/core/base/design/__tests__/design.test.ts` 的「规范名单一事实来源」）。
-5. Tailwind 内容登记 `@source` 只住在 `packages/core/base/design/src/index.css:46-55`；新增带 `.vue` 的子包必须同批登记，漏一个包就是那个包全部工具类静默不生成。
+5. Tailwind 内容登记 `@source` **跟着包走**：每个带 `.vue` 的子包自己有 `src/index.css`（只有 `@source './';`），经 `exports['./style.css']` 暴露，由应用侧唯一的 Tailwind root `apps/web/src/styles/index.css` 逐条 `@import` 装配；`design/src/index.css` 一条都不留。三环漏一环就是那个包全部工具类静默不生成。装配必须是 CSS 的 `@import`——只有 `@source` 的文件自己不构成 root，改成 JS `import` 会全部失效。
 6. 外部依赖版本一律从 `pnpm-workspace.yaml` 的 `catalog:` 取（`"vue": "catalog:"`），禁止在子包 `package.json` 里写死区间。
 7. 样式覆写不得落在 `@antdv/shadcn-ui` 源文件里；改外观只能在 `common-ui` 或 CSS 层做（主题变量 / 自定义类名 / 覆盖规则）。
 8. 单测口径是 `npx turbo run test:unit --concurrency=1`，**且慢用例要单文件复跑再判**；`pnpm exec vitest run` 在仓库根直接崩，别用。
@@ -46,7 +46,7 @@ node <skill-dir>/scripts/check-repo.mjs          # 全量
 node <skill-dir>/scripts/check-repo.mjs --only tokens,@source,catalog,hygiene
 ```
 
-它只做机器能判的事：组件库导入、`vue-sonner` 与 `new WebSocket(` 的归属、跨包相对/盘符路径、 `@source` 覆盖与失效路径、`--app-*`/`--ant-*` 声明与圆角 px、写死版本号的依赖、遗留的 `tmp-*` 探针与仓库根日志/压缩包/可疑已跟踪文件名。`EXIT=1` 就代表有条硬约束被破， `--json` 可拿结构化结果。`hygiene` 报的历史遗留（别人的日志以外的大文件、来源不明的状态文件） **先问再删**，不要顺手 `rm`。它**不能**替代单测、类型检查与三引擎 e2e。
+它只做机器能判的事：组件库导入、`vue-sonner` 与 `new WebSocket(` 的归属、跨包相对/盘符路径、内容登记三环（包自己的 `src/index.css` → `exports['./style.css']` → 应用装配入口真的引到）、`--app-*`/`--ant-*` 声明与圆角 px、写死版本号的依赖、遗留的 `tmp-*` 探针与仓库根日志/压缩包/可疑已跟踪文件名。`EXIT=1` 就代表有条硬约束被破， `--json` 可拿结构化结果。`hygiene` 报的历史遗留（别人的日志以外的大文件、来源不明的状态文件） **先问再删**，不要顺手 `rm`。它**不能**替代单测、类型检查与三引擎 e2e。
 
 ## 规则与守门测试对照
 
@@ -54,8 +54,9 @@ node <skill-dir>/scripts/check-repo.mjs --only tokens,@source,catalog,hygiene
 
 | 约束 | 守门人 |
 | --- | --- |
-| 包不认组件库、跨包只走包名、toast 与 WS 的归属 | `packages/core/hooks/__tests__/boundary.test.ts` |
-| token 命名空间、预设明暗对齐、`@theme inline`、`@source` 覆盖 | `packages/core/base/design/__tests__/design.test.ts` |
+| 包不认组件库、跨包只走包名、toast 与 WS 的归属、内容登记三环与 barrel 自引的口子 | `packages/core/hooks/__tests__/boundary.test.ts` |
+| token 命名空间、预设明暗对齐、`@theme inline`、design 入口不代管子包登记 | `packages/core/base/design/__tests__/design.test.ts` |
+| CSS 入口成为 lib 入口时的产物名与 `cssCodeSplit` | `internal/vite-config/__tests__/library.test.ts` |
 | `common-ui` 每组件一目录且必须有 `index.ts` | `packages/core/ui-kit/common-ui/__tests__/structure.test.ts` |
 | 偏好变量名单一事实来源 | `packages/core/base/shared/__tests__/constants.test.ts` |
 | 示例页静默失效 API（`v-permission` 的 arg 写成 modifier） | `apps/web/src/views/__tests__/gallery-api-usage.spec.ts` |
@@ -66,7 +67,7 @@ node <skill-dir>/scripts/check-repo.mjs --only tokens,@source,catalog,hygiene
 ## 边界与升级
 
 - 用户级要求冲突时以用户当轮指令为准，但要在汇报里点明"这与 `references/forbidden.md` 第 N 条冲突"。
-- 需要动「禁止改动」清单里的文件（例如改 `apps/web/index.html` 的首屏 Loading 模板、改 `@source` 名单、改 `.gitattributes`），先说明影响面并取得确认。
+- 需要动「禁止改动」清单里的文件（例如改 `apps/web/index.html` 的首屏 Loading 模板、改内容登记三环、改 `.gitattributes`），先说明影响面并取得确认。
 - 删除类操作（`rm`、`git stash`、目录改名）在本仓库有实测代价：见 `references/compatibility.md` 的 Windows 一节。
 
 ## Resources

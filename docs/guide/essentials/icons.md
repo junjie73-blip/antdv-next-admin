@@ -9,7 +9,9 @@
 
 版本都来自 `pnpm-workspace.yaml` 的 catalog，别按子包 package.json 查。
 
-::: info 第三条通道已经没了 `@antdv-next/icons`（组件式图标，`import { FullscreenOutlined } from '@antdv-next/icons'`）随 antdv-next 一起退出依赖：catalog 里查不到这个包，全仓源码 0 处 import —— 只剩 `apps/web/src/views/__tests__/gallery-api-usage.spec.ts` 把它当**坏样例**写在守卫里。最后一个消费者是大屏头部的全屏按钮，它现在用 `<Icon :icon="isFullscreen ? 'carbon:minimize' : 'carbon:maximize'" />`（`apps/web/src/views/screen/components/ScreenHeader.vue:105`）。要图标一律走上面两条。:::
+::: info
+
+第三条通道已经没了 `@antdv-next/icons`（组件式图标，`import { FullscreenOutlined } from '@antdv-next/icons'`）随 antdv-next 一起退出依赖：catalog 里查不到这个包，全仓源码 0 处 import —— 只剩 `apps/web/src/views/__tests__/gallery-api-usage.spec.ts` 把它当**坏样例**写在守卫里。最后一个消费者是大屏头部的全屏按钮，它现在用 `<Icon :icon="isFullscreen ? 'carbon:minimize' : 'carbon:maximize'" />`（`apps/web/src/views/screen/components/ScreenHeader.vue:105`）。要图标一律走上面两条。:::
 
 ## Iconify：默认走离线数据
 
@@ -27,7 +29,9 @@ iconifyOffline({
 
 ::: warning
 
-列表外（或没装）的集合不会报错，只会变空白 `<Icon icon="carbon:card" />` 写错名字时 Vue 不报错：构建期查不到就是**空 span**，若走到运行时取图则变成一次网络请求（还常被本站 CSP 挡掉）。表现是"菜单有的项有图标、有的整格空白，标题被顶得左右不齐"——看着像样式坏了，其实是数据写错。:::
+列表外（或没装）的集合不会报错，只会变空白 `<Icon icon="carbon:card" />` 写错名字时 Vue 不报错：构建期查不到就是**空 span**，若走到运行时取图则变成一次网络请求（还常被本站 CSP 挡掉）。表现是"菜单有的项有图标、有的整格空白，标题被顶得左右不齐"——看着像样式坏了，其实是数据写错。
+
+:::
 
 `vite-plugin-iconify-offline` 也在 `apps/web` 的 devDependencies 里（catalog `^0.4.3`），但全仓**没有任何 import**，起作用的是上面那个 `@tomjs/*`。
 
@@ -50,7 +54,9 @@ iconifyOffline({
 2. `auto-import.ts:31` 的 `local` 数组；
 3. `IconPicker.vue` 的 `Prefix` 联合类型（`:53`）、`COLLECTIONS`（`:62`）、`COLLECTION_LOADERS`（`:75`）（漏了就选不到也搜不出来）；
 4. `apps/web/test/icon-names.test.ts` 的 `COLLECTIONS` 和 `LITERAL` 正则里的集合名分支；
-5. 跑一次 `pnpm --filter @antdv/web build` 确认离线数据真的进了产物。:::
+5. 跑一次 `pnpm --filter @antdv/web build` 确认离线数据真的进了产物。
+
+:::
 
 ## 图标名对账测试（本仓库的硬约束）
 
@@ -70,7 +76,9 @@ iconifyOffline({
 
 ::: warning
 
-类名形式的图标在本仓库不生效 `apps/web/src/views/system/micro-app/index.vue` 里还能看到 4 处 UnoCSS 风格的 `class="i-carbon-search"` / `i-carbon-application` 写法（`:195`、`:333`、`:408`、`:450`；`MicroAppContainer` 已迁进 `@antdv/common-ui`，它那份引用跟着一起没了）。仓库里没有 UnoCSS，也没有任何把 `i-*` 编译成 CSS 的插件（样式是 Tailwind v4，见[设计令牌与全局样式](/guide/essentials/design)），这些 span 渲染出来是**纯空白**。新代码一律写组件形式：`<Icon icon="carbon:search" />`。:::
+类名形式的图标在本仓库不生效 `apps/web/src/views/system/micro-app/index.vue` 里还能看到 4 处 UnoCSS 风格的 `class="i-carbon-search"` / `i-carbon-application` 写法（`:195`、`:333`、`:408`、`:450`；`MicroAppContainer` 已迁进 `@antdv/common-ui`，它那份引用跟着一起没了）。仓库里没有 UnoCSS，也没有任何把 `i-*` 编译成 CSS 的插件（样式是 Tailwind v4，见[设计令牌与全局样式](/guide/essentials/design)），这些 span 渲染出来是**纯空白**。新代码一律写组件形式：`<Icon icon="carbon:search" />`。
+
+:::
 
 ## 图标名从哪来
 

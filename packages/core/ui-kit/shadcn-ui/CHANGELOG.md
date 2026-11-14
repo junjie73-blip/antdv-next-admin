@@ -1,5 +1,11 @@
 # @antdv/shadcn-ui
 
+## 0.2.0
+
+### Patch Changes
+
+- @antdv/shared@0.2.0
+
 ## 0.1.0
 
 ### Patch Changes

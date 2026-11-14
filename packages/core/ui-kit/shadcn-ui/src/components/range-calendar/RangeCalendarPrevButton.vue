@@ -3,9 +3,9 @@ import type { RangeCalendarPrevProps } from 'reka-ui';
 
 import type { HTMLAttributes } from 'vue';
 
-import { cn } from '@antdv/shared/utils/cn';
 import { ChevronLeft } from '@lucide/vue';
 import { reactiveOmit } from '@vueuse/core';
+import { cn } from 'cn';
 import { RangeCalendarPrev, useForwardProps } from 'reka-ui';
 
 import { buttonVariants } from '../button';

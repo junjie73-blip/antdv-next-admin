@@ -25,7 +25,9 @@ dayjs.locale(DAYJS_LOCALE_MAP[locale]); // 3. 日期格式化（zh-CN → 'zh-cn
 
 以前这里有第四件：`antdLocale.value = await loadLocale(locale)`，把 antd 的语言包对象交给 `ConfigProvider :locale`。antd 依赖移除后这一整条链路（懒加载表 `apps/web/src/settings/locale.ts` 也一起删了）没了，`useLocaleSync()` 现在**不返回任何东西**，动机记在源码注释 `:34-37`。
 
-::: warning 内置文案只有一层 provider `Popconfirm` 的确定/取消、`Empty` / `EmptyState` / `Transfer` 的空态文案读的是 `@antdv/common-ui` 的 `ConfigProvider`：`apps/web/src/App.vue:48-51` 挂 provider，`:41-44` 的 `globalConfig` 从 `appStore.locale` / `appStore.componentSize` 取值。它就是唯一的一层 —— 谁在子树里新挂一层 `ConfigProvider` 却忘了传 `locale`，就会出现"主体已切英文、包内组件仍是中文"这种半套状态。API 见 [公共组件](/components/common-ui)。:::
+::: warning
+
+内置文案只有一层 provider `Popconfirm` 的确定/取消、`Empty` / `EmptyState` / `Transfer` 的空态文案读的是 `@antdv/common-ui` 的 `ConfigProvider`：`apps/web/src/App.vue:48-51` 挂 provider，`:41-44` 的 `globalConfig` 从 `appStore.locale` / `appStore.componentSize` 取值。它就是唯一的一层 —— 谁在子树里新挂一层 `ConfigProvider` 却忘了传 `locale`，就会出现"主体已切英文、包内组件仍是中文"这种半套状态。API 见 [公共组件](/components/common-ui)。:::
 
 `useLocaleSync()` 是**唯一**做这个展开的地方（App.vue 调用），任何组件都不该再自己写 `i18n.global.locale`。
 

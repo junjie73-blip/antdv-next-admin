@@ -27,7 +27,9 @@ The first four live in `@antdv/stores` (`packages/stores/src/`); the last two ar
 
 ::: warning
 
-Two barrels, don't use the wrong one The `@antdv/stores` barrel exports all five modules: `packages/stores/src/index.ts:1-5` (app / route / session / tabs / user). `apps/web/src/stores/index.ts:1-2` only re-exports auth / dict, so those four are **not** reachable via `~/stores` — app code does `import { useUserStore } from '@antdv/stores'` uniformly, and private stores come from `~/stores`. :::
+Two barrels, don't use the wrong one The `@antdv/stores` barrel exports all five modules: `packages/stores/src/index.ts:1-5` (app / route / session / tabs / user). `apps/web/src/stores/index.ts:1-2` only re-exports auth / dict, so those four are **not** reachable via `~/stores` — app code does `import { useUserStore } from '@antdv/stores'` uniformly, and private stores come from `~/stores`.
+
+:::
 
 ## Conventions
 
@@ -51,7 +53,9 @@ The `cache` join rule is `` `${prefix}_${key}` ``, where prefix is injected at s
 
 ::: warning
 
-`VITE_NAMESPACE` is a dead variable it only appears in `apps/web/.env:1`, `apps/web/types/env.d.ts:28` and this document — **no code path reads it**. To isolate localStorage per environment you currently only have the `VITE_APP_TITLE` prefix (changing the title invalidates all old caches; that is its real effect). Don't expect a namespace to give you per-tab isolation. :::
+`VITE_NAMESPACE` is a dead variable it only appears in `apps/web/.env:1`, `apps/web/types/env.d.ts:28` and this document — **no code path reads it**. To isolate localStorage per environment you currently only have the `VITE_APP_TITLE` prefix (changing the title invalidates all old caches; that is its real effect). Don't expect a namespace to give you per-tab isolation.
+
+:::
 
 ## The app store is a façade over preferences, not a second copy of state
 
@@ -79,4 +83,6 @@ See [Theming & preferences](/en/guide/in-depth/theme).
 
 ::: tip
 
-Adding a new store Write app-level state following `apps/web/src/stores/modules/dict.ts`; only cross-package-shared state goes into `packages/stores/src/`: a setup store, a stable id as the first arg of `defineStore('xxx')`, explicit `cache.setItem` in a `watch` when it must persist, add the key to `CacheKey` in `packages/enums/src/cache.ts`, and hook cleanup into logout (or register via `onSessionReset`). Don't forget to sync the exports in `packages/stores/src/index.ts` or `apps/web/src/stores/index.ts`. :::
+Adding a new store Write app-level state following `apps/web/src/stores/modules/dict.ts`; only cross-package-shared state goes into `packages/stores/src/`: a setup store, a stable id as the first arg of `defineStore('xxx')`, explicit `cache.setItem` in a `watch` when it must persist, add the key to `CacheKey` in `packages/enums/src/cache.ts`, and hook cleanup into logout (or register via `onSessionReset`). Don't forget to sync the exports in `packages/stores/src/index.ts` or `apps/web/src/stores/index.ts`.
+
+:::

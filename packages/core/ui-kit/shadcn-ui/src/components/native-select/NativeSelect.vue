@@ -3,9 +3,9 @@ import type { AcceptableValue } from 'reka-ui';
 
 import type { HTMLAttributes } from 'vue';
 
-import { cn } from '@antdv/shared/utils/cn';
 import { ChevronDownIcon } from '@lucide/vue';
 import { reactiveOmit, useVModel } from '@vueuse/core';
+import { cn } from 'cn';
 
 defineOptions({
   inheritAttrs: false,

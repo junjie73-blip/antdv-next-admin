@@ -12,7 +12,9 @@
 
 ::: tip
 
-自动导入不负责本仓库的包 `internal/vite-config/src/plugins/auto-import.ts` 只注入框架 API。`import { cn } from '@antdv/shared/utils/cn'` 这类写法必须自己写（同[基础概念](/guide/essentials/concepts)）。:::
+自动导入不负责本仓库的包 `internal/vite-config/src/plugins/auto-import.ts` 只注入框架 API。`import { cn } from '@antdv/shared/utils/cn'` 这类写法必须自己写（同[基础概念](/guide/essentials/concepts)）。
+
+:::
 
 ## 子路径即模块
 
@@ -34,7 +36,9 @@ import { menuKeyOf } from '@antdv/utils/menu';
 
 ::: warning
 
-通配符入口只属于走 dist 的包 只有 `@antdv/shared` 与 `@antdv/hooks` 有 `"./*"`。给源码包加通配符会让 `import type` 的解析路径也跟着变宽，类型检查与打包器看到的不是同一张表。:::
+通配符入口只属于走 dist 的包 只有 `@antdv/shared` 与 `@antdv/hooks` 有 `"./*"`。给源码包加通配符会让 `import type` 的解析路径也跟着变宽，类型检查与打包器看到的不是同一张表。
+
+:::
 
 ## `@antdv/shared` 清单
 
@@ -65,7 +69,9 @@ import { menuKeyOf } from '@antdv/utils/menu';
 
 ::: warning
 
-两件事已经从 shared 搬走了 菜单树与 key 体系（`menuKeyOf`、`attachMenuPaths`、`MenuPathRouter`）现在在 `packages/utils/src/menu.ts:28,258,393`，同包的 `theme-mode.ts` 管主题模式解析与系统深色探测 —— 因为 `@antdv/shared` 不许依赖 `@antdv/types` 之外的菜单词汇表，而 `@antdv/utils` 只吃这两个包。`utils/welcome.ts`（登录欢迎提示）整个文件已经不存在，别按名字找。:::
+两件事已经从 shared 搬走了 菜单树与 key 体系（`menuKeyOf`、`attachMenuPaths`、`MenuPathRouter`）现在在 `packages/utils/src/menu.ts:28,258,393`，同包的 `theme-mode.ts` 管主题模式解析与系统深色探测 —— 因为 `@antdv/shared` 不许依赖 `@antdv/types` 之外的菜单词汇表，而 `@antdv/utils` 只吃这两个包。`utils/welcome.ts`（登录欢迎提示）整个文件已经不存在，别按名字找。
+
+:::
 
 ## `@antdv/hooks` 清单
 
@@ -101,7 +107,9 @@ SSE 与 WebSocket 不在这里。实时通信的代码统一收在 `@antdv/reque
 
 ::: warning
 
-包里的组件不能反向 import 应用 通知、全局搜索这类小部件迁进 `packages/layouts` 以后，不能再直接 `import '~/api'` / `'~/utils/ws'`（包反向依赖应用就是循环）。所有"只有应用才知道的能力"从 `apps/web/src/plugins/layouts-host.ts` 一次性注入：`:9` 拿 ws 通道、`:6` 拿语言候选、`:5` 拿通知接口；`:17-19` 解释了为什么它单独一个文件而不并进 `ui-runtime.ts`（`test/setup.ts` 会调用后者，而 setup 比用例里的 `vi.mock` 先执行，摸过的模块之后 mock 不掉）。:::
+包里的组件不能反向 import 应用 通知、全局搜索这类小部件迁进 `packages/layouts` 以后，不能再直接 `import '~/api'` / `'~/utils/ws'`（包反向依赖应用就是循环）。所有"只有应用才知道的能力"从 `apps/web/src/plugins/layouts-host.ts` 一次性注入：`:9` 拿 ws 通道、`:6` 拿语言候选、`:5` 拿通知接口；`:17-19` 解释了为什么它单独一个文件而不并进 `ui-runtime.ts`（`test/setup.ts` 会调用后者，而 setup 比用例里的 `vi.mock` 先执行，摸过的模块之后 mock 不掉）。
+
+:::
 
 ## 硬边界：包不许碰 pinia / 应用别名 / env
 
@@ -162,7 +170,9 @@ pnpm --filter @antdv/shared build      # 或 @antdv/hooks / @antdv/preferences �
 
 ::: warning
 
-症状是"改了没反应，也不报错" 表现：改 `packages/core/base/shared/src/**` → 保存 → 页面行为与类型都纹丝不动。原因是 Vite 的依赖缓存与 `optimizeDeps` 都指向 dist。先 `build` 再重启，别在应用侧绕开包自己抄一份实现。:::
+症状是"改了没反应，也不报错" 表现：改 `packages/core/base/shared/src/**` → 保存 → 页面行为与类型都纹丝不动。原因是 Vite 的依赖缓存与 `optimizeDeps` 都指向 dist。先 `build` 再重启，别在应用侧绕开包自己抄一份实现。
+
+:::
 
 ## 相关页面
 

@@ -67,11 +67,15 @@ describe('@antdv/icons —— 导出面', () => {
   });
 
   it('不再暴露 loading / scrollbar 子路径', () => {
+    // 名单仍然是精确对照（多一个陌生子路径就红）。`./style.css` 是内容登记随包走后
+    // 每个带模板的包都必须有的出口：本包 src/index.css 只写 `@source './';`，
+    // 由 apps/web/src/styles/index.css 装配。守门在 @antdv/hooks 的 boundary.test.ts。
     expect(Object.keys(manifest.exports)).toEqual([
       '.',
       './*',
       './icon',
       './package.json',
+      './style.css',
     ]);
   });
 });

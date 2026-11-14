@@ -3,9 +3,9 @@ import type { AccordionTriggerProps } from 'reka-ui';
 
 import type { HTMLAttributes } from 'vue';
 
-import { cn } from '@antdv/shared/utils/cn';
 import { ChevronDown } from '@lucide/vue';
 import { reactiveOmit } from '@vueuse/core';
+import { cn } from 'cn';
 import { AccordionHeader, AccordionTrigger } from 'reka-ui';
 
 const props = defineProps<

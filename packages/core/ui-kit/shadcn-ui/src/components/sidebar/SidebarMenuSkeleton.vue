@@ -3,7 +3,8 @@ import type { HTMLAttributes } from 'vue';
 
 import { computed } from 'vue';
 
-import { cn } from '@antdv/shared/utils/cn';
+import { cn } from 'cn';
+import { useId } from 'reka-ui';
 
 import { Skeleton } from '../skeleton';
 
@@ -12,8 +13,14 @@ const props = defineProps<{
   class?: HTMLAttributes['class'];
 }>();
 
+// Derive the width from a stable id so server and client render the same value
+const id = useId();
 const width = computed(() => {
-  return `${Math.floor(Math.random() * 40) + 50}%`;
+  let hash = 0;
+  for (const char of id) hash = Math.imul(hash, 31) + char.charCodeAt(0);
+  hash = Math.imul(hash ^ (hash >>> 16), 0x4_5d_9f_3b);
+  hash ^= hash >>> 16;
+  return `${((hash >>> 0) % 40) + 50}%`;
 });
 </script>
 

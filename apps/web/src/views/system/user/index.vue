@@ -19,8 +19,8 @@ import { BasicModal, message, useModal } from '@antdv/popup-ui';
 import { Button } from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/utils/cn';
 import { BasicTable, useTable } from '@antdv/table-ui';
+import * as XLSX from '@e965/xlsx';
 import { Icon } from '@iconify/vue';
-import * as XLSX from 'xlsx';
 import {
   addUser,
   deleteUser,

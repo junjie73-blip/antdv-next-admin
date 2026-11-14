@@ -1,8 +1,8 @@
 # Design tokens and global styles (`@antdv/design`)
 
-Styles have exactly **one path**: Tailwind CSS v4 + the CSS variable tokens of `@antdv/design` + a very thin layer of custom CSS. The repo has no SCSS / Less source files, and no second global style entry.
+Styles have exactly **one path**: Tailwind CSS v4 + the CSS variable tokens of `@antdv/design` + a very thin layer of custom CSS. The repo has no SCSS / Less source files. There is also exactly one **Tailwind root** (the single style graph that really participates in utility generation): `apps/web/src/styles/index.css`, which first `@import`s `@antdv/design` for the design spec and then `@import`s each component package's style entry one by one (see the content-registration section below).
 
-`@antdv/design` (`packages/core/base/design`) **is** that token-and-style layer; its boundary is stated in the `description` field of `packages/core/base/design/package.json:4`: **variables and CSS only — no component logic, and no awareness of any component library**. A component's own styles travel with the component, in `packages/core/ui-kit/*` and `packages/core/base/icons`; this package only registers their Tailwind scan paths (see the `@source` section below).
+`@antdv/design` (`packages/core/base/design`) **is** that token-and-style layer; its boundary is stated in the `description` field of `packages/core/base/design/package.json:4`: **variables and CSS only — no component logic, no awareness of any component library, and no custody of any sub-package's content registration**. A component's own styles travel with the component: every package that has templates owns a `src/index.css` containing nothing but `@source './';` (registering its own scan scope), published through `exports['./style.css']` and pulled into the single root by the app-side assembly entry.
 
 ## What it contains
 
@@ -12,7 +12,7 @@ There are exactly two second-level directories, split on **variable or rule**: `
 packages/core/base/design/
 ├─ package.json              named @antdv/design, exports are .css-granular
 └─ src/
-   ├─ index.css         ← the only entry, imported once in apps/web/src/main.ts:43
+   ├─ index.css         ← the only entry, imported once by apps/web/src/styles/index.css
    ├─ token/                 theme tokens — variable declarations only
    │  ├─ default.css         light: `:root` / `.light` + 13 `[data-theme]` preset palettes
    │  ├─ dark.css            dark: `.dark` + the same 13 `[data-theme]` preset palettes
@@ -27,17 +27,19 @@ packages/core/base/design/
 
 Light and dark are **two independent value sets**, not "light with a few tweaks": the name lists must line up entry by entry (one missing dark declaration and switching to dark gives you a white-background, black-text overlay), while the values themselves may differ completely. The mapping exists once, in `token/index.css` — the theme files know nothing about the Tailwind contract, and adding a variable while forgetting its mapping fails silently exactly like a missing `@source` registration. That is why three invariants (list parity, variable ↔ mapping bijection, "variables only" inside `token/`) are pinned in `__tests__/design.test.ts`.
 
-`src/index.css` imports the token entry plus the five css parts (the CSS spec only allows `@import` before ordinary rules, which is why they must come ahead of `@layer` / `@source` / `@plugin` — see the comment at `index.css:25`). Each part can also be pulled on its own: the `exports` map in `package.json` publishes `.`, `./index.css`, `./token`, `./token/index.css`, `./token/default.css`, `./token/dark.css`, `./css/base.css`, `./css/nprogress.css`, `./css/a11y.css`, `./css/permission.css`, `./css/scrollbar.css` and `./package.json`, so `@antdv/design/token` works when you want the variables but not the entry.
+`src/index.css` imports the token entry plus the five css parts (the CSS spec only allows `@import` before ordinary rules, which is why they must come ahead of `@layer` / `@plugin` — see the comment at `index.css:23`). Each part can also be pulled on its own: the `exports` map in `package.json` publishes `.`, `./index.css`, `./token`, `./token/index.css`, `./token/default.css`, `./token/dark.css`, `./css/base.css`, `./css/nprogress.css`, `./css/a11y.css`, `./css/permission.css`, `./css/scrollbar.css` and `./package.json`, so `@antdv/design/token` works when you want the variables but not the entry.
 
 ::: warning What `@antdv/design` does not contain
 
 - **No components**: the package has not a single `.vue` file and no `src/index.ts`. The shared display components (Card, Tag, Steps …) live in `@antdv/common-ui`, the icon atoms in `@antdv/icons`; the comment at `index.css:18` states exactly this boundary.
 - **No component-library awareness**: it imports no JS from any component library and no style compatibility layer either — every token and rule is owned by this package, so renaming or swapping a component library never requires a change here. The two leftover `.ant-upload` cursor rules (antd forgot `cursor: pointer` on its upload trigger) retired together with that DOM, and the boundary is now **nailed shut from the other side**: outside comments, `.ant-` may not appear in the global partials (`__tests__/design.test.ts:528-529`), with separate guards for `--ant-` and the `-ant-` utility family (`:461`, `:464`). Every clickable element's cursor is attached by this package, by tag and by `role` (`css/base.css:123-129` buttons, `:154-164` checkbox/radio/select, `:175-192` the ARIA role group, `:144-148` `<a href>`), so nothing relies on a browser user-agent stylesheet any more.
-- **No business styling**: thin shells that need a store (for instance `packages/layouts/src/basic/content/page-loading.vue`) stay in the app and are never moved here. :::
+- **No business styling**: thin shells that need a store (for instance `packages/layouts/src/basic/content/page-loading.vue`) stay in the app and are never moved here.
+
+:::
 
 ## The layer order is declared explicitly
 
-`packages/core/base/design/src/index.css:27-52`:
+`packages/core/base/design/src/index.css`:
 
 ```css
 @layer theme, base, components, utilities;
@@ -47,9 +49,7 @@ Light and dark are **two independent value sets**, not "light with a few tweaks"
 @import './css/base.css';
 /* …css/nprogress · css/a11y · css/permission · css/scrollbar */
 
-@source '../../icons/src';
-@source '../../../ui-kit/common-ui/src';
-/* …form-ui / layout-ui / menu-ui / popup-ui / shadcn-ui / table-ui / tabs-ui */
+/* component packages' utility classes are NOT registered here: the list travels with each package */
 
 @plugin "@tailwindcss/typography";
 @plugin "@tailwindcss/nesting";
@@ -59,17 +59,26 @@ Light and dark are **two independent value sets**, not "light with a few tweaks"
 
 - The layer list has **no slot for a component library**: this package yields to none. `utilities` comes last, which is what lets utility classes in templates override `components`-layer rules (the self-drawn `Scrollbar` and the layout shells both depend on it).
 - The `dark` variant is bound to the `.dark` class (written on `html` by the preferences), not to a media query — so under `theme: 'auto'` Tailwind and the component library see the same result.
-- `apps/web` keeps no `global.css` of its own; the reason is in the comment at `main.ts:39-42`: global styles belong to `@antdv/design`.
+- `apps/web` keeps no `global.css`, but it **does keep one style assembly entry**, `src/styles/index.css`: the site's only Tailwind root, imported exactly once at `main.ts:46` (the reason is in the comment at `main.ts:39-45`).
 
 Tailwind is wired in through `@tailwindcss/vite` (`internal/vite-config/src/plugins/vue.ts`), with the version coming from the catalog (`pnpm-workspace.yaml`).
 
-## `@source`: why every component package has to be registered
+## Content registration: three rings, each living somewhere else
 
-Tailwind v4's automatic content detection starts at the **build root**, and the app-side build root is `apps/web`, while every `@antdv/*` package sits in `packages/` at the repository root (symlinked into `node_modules`, and therefore outside detection). So the utility classes inside component packages must be **registered package by package** in the entry CSS (the comment at `index.css:20-23` records the symptom).
+Tailwind v4's automatic content detection starts at the **build root**, and the app-side build root is `apps/web`, while every `@antdv/*` package sits in `packages/` at the repository root (symlinked into `node_modules`, and therefore outside detection). So the utility classes inside component packages must be **registered explicitly with `@source`**. What a missing registration looks like: "the component renders but has no styles" — the sidebar stays white and un-indented, the tab bar collapses into one line, a drawer lands outside the viewport — **with no error at all and a green build**.
 
-- What a missing registration looks like: "the component renders but has no styles" — the sidebar stays white and un-indented, the tab bar collapses into one line — **with no error at all**.
-- What is registered today: `packages/core/base/icons/src` plus the eight `src` directories under `packages/core/ui-kit/*`.
-- Adding a new ui-kit sub-package, or writing a fresh set of utility classes into an existing one, **means editing this `@source` list in the same change**; adding the package without the registration is the laziest way to get "the build passes and the page is unstyled". `__tests__/design.test.ts` cross-checks the registrations against the directory listing and compares **resolved absolute paths** — after a package move a stale `@source` would point at nothing, and comparing the literal relative strings would happily pass.
+Registration is split into three rings, each living in its own place. This list **used to be centralized in `design/src/index.css`** (45 lines, comment included, deleted wholesale once by a refactor commit that had nothing to do with styles — the symptoms were exactly the ones above):
+
+| Ring | Where | What |
+| --- | --- | --- |
+| ① the package declares what to scan | `<pkg>/src/index.css` | one line, `@source './';` — the scan scope travels with the feature module |
+| ② the package publishes the entry | `exports['./style.css']` in `<pkg>/package.json` | points at `./src/index.css`; the library build in `internal/vite-config` derives a CSS entry from it (the artifact name drops the extension, `dist/style.css`) |
+| ③ the app pulls them into one root | `apps/web/src/styles/index.css` | starts with `@import '@antdv/design';`, then one `@import '<pkg>/style.css'` per package (`layouts` / `icons` first, then `ui-kit/*` in alphabetical package-name order) — 15 in total |
+
+- **The assembly must be a CSS `@import`, not a per-package JS `import` in `main.ts`**: a file that only carries `@source` **does not constitute a Tailwind root on its own** (measured: `features=0`, a 13-byte artifact, zero utilities), so entering through the JS module graph is the same as not registering at all. An `@import` is inlined into the one root, and only then does the registration take part in scanning. For the same reason `@antdv/design` is imported exactly once — repeating something it already imports, such as `@import 'tw-animate-css'`, emits that CSS twice (measured: +1746 bytes).
+- **Adding a sub-package with templates** means changing all three rings in the same commit: create `src/index.css`, add `exports['./style.css']`, append one line to the assembly entry. Missing the third ring is what silently stops that package's utilities from being generated.
+- **The default ui sub-package `@antdv/shadcn-ui` is additionally allowed to import its own CSS in the barrel** (`import './index.css';` in `src/index.ts`). That is a hole opened deliberately in this round, but it **does not replace** the assembly: a self-import is inert with respect to `@source`, and letting every package self-import would only stuff the page with empty stylesheets that constitute no root. The hole is open to that one package only, guarded by `boundary.test.ts` in `@antdv/hooks`.
+- Guard tests (the criterion is the **test-case title**; line numbers drift): `design.test.ts` in `@antdv/design`, "the entry no longer keeps custody of any sub-package's content registration: not one `@source` left"; `boundary.test.ts` in `@antdv/hooks`, "every package with `.vue` files registers its own `@source`, exposes `./style.css`, and is imported by the app entry" and "only the default ui sub-package may self-import CSS in its barrel, and it must be its own style entry". Same criterion as a quick health check: `node <skill-dir>/scripts/check-repo.mjs --only @source`.
 - Conversely, a package that expands its utility classes into equivalent native CSS inside `@layer components` — the way `Scrollbar` does in the `<style>` block of `packages/core/ui-kit/common-ui/src/components/scrollbar/Scrollbar.vue` — does not depend on this registration, which is exactly what makes it safe to consume standalone.
 
 ## How to use the variable tokens
@@ -129,11 +138,15 @@ Tailwind only understands literal class names
 
 - A class name must be **a complete string as it appears in the source**. Concatenation (`text-${color}-500`), building a step name out of variables, or writing classes in a directory that `@source` does not cover all produce **no CSS and no error**.
 - Do not write `cn(...)` in a template attribute with a **trailing comma**; the form used across the component packages is to collapse it into a `computed` in `<script setup>` and let the template reference the variable — that is how every component in `packages/core/ui-kit/common-ui` does it, which keeps expressions out of the template and keeps the class strings literal.
-- Status-to-color mappings go through a **lookup table** (`Record<string, string>` whose values are full class strings), never `cn('text-' + tone)`. See the `STATUS_DOT` / `CIRCLE` / `PRESET` constants in `packages/core/ui-kit/common-ui/src/components/badge/Badge.vue`, `steps/Steps.vue` and `tag/Tag.vue`. :::
+- Status-to-color mappings go through a **lookup table** (`Record<string, string>` whose values are full class strings), never `cn('text-' + tone)`. See the `STATUS_DOT` / `CIRCLE` / `PRESET` constants in `packages/core/ui-kit/common-ui/src/components/badge/Badge.vue`, `steps/Steps.vue` and `tag/Tag.vue`.
+
+:::
 
 ::: warning
 
-Do not pad the outer container of a route page. Content padding belongs to the layout; a page that adds its own layer doubles it when the layout shape changes. See [Local development](/en/guide/essentials/development) and [Layout and tabs](/en/guide/in-depth/layout). :::
+Do not pad the outer container of a route page. Content padding belongs to the layout; a page that adds its own layer doubles it when the layout shape changes. See [Local development](/en/guide/essentials/development) and [Layout and tabs](/en/guide/in-depth/layout).
+
+:::
 
 Do not pin colors. There is now exactly **one** primary-colour chain: the preference is folded into `--primary` on `<html>` by `applyPreferencesToDom()` (`packages/core/preferences/src/update-css-variables.ts:39`) — only a hand-picked colour is inlined, a preset hands the whole palette to `[data-theme]` — and `@theme inline` maps it onto the `bg-primary` family, so content inside the page and overlays portalled to `body` resolve the same value; one screen cannot contain two oranges. Test assertions must still not name concrete color values — assert under light mode, or assert the _same-source relation_ (two elements' computed colours are equal). Details in [Theming](/en/guide/in-depth/theme).
 
@@ -155,7 +168,9 @@ The guarding is split in two, each covering the dimension the other cannot:
 
 ::: warning Known debt (not in the list, not covered by the sweep)
 
-Outside the list there are still **38 files / 289 lines** of hard-coded neutral utilities (measured with the guard's own criteria: same regex, comments stripped first, same file list) — concentrated in the `views/components/**` example pages, worst first: editor 37 lines, upload 28, loading 26, modal-drawer 26, image-crop 19, drag-layout 16, scroll 14, count-to 12 — plus 13 lines across `views/error/{403,404,503}.vue`, 8 in `views/micro-app/SubAppView.vue` and 10 in `views/screen/**`. Those are examples and error pages, deliberately left out of this pass. A new business page should start from the skeleton the listed pages use (`apps/web/src/views/system/user/index.vue` is the reference page) and add its path to `PAGES` in `page-shell-convention.spec.ts`. :::
+Outside the list there are still **38 files / 289 lines** of hard-coded neutral utilities (measured with the guard's own criteria: same regex, comments stripped first, same file list) — concentrated in the `views/components/**` example pages, worst first: editor 37 lines, upload 28, loading 26, modal-drawer 26, image-crop 19, drag-layout 16, scroll 14, count-to 12 — plus 13 lines across `views/error/{403,404,503}.vue`, 8 in `views/micro-app/SubAppView.vue` and 10 in `views/screen/**`. Those are examples and error pages, deliberately left out of this pass. A new business page should start from the skeleton the listed pages use (`apps/web/src/views/system/user/index.vue` is the reference page) and add its path to `PAGES` in `page-shell-convention.spec.ts`.
+
+:::
 
 ## stylelint status
 

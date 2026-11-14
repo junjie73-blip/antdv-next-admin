@@ -6,8 +6,8 @@ import type { MessageScrollerButtonDirection } from './useMessageScroller';
 
 import { computed } from 'vue';
 
-import { cn } from '@antdv/shared/utils/cn';
 import { ArrowDownIcon } from '@lucide/vue';
+import { cn } from 'cn';
 
 import { Button } from '../button';
 import {

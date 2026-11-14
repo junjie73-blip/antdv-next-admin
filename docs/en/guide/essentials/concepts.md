@@ -26,7 +26,9 @@ Evidence: the `main` field of each `packages/**/package.json` (base layer under 
 
 ::: warning
 
-You edited a dist-published package and nothing changed This is the most common "I clearly changed it" in this repository. Vite's dependency cache and `optimizeDeps` both point at `dist`, so `src` is simply not in the build graph. You edit, save, and see nothing — and get no error either. :::
+You edited a dist-published package and nothing changed This is the most common "I clearly changed it" in this repository. Vite's dependency cache and `optimizeDeps` both point at `dist`, so `src` is simply not in the build graph. You edit, save, and see nothing — and get no error either.
+
+:::
 
 Being source-published has a cost: those packages have no `build` script at all (`packages/core/base/icons/package.json` only defines `clean` / `test:unit` / `type-check`), and their `<script setup>` blocks are compiled by the app's `@vitejs/plugin-vue`. So they cannot be consumed outside a Vite build.
 
@@ -49,7 +51,9 @@ The one exception is `packages/utils/src/menu.ts:3`, which imports a **type** fr
 
 ::: tip
 
-Where new code goes Relevant to one page only → inside that page's `views/<module>/<page>/` directory. App-wide but app-specific (stores, api, ws) → the matching folder under `apps/web/src/`. Pure functions that another project could reuse → `packages/core/base/shared` or `packages/core/hooks`. Requires pinia, the router, or backend data to work → keep a thin shell in the app and let the package receive the capability as an argument. :::
+Where new code goes Relevant to one page only → inside that page's `views/<module>/<page>/` directory. App-wide but app-specific (stores, api, ws) → the matching folder under `apps/web/src/`. Pure functions that another project could reuse → `packages/core/base/shared` or `packages/core/hooks`. Requires pinia, the router, or backend data to work → keep a thin shell in the app and let the package receive the capability as an argument.
+
+:::
 
 ## Aliases and auto-import
 

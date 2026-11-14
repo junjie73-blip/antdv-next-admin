@@ -3,9 +3,9 @@ import type { MenubarRadioItemEmits, MenubarRadioItemProps } from 'reka-ui';
 
 import type { HTMLAttributes } from 'vue';
 
-import { cn } from '@antdv/shared/utils/cn';
 import { Circle } from '@lucide/vue';
 import { reactiveOmit } from '@vueuse/core';
+import { cn } from 'cn';
 import {
   MenubarItemIndicator,
   MenubarRadioItem,

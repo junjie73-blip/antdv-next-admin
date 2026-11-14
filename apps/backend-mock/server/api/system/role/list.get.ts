@@ -1,4 +1,5 @@
 import { ROLE_DB } from '../../../utils/db/role';
+import { paginateList } from '../../../utils/pagination';
 import { success } from '../../../utils/response';
 import { defineMockRoute } from '../../../utils/runtime';
 
@@ -22,10 +23,7 @@ export default defineMockRoute({
       filtered = filtered.filter((r) => r.status === Number(status));
     }
 
-    return success(
-      { list: filtered, total: filtered.length },
-      '获取角色列表成功',
-    );
+    return success(paginateList(filtered, query), '获取角色列表成功');
   },
   method: 'GET',
   path: '/system/role/list',

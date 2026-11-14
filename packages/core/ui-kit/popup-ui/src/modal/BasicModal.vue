@@ -1,7 +1,16 @@
 <script setup lang="ts">
 import type { ModalInnerMethods, ModalMethods, ModalProps } from '../types';
 
-import { computed, onMounted, ref, useId, useSlots, watch } from 'vue';
+import {
+  computed,
+  getCurrentInstance,
+  onDeactivated,
+  onMounted,
+  ref,
+  useId,
+  useSlots,
+  watch,
+} from 'vue';
 
 import {
   Button,
@@ -16,6 +25,7 @@ import { Check, X } from '@lucide/vue';
 import { useTimeoutFn } from '@vueuse/core';
 
 import { resolvePopupButton } from '../shared/button';
+import { resolveConfirmHandler } from '../shared/confirm';
 import { isFocusOutsideEvent } from '../shared/dismiss';
 import { CLOSED_PANEL_INERT } from '../shared/presence';
 import ModalWrapper from './ModalWrapper.vue';
@@ -45,6 +55,8 @@ const emit = defineEmits<{
 }>();
 
 const slots = useSlots();
+/** setup 同期抓取：事件回调里 getCurrentInstance() 已为 null */
+const vm = getCurrentInstance();
 
 const modalId = useId();
 const modalTitleId = `${modalId}-title`;
@@ -77,7 +89,10 @@ const contentStyle = computed(() => ({
 
 const contentClass = computed(() =>
   cn(
-    'basic-modal max-w-none! gap-0 p-0',
+    // 与 BasicDrawer 同构：整体作为 flex 纵向列、并给一个视口上限，由 ModalWrapper
+    // 的 `flex-1 min-h-0` 精确填满头/脚之间的剩余空间并内部滚动 —— 旧实现靠
+    // `maxHeight: windowHeight - 200` 拍脑袋估值，长表单会被视口或底部按钮裁掉。
+    'basic-modal flex max-h-[90vh] max-w-none! flex-col gap-0 overflow-hidden p-0',
     CLOSED_PANEL_INERT,
     merged.value.centered
       ? ''
@@ -136,6 +151,22 @@ onMounted(() => {
   scheduleRegister();
 });
 
+/**
+ * 页面被 `<KeepAlive>` 缓存时，组件的根 DOM 会被搬进缓存容器，
+ * 但 Teleport 到 body 的 DialogContent 不会被一起搬走 —— 表现是「在用户管理
+ * 打开新增弹窗 → 切到字典管理，弹窗和蒙层仍盖在新页面上」。
+ * 这里在缓存失活时强制收起，且不经过 closeFunc（切页不是取消操作，不该被
+ * 「有未保存内容」的守卫拦下来）。
+ */
+onDeactivated(() => {
+  if (!visibleRef.value) return;
+  visibleRef.value = false;
+  okLoadingRef.value = false;
+  loadingRef.value = false;
+  emit('visibleChange', false);
+  emit('update:open', false);
+});
+
 watch(
   () => props.open,
   (val) => {
@@ -144,9 +175,36 @@ watch(
   { immediate: true },
 );
 
+/**
+ * 确认按钮：loading 的生命周期跟「提交函数」严格对齐。
+ *
+ * 旧实现是 `okLoading=true; emit('ok')`，emit 不返回 listener 的 Promise，
+ * 于是校验不通过（BasicForm.validate 会抛 FormValidateError）或接口报错时，
+ * 没有任何人把 loading 关掉 —— 按钮永久转圈、禁用，用户只能关掉重开。
+ * 现在自己 await 业务回调，`finally` 无条件复位。
+ *
+ * 提交回调 reject 属于**正常业务分支**而不是组件异常：表单校验失败、接口 4xx/5xx
+ * 都由调用方用 `message.error` / 字段红字提示了。这里把弹层留在原地等重试即可，
+ * 不能再把错误抛回事件循环（Vue 会打「Unhandled error during execution of
+ * native event handler」，普通校验失败也满屏红字）。
+ */
 async function handleOk(e: MouseEvent) {
+  if (okLoadingRef.value) return;
   okLoadingRef.value = true;
-  emit('ok', e);
+  try {
+    const handler = resolveConfirmHandler(merged.value.onOk, vm);
+    if (handler) {
+      await handler(e);
+    } else {
+      // 没有业务回调时保留纯事件语义（父组件只监听 @ok / 单测 emitted('ok')）
+      emit('ok', e);
+    }
+  } catch {
+    // 提交未成功：保持弹层打开，用户可修正后重试（无操作，仅吞掉业务失败）
+  } finally {
+    // closeModal 里也会复位；这里再置一次是幂等的，专门兜住失败路径
+    okLoadingRef.value = false;
+  }
 }
 
 async function handleCancel(e?: MouseEvent) {

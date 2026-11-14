@@ -5,8 +5,8 @@ import type { HTMLAttributes } from 'vue';
 
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 
-import { cn } from '@antdv/shared/utils/cn';
 import { reactiveOmit, useCurrentElement } from '@vueuse/core';
+import { cn } from 'cn';
 import { ListboxItem, useForwardPropsEmits, useId } from 'reka-ui';
 
 import { useCommand, useCommandGroup } from '.';

@@ -3,7 +3,7 @@ import type { HTMLAttributes } from 'vue';
 
 import { toValue } from 'vue';
 
-import { cn } from '@antdv/shared/utils/cn';
+import { cn } from 'cn';
 import { ErrorMessage } from 'vee-validate';
 
 import { useFormField } from './useFormField';

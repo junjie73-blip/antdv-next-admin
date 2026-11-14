@@ -63,4 +63,6 @@ For each documented component, in this order: **what problem it solves** → **t
 
 ::: warning
 
-Defects stay in the text `setModalProps` and `setDrawerProps` are silent no-ops, `useDrawerInner` is only an alias of `useDrawer`, and `changeOkLoading` on a modal is unreachable. Each of these was verified in behaviour, and the file:line is cited in the relevant section. They are not documented as working APIs — the demo pages themselves print these caveats in the UI. :::
+Defects stay in the text `setModalProps` and `setDrawerProps` are silent no-ops, `useDrawerInner` is only an alias of `useDrawer`, and `changeOkLoading` on a modal is unreachable. Each of these was verified in behaviour, and the file:line is cited in the relevant section. They are not documented as working APIs — the demo pages themselves print these caveats in the UI.
+
+:::

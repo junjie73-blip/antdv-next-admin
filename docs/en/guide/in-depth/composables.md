@@ -16,7 +16,9 @@ Nothing in this repo is auto-imported `unplugin-auto-import` lists only `vue` / 
 
 Name collisions are nastier than a missing import: `@vueuse/core` already exports `usePermission` (the browser Permissions API) and `useWebSocket`, and both are pre-registered in `apps/web/types/auto-imports.d.ts:232` and `:293`. Forget the import and nothing errors — you just get the other function's return value, and vueuse's `usePermission()` returns a single `{ permissions }` ref with no `hasPermission` method.
 
-`echarts` is deliberately kept out of the `@antdv/hooks` root barrel: it drags in the whole chart registry, and putting it in the root entry would make `import { usePrint }` pay for parsing a chart library (`packages/core/hooks/src/index.ts`; the `exports` map is in `packages/core/hooks/package.json`, where the `"./*"` wildcard is what lets single-file modules be imported by name — `@antdv/hooks/use-print`, `@antdv/hooks/use-crud`). SSE and WebSocket do not live here; they are in `@antdv/request`. :::
+`echarts` is deliberately kept out of the `@antdv/hooks` root barrel: it drags in the whole chart registry, and putting it in the root entry would make `import { usePrint }` pay for parsing a chart library (`packages/core/hooks/src/index.ts`; the `exports` map is in `packages/core/hooks/package.json`, where the `"./*"` wildcard is what lets single-file modules be imported by name — `@antdv/hooks/use-print`, `@antdv/hooks/use-crud`). SSE and WebSocket do not live here; they are in `@antdv/request`.
+
+:::
 
 Barrel coverage is worth memorising too: `apps/web/src/composables/index.ts` now does one thing — it re-exports the whole of `@antdv/request`, so old call sites keep taking `http` / `request` from `~/composables`. `useCRUD` and `usePermission` moved into `@antdv/hooks`, `useLocale` / `useLocaleSync` come from `@antdv/hooks/use-locale` (it is the only hook that pulls in vue-i18n, and putting it in the root barrel makes every `@antdv/hooks` consumer pay for that runtime), while `useNotice` / `usePasswordPolicy` must still be imported by file path:
 
@@ -57,7 +59,9 @@ const [register, tableRef] = useTable({
 | `useModalInner(cb?)` | `modal/useModalInner.ts:21-73` | `[register, ModalInnerMethods]` | used **inside the modal component** |
 | `useDrawer()` | `packages/core/ui-kit/popup-ui/src/drawer/useDrawer.ts:10-57` | `[register, DrawerMethods]` | same shape as `useModal` |
 
-The header comment in `useTable.ts` already shows `tableRef.value?.reload()` (`:18`) — follow it. Also note that `drawer/index.ts:15` exports `useDrawerInner` as a plain **alias** of `useDrawer` (`export { useDrawer as useDrawerInner }`, with the reason in the comment at `:14`); it has none of `useModalInner`'s "receive payload via callback" semantics. Only Modal has a data channel. :::
+The header comment in `useTable.ts` already shows `tableRef.value?.reload()` (`:18`) — follow it. Also note that `drawer/index.ts:15` exports `useDrawerInner` as a plain **alias** of `useDrawer` (`export { useDrawer as useDrawerInner }`, with the reason in the comment at `:14`); it has none of `useModalInner`'s "receive payload via callback" semantics. Only Modal has a data channel.
+
+:::
 
 What happens when the instance isn't there yet also differs per hook, and that decides whether you need a null check:
 
@@ -112,7 +116,9 @@ const [register, { closeModal, setModalProps, changeOkLoading }] =
 
 ::: warning
 
-Lifecycle hooks must be registered during setup The `onUnmounted` in `useModal` / `useDrawer` / `useModalInner` sits at the top level of the hook body, and the comments explain why (`useDrawer.ts:12-23` is the most detailed): `register` is the callback of the child's `emit('register', instance)`. At that moment Vue's `currentInstance` points at the child — or has already been cleared — so calling `onUnmounted` inside the callback only warns, attaches to nothing, and the modal instance stays in the reference forever. Same rule for your own hooks: never hide a lifecycle call inside a callback. :::
+Lifecycle hooks must be registered during setup The `onUnmounted` in `useModal` / `useDrawer` / `useModalInner` sits at the top level of the hook body, and the comments explain why (`useDrawer.ts:12-23` is the most detailed): `register` is the callback of the child's `emit('register', instance)`. At that moment Vue's `currentInstance` points at the child — or has already been cleared — so calling `onUnmounted` inside the callback only warns, attaches to nothing, and the modal instance stays in the reference forever. Same rule for your own hooks: never hide a lifecycle call inside a callback.
+
+:::
 
 ## 2. useCRUD: modal + form + table in one declaration
 
@@ -188,11 +194,15 @@ Return value: refs `isEditing`, `currentRecord`, `loading`, plus `handleAdd` / `
 
 ::: warning
 
-Validation failure vs API failure `handleSave` puts `validate()` and the submit in the same `try`: a rejected validation goes through `message.error`, but the modal **stays open**, `loading` returns to `false`, and the user can fix the field and retry. API 4xx/5xx behave the same way. That's intentional — don't wrap `handleSave` in your own `try/catch` and toast twice. :::
+Validation failure vs API failure `handleSave` puts `validate()` and the submit in the same `try`: a rejected validation goes through `message.error`, but the modal **stays open**, `loading` returns to `false`, and the user can fix the field and retry. API 4xx/5xx behave the same way. That's intentional — don't wrap `handleSave` in your own `try/catch` and toast twice.
+
+:::
 
 ::: warning
 
-handleSave drops empty-string fields Keys whose value is `''` are deleted before submit (`:279-283`). The semantics are "not filled in = don't send this field", which stops optional text inputs from blanking stored values; the flip side is that **you cannot clear a field by leaving it empty** — send `null`, or use an endpoint that explicitly supports clearing. :::
+handleSave drops empty-string fields Keys whose value is `''` are deleted before submit (`:279-283`). The semantics are "not filled in = don't send this field", which stops optional text inputs from blanking stored values; the flip side is that **you cannot clear a field by leaving it empty** — send `null`, or use an endpoint that explicitly supports clearing.
+
+:::
 
 ::: danger
 
@@ -201,7 +211,9 @@ One confirmation per delete — and neither is hand-rolled in the page
 - **Single delete**: `handleDelete` shows no dialog. Confirmation is described by the row action's `ActionItem.popConfirm` (next section), which is the `CODE_STANDARD.md` rule.
 - **Batch delete**: `handleBatchDelete` **includes** one `Modal.confirm` (fixed title 「批量删除」; the `content` is `messages.batchDeleteConfirm` with `（N 条）` appended by the composable). Toolbar buttons have no popconfirm host, so this single confirmation is required — do **not** add another layer in the page.
 
-The confirm dialog's `onOk` is async and non-blocking, so its rejection never reaches the outer `try`; the failure toast therefore lives inside `onOk` (`:239-271` documents exactly this). Also note `loading` only resets in `onOk`'s `finally`: while the dialog is open it stays `true`, intentionally — nothing has been decided yet. :::
+The confirm dialog's `onOk` is async and non-blocking, so its rejection never reaches the outer `try`; the failure toast therefore lives inside `onOk` (`:239-271` documents exactly this). Also note `loading` only resets in `onOk`'s `finally`: while the dialog is open it stays `true`, intentionally — nothing has been decided yet.
+
+:::
 
 ::: warning
 
@@ -214,11 +226,15 @@ function clearSelection() {
 }
 ```
 
-And pass a **snapshot** to `handleBatchDelete` (`[...selectedRows.value]`), not a live array — the confirm dialog is non-blocking, so cancelling or completing the delete would leave the array out of sync with the table (example page: `crud/index.vue:342`). :::
+And pass a **snapshot** to `handleBatchDelete` (`[...selectedRows.value]`), not a live array — the confirm dialog is non-blocking, so cancelling or completing the delete would leave the array out of sync with the table (example page: `crud/index.vue:342`).
+
+:::
 
 ::: danger
 
-The API helpers already unwrapped the envelope `get/post/put/del` in `~/api/request.ts` are `http.Get<R<T>(… ).then(res => res.data)` internally (`api/request.ts:20-56`), i.e. **they resolve to the payload itself**. So `onCreate: (values) => addTask(values)` passes the function straight through — don't add another `.then(res => res.data)`. Unwrapping twice yields `undefined`, whose symptom is "save succeeded but the new row isn't in the table / the edit modal prefills empty". :::
+The API helpers already unwrapped the envelope `get/post/put/del` in `~/api/request.ts` are `http.Get<R<T>(… ).then(res => res.data)` internally (`api/request.ts:20-56`), i.e. **they resolve to the payload itself**. So `onCreate: (values) => addTask(values)` passes the function straight through — don't add another `.then(res => res.data)`. Unwrapping twice yields `undefined`, whose symptom is "save succeeded but the new row isn't in the table / the edit modal prefills empty".
+
+:::
 
 The behaviour is pinned by unit tests: `packages/core/hooks/__tests__/use-crud.test.ts` (23 cases, minimal stubs for the three components that record **call order**, so requirements like "resetFields before setFieldsValue" are actually asserted — getting it wrong shows up as the modal flashing the previous record). Run that file before and after touching `useCRUD`.
 
@@ -319,7 +335,9 @@ await http.Delete('/demo/task/1', undefined, { body: { force: true } }); // DELE
 
 ::: warning
 
-Retries apply to every verb by default The `retries` wrapper sits around `runRequest` and doesn't look at the method (`:363-389`). `isRetryable` only exempts `400_001 / 401_001 / 403_001 / 404_001`; `status === 0` (network down) and any 5xx are retried (`:137-144`). In other words **a 500 on a POST is hammered three times** — non-idempotent create endpoints need an idempotency key on the server, or `retries: 0` on the call site. :::
+Retries apply to every verb by default The `retries` wrapper sits around `runRequest` and doesn't look at the method (`:363-389`). `isRetryable` only exempts `400_001 / 401_001 / 403_001 / 404_001`; `status === 0` (network down) and any 5xx are retried (`:137-144`). In other words **a 500 on a POST is hammered three times** — non-idempotent create endpoints need an idempotency key on the server, or `retries: 0` on the call site.
+
+:::
 
 ### What the interceptors do (four things you need when debugging)
 
@@ -350,7 +368,9 @@ Retries apply to every verb by default The `retries` wrapper sits around `runReq
 
 ::: warning
 
-Two things you have to know 1) **there is no business call site anywhere in the repository** — `useRequest` is only asserted to still be in the export list by `packages/request/__tests__/structure.spec.ts:36,77`. Declarative fetching goes through `@tanstack/vue-query` (`apps/web/src/api/query.ts:1,9,33` wire the hardened fetch into `useQuery`), so don't mix the two in a new page. 2) **`data` is the whole response body, not the payload** — `afterFetch` returns the parsed `payload` unchanged and the executor hands the entire envelope up, so `useRequest().data.value` is `{ code, data, message }`. Check whether an endpoint carries an envelope before binding `:options` straight to it; every mock endpoint here does. :::
+Two things you have to know 1) **there is no business call site anywhere in the repository** — `useRequest` is only asserted to still be in the export list by `packages/request/__tests__/structure.spec.ts:36,77`. Declarative fetching goes through `@tanstack/vue-query` (`apps/web/src/api/query.ts:1,9,33` wire the hardened fetch into `useQuery`), so don't mix the two in a new page. 2) **`data` is the whole response body, not the payload** — `afterFetch` returns the parsed `payload` unchanged and the executor hands the entire envelope up, so `useRequest().data.value` is `{ code, data, message }`. Check whether an endpoint carries an envelope before binding `:options` straight to it; every mock endpoint here does.
+
+:::
 
 `requestCache` (`executor.ts:60-115`) exists for cache management: `clear` / `delete(key)` / `clearByUrl(url)` / `clearByPattern(re)` / `has` / `get` / `set` / `size`, backed by a module-level `Map` with LRU eviction at `MAX_CACHE_SIZE = 200`. Nothing calls it today — when you need "invalidate the list cache right after a write", `invalidate()` is cheaper than manual clearing.
 

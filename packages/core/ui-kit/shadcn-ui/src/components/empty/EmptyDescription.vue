@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from 'vue';
 
-import { cn } from '@antdv/shared/utils/cn';
+import { cn } from 'cn';
 
-defineProps<{
+const props = defineProps<{
   class?: HTMLAttributes['class'];
 }>();
 </script>
@@ -14,7 +14,7 @@ defineProps<{
     :class="
       cn(
         'text-muted-foreground [&>a:hover]:text-primary text-sm/relaxed [&>a]:underline [&>a]:underline-offset-4',
-        $attrs.class ?? '',
+        props.class,
       )
     "
   >

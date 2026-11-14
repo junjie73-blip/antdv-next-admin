@@ -5,7 +5,7 @@ import type { HTMLAttributes } from 'vue';
 
 import type { BubbleVariants } from '.';
 
-import { cn } from '@antdv/shared/utils/cn';
+import { cn } from 'cn';
 import { Primitive } from 'reka-ui';
 
 import { bubbleVariants } from '.';

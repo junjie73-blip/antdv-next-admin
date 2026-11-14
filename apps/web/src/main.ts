@@ -36,11 +36,15 @@ import { initSecuritySystem } from './utils/securityInit';
 
 import './bootstrap/env';
 import 'virtual:svg-icons-register';
+
 /*
- * 全局样式来自 `@antdv/design`（Tailwind 入口 + 基础层 + NProgress + 无障碍 + 权限降级），
- * 应用侧不再维护 global.css。
+ * 全局样式走应用自己的装配入口 `./styles/index.css`：它先引 `@antdv/design`
+ * （Tailwind root + 基础层 + NProgress + 无障碍 + 权限降级），再逐条引各个 ui 子包的
+ * `style.css`（每个包只登记自己的 `@source`）。子包的工具类扫描范围因此跟着功能模块走，
+ * 不再由 design 集中代管；这里必须是唯一一条样式 import —— 分成多条 JS import 会让
+ * 每个包各自成一个"不是 root"的惰性 CSS，工具类静默不生成。
  */
-import '@antdv/design';
+import './styles/index.css';
 
 const app = createApp(App);
 const pinia = createPinia();

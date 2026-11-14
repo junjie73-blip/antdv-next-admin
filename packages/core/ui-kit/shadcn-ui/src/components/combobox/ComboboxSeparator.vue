@@ -3,8 +3,8 @@ import type { ComboboxSeparatorProps } from 'reka-ui';
 
 import type { HTMLAttributes } from 'vue';
 
-import { cn } from '@antdv/shared/utils/cn';
 import { reactiveOmit } from '@vueuse/core';
+import { cn } from 'cn';
 import { ComboboxSeparator } from 'reka-ui';
 
 const props = defineProps<

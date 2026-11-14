@@ -96,7 +96,6 @@ describe('createPlugins 按产物形态分层', () => {
       'unplugin-vue-components',
       'tomjs:iconify',
       'vite:svg-icons',
-      'vite:imagemin',
       'vite-dayjs-plugin',
       'vite:html',
       'vite-plugin-app-loading',

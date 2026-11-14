@@ -3,7 +3,7 @@
   "compilerOptions": {
     // 用例用 vitest 全局（describe / it / expect）；不引 vite/client 的导入元类型，
     // 免得包内一句 `import logo from './x.png'` 就把 vite 变成隐式依赖
-    "types": ["vitest/globals"],
+    "types": ["vite/client", "vitest/globals"],
     "noEmit": true
   },
   "include": [

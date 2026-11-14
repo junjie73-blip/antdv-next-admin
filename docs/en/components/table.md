@@ -26,7 +26,9 @@ Source: `packages/core/ui-kit/table-ui/src/` (`BasicTable.vue` is "contract + as
 | `helpers/cellContent.ts` | the cell-content precedence chain: slot → `customRender` → `format` → editable → image → raw value |
 | `helpers/renderVNode.ts` | `RenderVNode`: rendering `string \| VNode \| array` through one path |
 
-::: tip Why split it this way Modules that need another hook's results — `useStickyColumns` is the obvious one — take them as **parameters** (`getColumn` / `getHeader` / `visibleColumns`) instead of importing a sibling hook. The assembly graph appears exactly once, in `BasicTable.vue`, and unit tests can feed each hook plain fakes. :::
+::: tip
+
+Why split it this way Modules that need another hook's results — `useStickyColumns` is the obvious one — take them as **parameters** (`getColumn` / `getHeader` / `visibleColumns`) instead of importing a sibling hook. The assembly graph appears exactly once, in `BasicTable.vue`, and unit tests can feed each hook plain fakes. :::
 
 ## useTable: registration and instance
 
@@ -148,7 +150,9 @@ The binding logic is at `BasicTable.vue:294-339`: every configuration option pas
 ::: warning Two limits worth knowing
 
 1. **With client-side pagination only the current page is reordered.** When `pagination` is on and the data is a local `dataSource`, row indices only cover the current page — for "the order I drag out is the order of the whole set", set `pagination: false` or use server-side pagination (the literal comment at `types.ts:682-688`).
-2. **The leading-row index offset is defended**: `snapshotRows()` at `hooks/useDragSort.ts:44-59` measures, once before every drag, how many rows precede the first `<tr>` carrying `data-row-key` (it runs in both `filter` and `onStart`, `:101` and `:109`), then restores the data index with `dataIndex(i) = i - leadingRowCount` (`:41-42`); records are looked up by `data-row-key` first, and the index conversion is only the fallback (`:62-67`). The `<tbody>` is drawn by this component (`BasicTable.vue:762`), and the current implementation never inserts a measurement row — the comment at `:21-31` frames it as a defence against "a measurement / placeholder row before the first data row", so this normally returns 0; should a placeholder or group row ever be added before the data rows, this code still does not need to be revisited. :::
+2. **The leading-row index offset is defended**: `snapshotRows()` at `hooks/useDragSort.ts:44-59` measures, once before every drag, how many rows precede the first `<tr>` carrying `data-row-key` (it runs in both `filter` and `onStart`, `:101` and `:109`), then restores the data index with `dataIndex(i) = i - leadingRowCount` (`:41-42`); records are looked up by `data-row-key` first, and the index conversion is only the fallback (`:62-67`). The `<tbody>` is drawn by this component (`BasicTable.vue:762`), and the current implementation never inserts a measurement row — the comment at `:21-31` frames it as a defence against "a measurement / placeholder row before the first data row", so this normally returns 0; should a placeholder or group row ever be added before the data rows, this code still does not need to be revisited.
+
+:::
 
 ## TreeTable
 
@@ -179,4 +183,6 @@ The divider in between is draggable — `treeMinWidth` / `treeMaxWidth` are the 
 
 ::: danger
 
-The demo page is wrong about its third card The third card's alert reads "添加/删除行时会有平滑的过渡动画效果" — "rows animate smoothly when added or removed" (`views/components/table/animation/index.vue:145`), yet this card **has no add or delete row control**, and `BasicTable.vue` contains no `TransitionGroup` or row transition style either (0 hits when grepping the whole table-ui directory) — the behaviour this line of text advertises does not exist in the current implementation. To see animation, go to the first two cards: the loading state and the skeleton. :::
+The demo page is wrong about its third card The third card's alert reads "添加/删除行时会有平滑的过渡动画效果" — "rows animate smoothly when added or removed" (`views/components/table/animation/index.vue:145`), yet this card **has no add or delete row control**, and `BasicTable.vue` contains no `TransitionGroup` or row transition style either (0 hits when grepping the whole table-ui directory) — the behaviour this line of text advertises does not exist in the current implementation. To see animation, go to the first two cards: the loading state and the skeleton.
+
+:::

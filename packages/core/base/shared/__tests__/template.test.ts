@@ -12,10 +12,14 @@ const sheets = vi.hoisted(
 );
 
 /**
- * xlsx 只做「组装 + 写盘」，真正要验证的是我们喂给它的数据结构，
+ * `@e965/xlsx` 只做「组装 + 写盘」，真正要验证的是我们喂给它的数据结构，
  * 因此这里整体打桩，避免测试依赖文件系统与浏览器下载。
+ *
+ * 打桩名必须是包名而不是旧的 `'xlsx'`：源码 import 已经跟着换包（旧的 `xlsx@0.18.5`
+ * 在 npm 上没有可用修复版，见 `.changeset`），mock 一个不再被 import 的模块名
+ * 等于没打桩 —— 它会去真读文件、真调 `writeFile`。
  */
-vi.mock('xlsx', () => ({
+vi.mock('@e965/xlsx', () => ({
   utils: {
     aoa_to_sheet: (rows: unknown[][]) => {
       sheets.push({ rows, sheetName: '' });

@@ -1,3 +1,10 @@
+export { AiChat, AiChatMarkdown, useAiChat } from './components/ai-chat';
+export type {
+  AiChatMessage,
+  AiChatRole,
+  AiChatTransport,
+  UseAiChatOptions,
+} from './components/ai-chat';
 export { Alert } from './components/alert';
 export {
   AuthColorPresets,
@@ -48,6 +55,15 @@ export type {
   CronField,
   CronPreset,
 } from './components/cron-editor';
+export { DataPage } from './components/data-page';
+export type {
+  DataColumn,
+  DataFilter,
+  DataPageProps,
+  DataRow,
+  DataStat,
+  StatTone,
+} from './components/data-page';
 export {
   Description,
   DESCRIPTION_DICT_RESOLVER,

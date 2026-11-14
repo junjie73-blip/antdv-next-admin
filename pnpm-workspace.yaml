@@ -30,11 +30,19 @@ overrides:
   '@ast-grep/napi': 'catalog:'
   '@ctrl/tinycolor': 'catalog:'
   clsx: 'catalog:'
+  # 以下四条只为把"传递依赖里已修好的补丁版本"拉平，全部是同 major 内的安全升级：
+  # node-forge 走 nitropack>listhen，fast-uri 走 ajv，postcss-selector-parser 走
+  # @tailwindcss/nesting 与 @tailwindcss/typography，serialize-javascript 走
+  # nitropack>@rollup/plugin-terser。各自的 parent 都声明了 ^，不会撞 API。
+  fast-uri: ^3.1.9
+  node-forge: ^1.4.1
   pinia: 'catalog:'
+  postcss-selector-parser: ^6.1.5
+  serialize-javascript: ^7.1.3
   vue: 'catalog:'
 
 catalog:
-  '@ast-grep/napi': ^0.45.2
+  '@ast-grep/napi': ^0.51.1
   '@changesets/changelog-git': ^1.0.0
   '@changesets/cli': ^3.0.3
   '@changesets/git': ^4.0.1
@@ -46,43 +54,50 @@ catalog:
   '@codemirror/theme-one-dark': ^6.1.3
   '@commitlint/cli': ^20.5.3
   '@commitlint/config-conventional': ^20.5.3
-  '@ctrl/tinycolor': ^4.2.0
+  '@ctrl/tinycolor': ^4.2.2
+  '@dnd-kit/dom': ^0.5.3
+  '@dnd-kit/helpers': ^0.5.3
+  '@dnd-kit/vue': ^0.5.3
+  '@e965/xlsx': ^0.20.3
   '@eslint-community/eslint-plugin-eslint-comments': ^4.8.1
   '@eslint/js': ^10.0.1
   '@faker-js/faker': ^10.6.0
   '@iconify-json/ant-design': ^1.2.9
-  '@iconify-json/carbon': ^1.2.28
+  '@iconify-json/carbon': ^1.2.29
   '@iconify-json/fa6-regular': ^1.2.4
-  '@iconify-json/lucide': ^1.2.140
+  '@iconify-json/lucide': ^1.2.151
   '@iconify-json/mdi': ^1.2.3
-  '@iconify/vue': ^5.0.3
+  '@iconify/vue': ^5.0.5
   '@internationalized/date': ^3.12.4
-  '@intlify/core-base': ^11.4.10
-  '@intlify/unplugin-vue-i18n': ^11.2.5
-  '@jspm/generator': ^2.16.3
+  '@intlify/core-base': ^11.4.18
+  '@intlify/unplugin-vue-i18n': ^11.2.8
+  '@json-render/core': ^0.22.0
+  '@json-render/vue': ^0.22.0
+  '@jspm/generator': ^2.18.0
   '@lucide/vue': 1.55.0
   '@manypkg/get-packages': ^3.1.0
   '@nolebase/vitepress-plugin-git-changelog': ^2.18.2
-  '@playwright/test': ^1.63.0
+  '@playwright/test': ^1.65.0
   '@pnpm/workspace.read-manifest': ^1000.3.1
   '@sentry/vue': ^10.76.1
   '@stylistic/stylelint-plugin': ^5.3.1
   '@tailwindcss/nesting': 0.0.0-insiders.565cd3e
   '@tailwindcss/typography': ^0.5.20
-  '@tailwindcss/vite': ^4.3.3
+  '@tailwindcss/vite': ^4.3.4
   '@tanstack/vue-form': ^1.33.5
-  '@tanstack/vue-query': ^5.104.2
+  '@tanstack/vue-query': ^5.106.1
   '@tanstack/vue-store': ^0.11.2
-  '@tanstack/vue-table': ^9.2.8
-  '@tiptap/core': ^3.31.4
-  '@tiptap/extension-image': ^3.31.4
-  '@tiptap/extension-table': ^3.31.4
-  '@tiptap/extension-text-align': ^3.31.4
-  '@tiptap/extension-text-style': ^3.31.4
-  '@tiptap/extensions': ^3.31.4
-  '@tiptap/pm': ^3.31.4
-  '@tiptap/starter-kit': ^3.31.4
-  '@tiptap/vue-3': ^3.31.4
+  '@tanstack/vue-table': ^9.3.1
+  '@tanstack/vue-virtual': ^3.13.52
+  '@tiptap/core': ^3.33.0
+  '@tiptap/extension-image': ^3.33.0
+  '@tiptap/extension-table': ^3.33.0
+  '@tiptap/extension-text-align': ^3.33.0
+  '@tiptap/extension-text-style': ^3.33.0
+  '@tiptap/extensions': ^3.33.0
+  '@tiptap/pm': ^3.33.0
+  '@tiptap/starter-kit': ^3.33.0
+  '@tiptap/vue-3': ^3.33.0
   '@tomjs/vite-plugin-iconify': ^1.5.1
   '@tsconfig/node24': ^24.0.5
   '@types/archiver': ^7.0.0
@@ -95,18 +110,18 @@ catalog:
   '@types/node': ^25.9.9
   '@types/nprogress': ^0.2.3
   '@types/qrcode': ^1.5.6
-  '@types/qs': ^6.14.0
+  '@types/qs': ^6.15.1
   '@types/sm-crypto': ^0.3.4
   '@types/sortablejs': ^1.15.9
   '@types/spark-md5': ^3.0.5
   '@typescript-eslint/parser': ^8.71.1
   '@vee-validate/zod': 4.15.1
   '@videojs-player/vue': ^1.0.0
-  '@videojs/http-streaming': ^3.17.5
+  '@videojs/http-streaming': ^3.17.6
   '@vite-pwa/assets-generator': ^2.0.0
-  '@vitejs/devtools': ^0.7.6
-  '@vitejs/plugin-legacy': ^8.2.3
-  '@vitejs/plugin-vue': ^6.0.9
+  '@vitejs/devtools': ^0.8.2
+  '@vitejs/plugin-legacy': ^8.2.4
+  '@vitejs/plugin-vue': ^6.0.10
   '@vitejs/plugin-vue-jsx': ^5.1.6
   '@vitest/eslint-plugin': ^1.6.27
   '@vue-flow/background': ^1.3.2
@@ -118,26 +133,27 @@ catalog:
   '@vue-office/pdf': ^2.0.10
   '@vue-office/pptx': ^1.0.1
   '@vue/eslint-config-typescript': ^14.9.0
-  '@vue/shared': ^3.5.40
+  '@vue/shared': ^3.5.45
   '@vue/test-utils': ^2.5.1
-  '@vue/tsconfig': ^0.8.1
+  '@vue/tsconfig': ^0.9.1
   '@vueuse/core': 14.4.0
   '@vueuse/motion': ^3.0.3
   archiver: ^7.0.1
-  bpmn-js: ^18.31.0
+  bpmn-js: ^18.31.1
   bpmn-js-i18n-zh: ^1.3.0
-  bpmn-js-properties-panel: ^5.65.1
-  cac: ^7.0.0
+  bpmn-js-properties-panel: ^5.65.3
+  cac: ^7.1.0
   camunda-bpmn-moddle: ^8.0.2
   chalk: ^6.0.1
   cheerio: ^1.2.0
   circular-dependency-scanner: ^3.1.0
   class-variance-authority: ^0.7.1
   clsx: ^2.1.1
+  cn: ^0.5.2
   codemirror: ^6.0.2
   commitlint-plugin-function-rules: ^5.0.1
   consola: ^3.4.2
-  cronstrue: ^3.30.0
+  cronstrue: ^3.38.0
   cross-env: ^10.1.0
   cspell: ^10.3.3
   cz-git: ^1.14.0
@@ -145,11 +161,11 @@ catalog:
   dayjs: ^1.11.23
   defu: ^6.1.7
   diff: ^9.0.0
-  dompurify: ^3.4.16
+  dompurify: ^3.4.17
   dotenv: ^17.4.2
   echarts: ^6.1.0
   embla-carousel-vue: 8.6.0
-  es-toolkit: ^1.52.0
+  es-toolkit: ^1.53.2
   eslint: ^10.12.0
   eslint-config-prettier: ^10.1.8
   eslint-plugin-better-tailwindcss: ^4.9.0
@@ -164,29 +180,30 @@ catalog:
   eslint-plugin-unused-imports: ^4.4.1
   eslint-plugin-vue: ^10.11.1
   eslint-plugin-yml: ^3.8.1
-  execa: ^10.1.0
+  execa: ^10.2.1
   find-up: ^8.0.0
+  frappe-gantt: ^1.2.2
   get-port: ^7.2.0
-  globals: ^17.13.0
+  globals: ^17.14.0
   h3: ^1.15.11
-  happy-dom: ^20.14.5
+  happy-dom: ^21.0.4
   highlight.js: ^11.12.0
   html-minifier-terser: ^7.2.0
   is-ci: ^4.1.0
   jiti: ^2.7.0
-  jose: ^6.2.12
+  jose: ^6.2.15
   jsdom: ^27.4.0
   knip: ^6.40.0
   lefthook: ^2.1.17
   lint-staged: ^16.4.0
-  markdown-it: ^14.3.2
+  markdown-it: ^14.3.3
   marked: ^17.0.6
   marked-highlight: ^2.2.4
-  medium-zoom: ^1.1.0
+  medium-zoom: ^1.1.2
   mitt: ^3.0.1
   mockjs: ^1.1.0
   nanoid: ^5.1.16
-  nitropack: ^2.13.4
+  nitropack: ^2.13.6
   npm-run-all2: ^8.0.4
   nprogress: ^0.2.0
   ora: ^9.4.1
@@ -195,20 +212,21 @@ catalog:
   oxlint-tsgolint: ^0.25.0
   pdfjs-dist: 6.3.289
   pinia: ^3.0.4
-  pkg-types: ^2.3.3
-  playwright: ^1.63.0
-  postcss: ^8.5.29
+  pkg-types: ^2.4.0
+  playwright: ^1.65.0
+  postcss: ^8.5.32
   postcss-html: ^1.8.1
   postcss-scss: ^4.0.9
   publint: ^0.3.25
   qrcode: ^1.5.4
-  qs: ^6.16.0
+  qs: ^6.17.1
   reka-ui: 2.11.0
   resize-observer-polyfill: ^1.5.1
-  rimraf: ^6.1.3
-  rolldown: ^1.2.12
+  rimraf: ^6.1.4
+  rolldown: ^1.3.0
   secure-ls: ^2.0.0
-  sm-crypto: ^0.3.14
+  shiki: ^4.6.0
+  sm-crypto: ^0.5.8
   sortablejs: ^1.15.7
   spark-md5: ^3.0.2
   standard-version: ^9.5.0
@@ -222,57 +240,55 @@ catalog:
   stylelint-order: ^8.1.1
   stylelint-scss: ^7.3.0
   tailwind-merge: ^3.7.0
-  tailwindcss: ^4.3.3
+  tailwindcss: ^4.3.4
   theme-colors: ^0.1.0
   tinyglobby: ^0.2.17
-  tsdown: ^0.23.0
+  tsdown: ^0.23.7
   turbo: ^2.11.7
   tw-animate-css: ^1.4.0
   typescript: ~6.0.3
   unplugin-auto-import: ^21.1.0
   unplugin-console-highlight: ^0.0.4
-  unplugin-dts: ^1.0.3
+  unplugin-dts: ^1.1.2
   unplugin-turbo-console: ^2.3.3
   unplugin-vue: ^7.2.0
   unplugin-vue-components: ^31.1.0
   vee-validate: 4.15.1
   video.js: ^8.24.1
-  vite: ^8.3.3
+  vite: ^8.3.6
   vite-bundle-analyzer: ^1.3.9
   vite-plugin-cdn-import: ^1.0.1
   vite-plugin-compression: ^0.5.1
-  vite-plugin-compression2: ^2.5.3
+  vite-plugin-compression2: ^2.5.4
   vite-plugin-dts: ^4.5.4
   vite-plugin-env-parse: ^1.0.15
   vite-plugin-fake-server: ^2.2.4
   vite-plugin-html: ^3.2.2
-  vite-plugin-iconify-offline: ^0.4.3
-  vite-plugin-imagemin: ^0.6.1
+  vite-plugin-iconify-offline: ^0.5.2
   vite-plugin-inspect: ^11.4.1
   vite-plugin-performance: ^1.0.0
   vite-plugin-pwa: ^1.3.0
   vite-plugin-svg-icons: ^2.0.1
   vite-plugin-vue-devtools: ^8.2.1
-  vite-plugin-vue-layouts-next: ^3.2.0
+  vite-plugin-vue-layouts-next: ^3.3.1
   vitepress: ^1.6.4
-  vitest: ^4.1.11
+  vitest: ^4.1.12
   vue: 3.5.43
   vue-codemirror: ^6.1.1
   vue-cropper: ^1.1.4
   vue-demi: ^0.14.10
   vue-draggable-plus: ^0.6.1
-  vue-eslint-parser: ^10.4.1
-  vue-i18n: ^11.4.13
+  vue-eslint-parser: ^10.4.2
+  vue-i18n: ^11.4.18
   vue-input-otp: 0.4.0
   vue-json-pretty: ^2.6.0
-  vue-pdf-embed: ^2.1.6
-  vue-router: ^5.3.1
+  vue-pdf-embed: ^2.1.7
+  vue-router: ^5.4.0
   vue-sonner: 2.0.9
   vue-tsc: ^3.3.12
   vue-virtual-scroller: ^3.0.5
   watermark-plus: ^1.6.1
   workbox-window: ^7.4.1
-  xlsx: ^0.18.5
   yaml-eslint-parser: ^2.1.0
   zod: 3.25.76
 

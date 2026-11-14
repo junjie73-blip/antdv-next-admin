@@ -1,4 +1,4 @@
-import * as XLSX from 'xlsx';
+import * as XLSX from '@e965/xlsx';
 
 export interface TemplateColumn {
   /** 列标题（Excel 表头） */

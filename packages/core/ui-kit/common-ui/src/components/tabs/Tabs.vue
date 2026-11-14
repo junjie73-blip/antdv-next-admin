@@ -80,7 +80,7 @@ const triggerClass = computed(() => {
     );
   }
   return cn(
-    'data-[state=active]:bg-background rounded-t-md border border-b-0 bg-muted data-[state=active]:shadow-none',
+    'bg-muted data-[state=active]:bg-background rounded-t-md border border-b-0 data-[state=active]:shadow-none',
   );
 });
 </script>

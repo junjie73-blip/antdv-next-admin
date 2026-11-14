@@ -7,10 +7,11 @@
 | 级别 | 对象 | 原因 | 边界 |
 | --- | --- | --- | --- |
 | 🔴 | `packages/**` 源码里的组件库导入（`antdv-next`、`@antdv-next/*`） | 引一行就等于全部子包产物都背一套 UI 库；`shared`/`preferences`/`utils`/`types`/`hooks` 历史上都因此被逐个拆开。守门：`packages/core/hooks/__tests__/boundary.test.ts:136` | 只拦「导入形态」，注释与字符串字面量不算；`devDependencies` 里为对照实验装的允许存在。要新能力就在 `ui-kit/*` 里用 reka-ui 原语组合 |
-| 🔴 | 跨包的相对路径导入、盘符/绝对路径 | 换一台机器或搬一次目录就失效；turbo 的依赖图只认 `package.json`，相对导入会让构建顺序与缓存全错。守门：`boundary.test.ts` 的「跨包只走包名导入」与判据常量 `ABSOLUTE_SPECIFIER` | 唯一例外是 `@antdv/design` 的 `@source` 名单——Tailwind 的内容登记只认文件系统路径 |
+| 🔴 | 跨包的相对路径导入、盘符/绝对路径 | 换一台机器或搬一次目录就失效；turbo 的依赖图只认 `package.json`，相对导入会让构建顺序与缓存全错。守门：`boundary.test.ts` 的「跨包只走包名导入」与判据常量 `ABSOLUTE_SPECIFIER` | **没有例外**：内容登记随包走后，各包 CSS 只写 `@source './';`，跨包一律走包名（应用侧 `@import '@antdv/x/style.css'`）。旧口径里 design 那份伸进 15 个包的名单已废止 |
 | 🔴 | 子包反向 import `apps/web/**` | 会形成 turbo 认不出的环：`Cyclic dependency detected` 时整个 `turbo run <task>` **一条都不执行** | 子包需要宿主能力就暴露可变 runtime + `configureX()`，由 `apps/web/src/plugins/**` 注入 |
 | 🔴 | `apps/web/src/plugins/**` 之外触碰 `~/stores`、`~/api`、`~/views`、`~/locales` | 运行时装配只允许一个入口，否则同一个 runtime 被两处配置、偏好落盘顺序不可控 | 新增装配模块就加在 `plugins/` 里，并在 `main.ts` 注册 |
-| 🟠 | `@source` 名单（`packages/core/base/design/src/index.css:46-55`） | 构建根是 `apps/web`，`@antdv/*` 走软链在自动检测之外；少登记一个包 = 该包模板里全部工具类静默不生成（页面渲染正常、就是不定位）。**已发生过一次**：071dad02 重排这个文件时把整块 `@source` 删掉了，因为消费方读的是上一轮 `dist` 里的 CSS，构建与页面都不报错，直到静态检查与浏览器复核才发现 | 名单只属于 design；新增带 `.vue` 的子包同批补登记，`design.test.ts:628` 会反查 |
+| 🟠 | 内容登记三件套：各包 `src/index.css`（只有 `@source './';`）+ `exports['./style.css']` + 应用装配入口 `apps/web/src/styles/index.css` | 构建根是 `apps/web`，`@antdv/*` 走软链在自动检测之外；少一环 = 该包模板里全部工具类静默不生成（页面渲染正常、就是不定位）。**已发生过两次**：071dad02 与 ed874ea3 重排 `design/src/index.css` 时把整块 `@source` 删掉，因为消费方读的是上一轮 `dist` 里的 CSS，构建与页面都不报错，直到静态检查与浏览器复核才发现 | 登记跟着包走，design 一条都不留。新增带 `.vue` 的子包要同批：建自己的样式入口、加 `./style.css` 出口、在应用装配入口补一行 `@import`。守门：`boundary.test.ts` 的「每个带 .vue 的包都自己登记 @source、暴露 ./style.css，并被应用入口引到」与 `design.test.ts` 的「入口不代管任何子包的内容登记」 |
+| 🟠 | 装配必须是 CSS 的 `@import`，且只有一个 Tailwind root | 只有 `@source` 的文件自己**不构成 root**（实测 `features=0`、产物 13 字节、零工具类）。改成在 `main.ts` 里逐条 JS `import` 各包 `style.css`，登记会全部失效且构建照样绿 | 应用侧只留 `import './styles/index.css';` 这一条样式导入；默认 ui 子包（`@antdv/shadcn-ui`）获准在 barrel 里自引 `./index.css`，但那是附加，不替代装配入口 |
 | 🟠 | toast 归属：轻提示只能走 `@antdv/popup-ui` | `boundary.test.ts:157`；绕过它直接引 `vue-sonner` 会丢掉本包的主题外壳与分流 | 需要新通道就在 `popup-ui/src/message/index.ts` 里加 |
 | 🟠 | 实时通信只住在 `@antdv/request` | `boundary.test.ts:166`；WS 散落到业务包后重连/鉴权口径无法统一 | — |
 | 🟡 | `@antdv/shadcn-ui` 的源文件 | 它是 `pnpm shadcn add` 的产物，上游会迭代；覆写写在里面下次同步即被冲掉 | 改外观只在 `common-ui` 建外壳（`common-ui/src/components/toast/Toaster.vue`）或用主题变量 / 自定义类名 / CSS 覆盖，方案与 shadcn 实现解耦 |

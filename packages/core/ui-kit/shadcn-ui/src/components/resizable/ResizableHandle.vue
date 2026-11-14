@@ -6,9 +6,9 @@ import type {
 
 import type { HTMLAttributes } from 'vue';
 
-import { cn } from '@antdv/shared/utils/cn';
 import { GripVertical } from '@lucide/vue';
 import { reactiveOmit } from '@vueuse/core';
+import { cn } from 'cn';
 import { SplitterResizeHandle, useForwardPropsEmits } from 'reka-ui';
 
 const props = defineProps<

@@ -12,7 +12,9 @@ One criterion decides where a utility lives: **would it still work in another pr
 
 ::: tip
 
-Auto-import does not cover this repository's packages `internal/vite-config/src/plugins/auto-import.ts` only injects framework APIs. A line such as `import { cn } from '@antdv/shared/utils/cn'` has to be written by hand (see [Core concepts](/en/guide/essentials/concepts)). :::
+Auto-import does not cover this repository's packages `internal/vite-config/src/plugins/auto-import.ts` only injects framework APIs. A line such as `import { cn } from '@antdv/shared/utils/cn'` has to be written by hand (see [Core concepts](/en/guide/essentials/concepts)).
+
+:::
 
 ## Every subpath is a module
 
@@ -34,7 +36,9 @@ import { menuKeyOf } from '@antdv/utils/menu';
 
 ::: warning
 
-The wildcard entry belongs only to the dist-published packages. Only `@antdv/shared` and `@antdv/hooks` have `"./*"`. Adding a wildcard to a source-published package widens the resolution path for `import type` as well, and then type-checking and the bundler are no longer looking at the same table. :::
+The wildcard entry belongs only to the dist-published packages. Only `@antdv/shared` and `@antdv/hooks` have `"./*"`. Adding a wildcard to a source-published package widens the resolution path for `import type` as well, and then type-checking and the bundler are no longer looking at the same table.
+
+:::
 
 ## `@antdv/shared` inventory
 
@@ -65,7 +69,9 @@ The wildcard entry belongs only to the dist-published packages. Only `@antdv/sha
 
 ::: warning
 
-Two things have already moved out of shared. The menu tree and key system (`menuKeyOf`, `attachMenuPaths`, `MenuPathRouter`) now live in `packages/utils/src/menu.ts:28,258,393`, and `theme-mode.ts` in the same package handles theme-mode resolution and system-dark detection — because `@antdv/shared` is not allowed to depend on a menu vocabulary beyond `@antdv/types`, while `@antdv/utils` consumes only those two packages. `utils/welcome.ts` (the login welcome toast) no longer exists as a file at all; do not go looking for it by name. :::
+Two things have already moved out of shared. The menu tree and key system (`menuKeyOf`, `attachMenuPaths`, `MenuPathRouter`) now live in `packages/utils/src/menu.ts:28,258,393`, and `theme-mode.ts` in the same package handles theme-mode resolution and system-dark detection — because `@antdv/shared` is not allowed to depend on a menu vocabulary beyond `@antdv/types`, while `@antdv/utils` consumes only those two packages. `utils/welcome.ts` (the login welcome toast) no longer exists as a file at all; do not go looking for it by name.
+
+:::
 
 ## `@antdv/hooks` inventory
 
@@ -101,7 +107,9 @@ SSE and WebSocket are not here. Real-time code is collected in `@antdv/request` 
 
 ::: warning
 
-Components inside a package must not import the app back. After widgets such as notifications and global search moved into `packages/layouts`, they can no longer `import '~/api'` or `'~/utils/ws'` directly (a package depending on the app is a cycle). Every "only the app knows this" capability is injected once from `apps/web/src/plugins/layouts-host.ts`: `:9` for the ws channel, `:6` for the locale candidates, `:5` for the notice api; `:17-19` explain why that file stands alone instead of being folded into `ui-runtime.ts` (`test/setup.ts` calls the latter, setup runs before the `vi.mock` in a case, and a module touched once cannot be mocked afterwards). :::
+Components inside a package must not import the app back. After widgets such as notifications and global search moved into `packages/layouts`, they can no longer `import '~/api'` or `'~/utils/ws'` directly (a package depending on the app is a cycle). Every "only the app knows this" capability is injected once from `apps/web/src/plugins/layouts-host.ts`: `:9` for the ws channel, `:6` for the locale candidates, `:5` for the notice api; `:17-19` explain why that file stands alone instead of being folded into `ui-runtime.ts` (`test/setup.ts` calls the latter, setup runs before the `vi.mock` in a case, and a module touched once cannot be mocked afterwards).
+
+:::
 
 ## The hard boundary: no pinia, no app alias, no env inside packages
 
@@ -162,7 +170,9 @@ pnpm --filter @antdv/shared build      # or @antdv/hooks / @antdv/preferences �
 
 ::: warning
 
-The symptom is "nothing changed, and nothing failed". You edit `packages/core/base/shared/src/**`, save, and behaviour and types stay exactly as they were, with no error, because Vite's dependency cache and `optimizeDeps` both point at `dist`. Build first, restart second; do not copy the implementation into the app to work around it. :::
+The symptom is "nothing changed, and nothing failed". You edit `packages/core/base/shared/src/**`, save, and behaviour and types stay exactly as they were, with no error, because Vite's dependency cache and `optimizeDeps` both point at `dist`. Build first, restart second; do not copy the implementation into the app to work around it.
+
+:::
 
 ## Related pages
 

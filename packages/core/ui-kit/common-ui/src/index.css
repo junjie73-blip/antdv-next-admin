@@ -1,0 +1,12 @@
+/*
+ * 本包的内容登记：工具类的扫描范围跟着包走，不再由 `@antdv/design` 代管。
+ *
+ * 由应用侧的样式装配入口 `@import '@antdv/common-ui/style.css'` 收进同一个
+ * Tailwind root。只被 JS `import` 是无效的：实测这种「只有 @source」的文件
+ * 自己不构成 root（features=0、产物 13 字节、零工具类），等于没登记。
+ *
+ * 只许登记自己（`./`），不许伸进别的包 —— 守门在 `@antdv/hooks` 的 boundary.test.ts。
+ * 组件自己的规则仍然随组件走（见 `components/scrollbar/Scrollbar.vue` 的 `<style>`），
+ * 这个文件不装全局样式。
+ */
+@source './';

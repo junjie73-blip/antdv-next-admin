@@ -25,7 +25,9 @@ dayjs.locale(DAYJS_LOCALE_MAP[locale]); // 3. date formatting (zh-CN → 'zh-cn'
 
 There used to be a fourth: `antdLocale.value = await loadLocale(locale)`, handing antd's locale object to `ConfigProvider :locale`. Removing the antd dependency deleted that whole chain — including the lazy loader table `apps/web/src/settings/locale.ts` — so `useLocaleSync()` now **returns nothing**; the motive is recorded in the source comment at `:34-37`.
 
-::: warning One provider layer owns the built-in strings `Popconfirm`'s confirm/cancel labels and the `Empty` / `EmptyState` / `Transfer` empty copy read `@antdv/common-ui`'s `ConfigProvider`: `apps/web/src/App.vue:48-51` mounts the provider and `:41-44` builds `globalConfig` from `appStore.locale` / `appStore.componentSize`. That is the only layer — mount a second `ConfigProvider` inside a subtree without `locale` and you get the half-switched state: chrome in English, package components still in Chinese. See [Shared components](/en/components/common-ui) for the API. :::
+::: warning
+
+One provider layer owns the built-in strings `Popconfirm`'s confirm/cancel labels and the `Empty` / `EmptyState` / `Transfer` empty copy read `@antdv/common-ui`'s `ConfigProvider`: `apps/web/src/App.vue:48-51` mounts the provider and `:41-44` builds `globalConfig` from `appStore.locale` / `appStore.componentSize`. That is the only layer — mount a second `ConfigProvider` inside a subtree without `locale` and you get the half-switched state: chrome in English, package components still in Chinese. See [Shared components](/en/components/common-ui) for the API. :::
 
 `useLocaleSync()` is the **only** place performing this expansion (called from App.vue); no component should write `i18n.global.locale` itself.
 

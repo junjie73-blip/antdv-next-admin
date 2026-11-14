@@ -16,7 +16,9 @@
 
 撞名比漏 import 更阴：`@vueuse/core` 自己就导出 `usePermission`（浏览器的 Permissions API）和 `useWebSocket`，这两个已经躺在 `apps/web/types/auto-imports.d.ts:232` 与 `:293` 里被自动导入了。少写一行 import 不会报错，只会拿到另一个函数的返回值 —— vueuse 的 `usePermission()` 返回的是 `{ permissions }` 一个 ref，压根没有 `hasPermission` 方法。
 
-`@antdv/hooks` 的 `echarts` 故意**不进根 barrel**：它拖进整个图表库的全量注册表，放进根入口会让 `import { usePrint }` 也付出一份图表的解析成本（`packages/core/hooks/src/index.ts:7-11`，`exports` 映射见 `packages/core/hooks/package.json:21-35`：`./echarts` 显式列出 `:26-29`，`"./*"` 通配 `:30-33` 让单文件模块可以直接按文件名引 —— `@antdv/hooks/use-print`、`@antdv/hooks/use-crud` 都走这条，文件名一律 kebab-case）。SSE 与 WebSocket 不住这里 —— 它们在 `@antdv/request`（`packages/request/src/{sse,websocket}/`），与 HTTP 共用一套重连语义。:::
+`@antdv/hooks` 的 `echarts` 故意**不进根 barrel**：它拖进整个图表库的全量注册表，放进根入口会让 `import { usePrint }` 也付出一份图表的解析成本（`packages/core/hooks/src/index.ts:7-11`，`exports` 映射见 `packages/core/hooks/package.json:21-35`：`./echarts` 显式列出 `:26-29`，`"./*"` 通配 `:30-33` 让单文件模块可以直接按文件名引 —— `@antdv/hooks/use-print`、`@antdv/hooks/use-crud` 都走这条，文件名一律 kebab-case）。SSE 与 WebSocket 不住这里 —— 它们在 `@antdv/request`（`packages/request/src/{sse,websocket}/`），与 HTTP 共用一套重连语义。
+
+:::
 
 barrel 覆盖面也值得记一笔：`apps/web/src/composables/index.ts` 现在只剩一件事 —— 整包转出 `@antdv/request`（`:6`），让老调用点继续按 `~/composables` 取 `http` / `request`。`useCRUD` 与 `usePermission` 已经迁进 `@antdv/hooks`，`useLocale` / `useLocaleSync` 走 `@antdv/hooks/use-locale`（它唯一牵住 vue-i18n，塞进根 barrel 等于让所有 `@antdv/hooks` 消费者都付一份 i18n 运行时），`useNotice` / `usePasswordPolicy` 仍按应用侧文件路径引：
 
@@ -57,7 +59,9 @@ const [register, tableRef] = useTable({
 | `useModalInner(cb?)` | `packages/core/ui-kit/popup-ui/src/modal/useModalInner.ts:21-73` | `[register, ModalInnerMethods]` | 在**弹窗组件内部**用 |
 | `useDrawer()` | `packages/core/ui-kit/popup-ui/src/drawer/useDrawer.ts:10-57` | `[register, DrawerMethods]` | 同 `useModal` |
 
-`useTable.ts` 顶部的用法注释已经写成 `tableRef.value?.reload()`（`:18`），跟着它走就对。另外 `drawer/index.ts:15` 把 `useDrawerInner` 作为 `useDrawer` 的**别名**导出（注释 `:14` 说明了这没有额外语义），它没有 `useModalInner` 那套"接收 data 的回调"语义 —— 需要 data 通道时只有 Modal 有。:::
+`useTable.ts` 顶部的用法注释已经写成 `tableRef.value?.reload()`（`:18`），跟着它走就对。另外 `drawer/index.ts:15` 把 `useDrawerInner` 作为 `useDrawer` 的**别名**导出（注释 `:14` 说明了这没有额外语义），它没有 `useModalInner` 那套"接收 data 的回调"语义 —— 需要 data 通道时只有 Modal 有。
+
+:::
 
 三种"拿不到实例"的表现也各不相同，这决定了你要不要判空：
 
@@ -112,7 +116,9 @@ const [register, { closeModal, setModalProps, changeOkLoading }] =
 
 ::: warning
 
-生命周期钩子只能在 setup 同期注册 `useModal` / `useDrawer` / `useModalInner` 的 `onUnmounted` 都写在 hook 函数体顶层，注释解释了原因（`useDrawer.ts:12-23` 最详细）：`register` 是子组件 `emit('register', instance)` 的回调，执行时 Vue 的 `currentInstance` 已经指向子组件甚至已清空，在回调里调 `onUnmounted` 只会告警、钩子挂不到任何实例上，于是弹窗实例永远留在引用里。自己写 hook 时同理 —— 别把生命周期调用藏进回调。:::
+生命周期钩子只能在 setup 同期注册 `useModal` / `useDrawer` / `useModalInner` 的 `onUnmounted` 都写在 hook 函数体顶层，注释解释了原因（`useDrawer.ts:12-23` 最详细）：`register` 是子组件 `emit('register', instance)` 的回调，执行时 Vue 的 `currentInstance` 已经指向子组件甚至已清空，在回调里调 `onUnmounted` 只会告警、钩子挂不到任何实例上，于是弹窗实例永远留在引用里。自己写 hook 时同理 —— 别把生命周期调用藏进回调。
+
+:::
 
 ## 二、useCRUD：把弹窗 + 表单 + 表格接成一条线
 
@@ -188,18 +194,24 @@ const {
 
 ::: warning
 
-校验失败与接口失败的区别待遇 `handleSave` 把 `validate()` 和提交放在同一个 `try` 里：校验不过 → 走 `message.error`，但弹窗**保持打开**、`loading` 归 false，用户能改完再试。接口 4xx/5xx 同理。这是刻意的 —— 不要把 `handleSave` 包进你自己的 `try/catch` 再补一次 toast。:::
+校验失败与接口失败的区别待遇 `handleSave` 把 `validate()` 和提交放在同一个 `try` 里：校验不过 → 走 `message.error`，但弹窗**保持打开**、`loading` 归 false，用户能改完再试。接口 4xx/5xx 同理。这是刻意的 —— 不要把 `handleSave` 包进你自己的 `try/catch` 再补一次 toast。
+
+:::
 
 ::: warning
 
-`handleSave` 会删掉空字符串字段 `values[key] === ''` 的键在提交前被过滤掉（`:312-315`，注释写明"提交上去，后端会把可选字段整个覆盖成空"）。语义是"没填 = 不提交这个字段"，好处是可选文本框不会把后端已有值覆盖成空串；代价是**想清空某个字段不能靠留空**，得给它 `null` 或者走一条显式支持清空的接口。:::
+`handleSave` 会删掉空字符串字段 `values[key] === ''` 的键在提交前被过滤掉（`:312-315`，注释写明"提交上去，后端会把可选字段整个覆盖成空"）。语义是"没填 = 不提交这个字段"，好处是可选文本框不会把后端已有值覆盖成空串；代价是**想清空某个字段不能靠留空**，得给它 `null` 或者走一条显式支持清空的接口。
+
+:::
 
 ::: danger 确认框只该有一次，但两次都不在页面里手搓
 
 - **单条删除**：`handleDelete` 不弹确认。确认由操作项的 `ActionItem.popConfirm` 描述（见下一节），这是 `CODE_STANDARD.md` 的口径。
 - **批量删除**：`handleBatchDelete` **内置**一次 `confirm()`（来自 `@antdv/popup-ui`，`use-crud.ts:8`；标题固定「批量删除」，`content` 用 `messages.batchDeleteConfirm` 并由 composable 补上`（N 条）`，`:274-279`）。工具条按钮没有 popconfirm 载体，这唯一一次确认是必要的 —— 页面里**不要再自己弹一层**。
 
-批量确认框的 `onOk` 是异步且非阻塞的，它的 reject 到不了外层 `try`，所以失败提示写在 `onOk` 内部（`:269-273` 的注释记录了这件事）。另外 `loading` 只在 `onOk` 的 `finally` 里归位，取消时由 `onCancel` 归位（`:300-302`）：确认框还开着时它仍是 `true`，这是有意的（此时删与不删都还没定）。:::
+批量确认框的 `onOk` 是异步且非阻塞的，它的 reject 到不了外层 `try`，所以失败提示写在 `onOk` 内部（`:269-273` 的注释记录了这件事）。另外 `loading` 只在 `onOk` 的 `finally` 里归位，取消时由 `onCancel` 归位（`:300-302`）：确认框还开着时它仍是 `true`，这是有意的（此时删与不删都还没定）。
+
+:::
 
 ::: warning
 
@@ -212,11 +224,15 @@ function clearSelection() {
 }
 ```
 
-并且给 `handleBatchDelete` 传**快照**（示例页 `crud/index.vue:342` 的 `[...selectedRows.value]`）而不是引用数组 —— 确认框非阻塞，取消或删完之后数组和表格状态就对不上了。:::
+并且给 `handleBatchDelete` 传**快照**（示例页 `crud/index.vue:342` 的 `[...selectedRows.value]`）而不是引用数组 —— 确认框非阻塞，取消或删完之后数组和表格状态就对不上了。
+
+:::
 
 ::: danger
 
-API helper 已经把信封剥过一层 `~/api/request.ts` 的 `get/post/put/del` 内部是 `http.Get<R<T>>(…).then(res => res.data)`（`api/request.ts:20-56`），也就是**它们 resolve 出来就是负载本身**。所以 `onCreate: (values) => addTask(values)` 直接给函数就行，别再 `.then(res => res.data)` —— 多剥一次拿到 `undefined`，表现是"保存成功了但表格没新行 / 编辑弹窗回填全空"。:::
+API helper 已经把信封剥过一层 `~/api/request.ts` 的 `get/post/put/del` 内部是 `http.Get<R<T>>(…).then(res => res.data)`（`api/request.ts:20-56`），也就是**它们 resolve 出来就是负载本身**。所以 `onCreate: (values) => addTask(values)` 直接给函数就行，别再 `.then(res => res.data)` —— 多剥一次拿到 `undefined`，表现是"保存成功了但表格没新行 / 编辑弹窗回填全空"。
+
+:::
 
 行为契约写成了单测：`packages/core/hooks/__tests__/use-crud.test.ts`（23 条，用最小替身把三个组件的方法名与**调用顺序**都断言住了 —— 例如"先 `resetFields` 再 `setFieldsValue`"错了就是弹窗闪一下上一个人的数据）。改 `useCRUD` 前后都跑它。
 
@@ -317,7 +333,9 @@ await http.Delete('/demo/task/1', undefined, { body: { force: true } }); // DELE
 
 ::: warning
 
-默认重试对所有动词生效 `retries` 的 3 次重试包在 `runRequest` 外面，不区分方法（`:374-389`）。`isRetryable` 只放过 `400_001 / 401_001 / 403_001 / 404_001` 这几个不重试，`status === 0`（网络断开）与 5xx 都会重试（`:138-144`）。也就是说**一个 500 的 POST 会被打三次** —— 非幂等的创建接口要么后端做幂等键，要么调用侧传 `retries: 0`。:::
+默认重试对所有动词生效 `retries` 的 3 次重试包在 `runRequest` 外面，不区分方法（`:374-389`）。`isRetryable` 只放过 `400_001 / 401_001 / 403_001 / 404_001` 这几个不重试，`status === 0`（网络断开）与 5xx 都会重试（`:138-144`）。也就是说**一个 500 的 POST 会被打三次** —— 非幂等的创建接口要么后端做幂等键，要么调用侧传 `retries: 0`。
+
+:::
 
 ### 拦截器干了什么（排障时要知道的四件事）
 
@@ -348,7 +366,9 @@ await http.Delete('/demo/task/1', undefined, { body: { force: true } }); // DELE
 
 ::: warning
 
-两个必须知道的现状 1）**全仓没有业务调用点** —— `useRequest` 只被 `packages/request/__tests__/structure.spec.ts:36,77` 断言"它还在导出清单里"。声明式取数走的是 `@tanstack/vue-query`（`apps/web/src/api/query.ts:1,9,33` 把增强后的 fetch 接进 `useQuery`），别新页面里两套混用。2）**`data` 是完整响应体，不是负载** —— `afterFetch` 把解析后的 `payload` 原样返回，`executor` 把整个信封交给上层，所以 `useRequest().data.value` 是 `{ code, data, message }`。要用它直接绑 `:options` 之前先确认接口到底带不带信封，本项目 mock 一律带。:::
+两个必须知道的现状 1）**全仓没有业务调用点** —— `useRequest` 只被 `packages/request/__tests__/structure.spec.ts:36,77` 断言"它还在导出清单里"。声明式取数走的是 `@tanstack/vue-query`（`apps/web/src/api/query.ts:1,9,33` 把增强后的 fetch 接进 `useQuery`），别新页面里两套混用。2）**`data` 是完整响应体，不是负载** —— `afterFetch` 把解析后的 `payload` 原样返回，`executor` 把整个信封交给上层，所以 `useRequest().data.value` 是 `{ code, data, message }`。要用它直接绑 `:options` 之前先确认接口到底带不带信封，本项目 mock 一律带。
+
+:::
 
 `requestCache`（`executor.ts:60-115`）是给缓存管理用的：`clear` / `delete(key)` / `clearByUrl(url)` / `clearByPattern(re)` / `has` / `get` / `set` / `size`，底层是模块级 `Map` + LRU，上限 `MAX_CACHE_SIZE = 200`（`:48`，淘汰 `:128-136`）。当前仓库里没有调用方 —— 需要"写完立刻让列表缓存失效"时，`invalidate()` 比手动清更省事。
 

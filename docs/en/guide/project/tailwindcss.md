@@ -45,7 +45,9 @@ The scale tokens come from the same block: `:75-81` takes `--radius` as the `lg`
 
 ::: danger
 
-Don't use `*-ant-primary`. That family comes from antdv-next's Tailwind compatibility layer (`@antdv-next/tailwind/compat.css`), which was removed from the dependencies long ago (guard: `packages/core/base/design/__tests__/design.test.ts:585-588`), and this package's own CSS may not even contain the string `-ant-` (`:459-465`). The failure is not a wrong colour — it is **the utility never being generated at all**, silently. :::
+Don't use `*-ant-primary`. That family comes from antdv-next's Tailwind compatibility layer (`@antdv-next/tailwind/compat.css`), which was removed from the dependencies long ago (guard: `packages/core/base/design/__tests__/design.test.ts:585-588`), and this package's own CSS may not even contain the string `-ant-` (`:459-465`). The failure is not a wrong colour — it is **the utility never being generated at all**, silently.
+
+:::
 
 Hardcoded `bg-blue-600` / `#1677ff` breaks on primary change or dark mode. The contract that used to pin this — `views/login/__tests__/login-styles.spec.ts` — was deleted when the login page was rebuilt, so the rule is a convention only now (searching `apps/web/src/views` for `bg-blue-*` / `text-blue-*` / `#1677ff` still hits 98 lines across 33 files — known debt being cleared incrementally, same warning as the theme page).
 

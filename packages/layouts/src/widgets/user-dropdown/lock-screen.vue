@@ -8,6 +8,16 @@ import { useCssVar } from '@vueuse/core';
 
 defineOptions({ name: 'LockScreen' });
 
+const props = withDefaults(
+  defineProps<{
+    /** 向下拖过多少像素算解锁 */
+    threshold?: number;
+  }>(),
+  { threshold: UNLOCK_PULL_THRESHOLD },
+);
+
+const emit = defineEmits<{ unlock: [] }>();
+
 /**
  * 解锁的下拉阈值：把手按下去之后要拖过这么多像素才放行。
  *
@@ -20,16 +30,6 @@ defineOptions({ name: 'LockScreen' });
  * 报 TS2448 / TS2454）。这里只钉这条静态事实 —— 实际运行时没观测到过 ReferenceError。
  */
 const UNLOCK_PULL_THRESHOLD = 96;
-
-const props = withDefaults(
-  defineProps<{
-    /** 向下拖过多少像素算解锁 */
-    threshold?: number;
-  }>(),
-  { threshold: UNLOCK_PULL_THRESHOLD },
-);
-
-const emit = defineEmits<{ unlock: [] }>();
 
 /**
  * 锁屏遮罩：盖住整个视口，把滚动与页面上的默认交互全部挡在下面。

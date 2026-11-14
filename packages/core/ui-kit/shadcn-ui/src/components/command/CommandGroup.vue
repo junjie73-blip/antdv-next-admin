@@ -5,8 +5,8 @@ import type { HTMLAttributes } from 'vue';
 
 import { computed, onMounted, onUnmounted } from 'vue';
 
-import { cn } from '@antdv/shared/utils/cn';
 import { reactiveOmit } from '@vueuse/core';
+import { cn } from 'cn';
 import { ListboxGroup, ListboxGroupLabel, useId } from 'reka-ui';
 
 import { provideCommandGroupContext, useCommand } from '.';

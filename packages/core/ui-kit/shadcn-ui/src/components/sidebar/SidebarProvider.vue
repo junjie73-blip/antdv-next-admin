@@ -3,13 +3,13 @@ import type { HTMLAttributes, Ref } from 'vue';
 
 import { computed, ref } from 'vue';
 
-import { cn } from '@antdv/shared/utils/cn';
 import {
   defaultDocument,
   useEventListener,
   useMediaQuery,
   useVModel,
 } from '@vueuse/core';
+import { cn } from 'cn';
 import { TooltipProvider } from 'reka-ui';
 
 import {
@@ -17,6 +17,7 @@ import {
   SIDEBAR_COOKIE_MAX_AGE,
   SIDEBAR_COOKIE_NAME,
   SIDEBAR_KEYBOARD_SHORTCUT,
+  SIDEBAR_MOBILE_BREAKPOINT,
   SIDEBAR_WIDTH,
   SIDEBAR_WIDTH_ICON,
 } from './utils';
@@ -39,7 +40,9 @@ const emits = defineEmits<{
   'update:open': [open: boolean];
 }>();
 
-const isMobile = useMediaQuery('(max-width: 768px)');
+const isMobile = useMediaQuery(
+  `(max-width: ${SIDEBAR_MOBILE_BREAKPOINT - 1}px)`,
+);
 const openMobile = ref(false);
 
 const open = useVModel(props, 'open', emits, {

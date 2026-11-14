@@ -14,7 +14,9 @@ The two half-deletions fail differently and both fail badly: **delete the page b
 
 ::: warning
 
-`hidden` is not deletion `hidden: true` only means "not in the navigation"; the node still enters the access set — the comment block in `menus.get.ts` exists precisely to say so. The "show in nav" switch on the menu management page writes to no backend either: it stores `xy-menu-hidden-overrides` in localStorage (`packages/stores/src/route.ts:26,38-46`), and `apps/web/src/api/menu.ts` contains nothing but `getMenus()` — there is no menu write endpoint at all. Locally, "delete a menu record" means editing that seed file; on a real backend it means deleting the row. :::
+`hidden` is not deletion `hidden: true` only means "not in the navigation"; the node still enters the access set — the comment block in `menus.get.ts` exists precisely to say so. The "show in nav" switch on the menu management page writes to no backend either: it stores `xy-menu-hidden-overrides` in localStorage (`packages/stores/src/route.ts:26,38-46`), and `apps/web/src/api/menu.ts` contains nothing but `getMenus()` — there is no menu write endpoint at all. Locally, "delete a menu record" means editing that seed file; on a real backend it means deleting the row.
+
+:::
 
 ## The deletion checklist, in dependency order
 
@@ -52,7 +54,9 @@ The overview page builds its card wall from `routeStore.menus` (`views/component
 
 ::: danger
 
-A static contract ties pages to the menu seed on purpose `apps/web/src/views/dashboard/__tests__/analysis-merge.spec.ts` reads `apps/backend-mock/server/api/menus.get.ts` as text, lifts every `path: '/...'` into a set, and asserts that each quick action on the analysis page targets one of them. Its comments state the policy plainly: "the menu seed is both the route table and the permission source", "deleting a page means deleting the seed entry with it". Fastest place in the repo for a half-deletion to turn red — which is the point. :::
+A static contract ties pages to the menu seed on purpose `apps/web/src/views/dashboard/__tests__/analysis-merge.spec.ts` reads `apps/backend-mock/server/api/menus.get.ts` as text, lifts every `path: '/...'` into a set, and asserts that each quick action on the analysis page targets one of them. Its comments state the policy plainly: "the menu seed is both the route table and the permission source", "deleting a page means deleting the seed entry with it". Fastest place in the repo for a half-deletion to turn red — which is the point.
+
+:::
 
 ## Case C: a workspace package
 
@@ -92,7 +96,9 @@ The video trio is a clean case: `@videojs-player/vue`, `@videojs/http-streaming`
 
 ::: warning
 
-"nothing imports it" is not "safe to delete" `pnpm check:dep` (knip) reports a batch of unused dependencies, but its built-in config ignores `docs/**` and hardcodes an `ignoreDependencies` list containing `playwright`, `rimraf`, `tailwindcss` and more (see `scripts/vsh/src/check-dep/index.ts`). Build-time plugins and CDN-loaded libraries all look "unused" to it — grep the app source and `internal/vite-config` yourself before deleting. :::
+"nothing imports it" is not "safe to delete" `pnpm check:dep` (knip) reports a batch of unused dependencies, but its built-in config ignores `docs/**` and hardcodes an `ignoreDependencies` list containing `playwright`, `rimraf`, `tailwindcss` and more (see `scripts/vsh/src/check-dep/index.ts`). Build-time plugins and CDN-loaded libraries all look "unused" to it — grep the app source and `internal/vite-config` yourself before deleting.
+
+:::
 
 ## What catches what you broke
 

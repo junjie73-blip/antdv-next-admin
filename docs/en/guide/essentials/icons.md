@@ -9,7 +9,9 @@ Two icon channels coexist here, each with its own use case and its own failure m
 
 Versions come from the catalog in `pnpm-workspace.yaml`; don't read a sub-package manifest to find one.
 
-::: info The third channel is gone `@antdv-next/icons` (component-style icons, `import { FullscreenOutlined } from '@antdv-next/icons'`) left the dependency graph with antdv-next: the package is no longer in the catalog and no source file imports it — the only mention left is `apps/web/src/views/__tests__/gallery-api-usage.spec.ts`, which keeps it as a **bad sample** inside the guard. Its last consumer was the big-screen header's fullscreen button, now `<Icon :icon="isFullscreen ? 'carbon:minimize' : 'carbon:maximize'" />` (`apps/web/src/views/screen/components/ScreenHeader.vue:105`). :::
+::: info
+
+The third channel is gone `@antdv-next/icons` (component-style icons, `import { FullscreenOutlined } from '@antdv-next/icons'`) left the dependency graph with antdv-next: the package is no longer in the catalog and no source file imports it — the only mention left is `apps/web/src/views/__tests__/gallery-api-usage.spec.ts`, which keeps it as a **bad sample** inside the guard. Its last consumer was the big-screen header's fullscreen button, now `<Icon :icon="isFullscreen ? 'carbon:minimize' : 'carbon:maximize'" />` (`apps/web/src/views/screen/components/ScreenHeader.vue:105`). :::
 
 ## Iconify: offline data by default
 
@@ -27,7 +29,9 @@ Each set listed in `local` is read from `@iconify-json/<name>/icons.json` and ha
 
 ::: warning
 
-A set outside that list fails silently A typo like `<Icon icon="carbon:card" />` produces no Vue error. During the build an unknown name renders an **empty span**; if the lookup falls through to runtime it becomes a network request that our CSP usually blocks. The visible symptom is "some menu rows have icons, some have a blank square, and the labels no longer line up" — it looks like a CSS bug and is actually bad data. :::
+A set outside that list fails silently A typo like `<Icon icon="carbon:card" />` produces no Vue error. During the build an unknown name renders an **empty span**; if the lookup falls through to runtime it becomes a network request that our CSP usually blocks. The visible symptom is "some menu rows have icons, some have a blank square, and the labels no longer line up" — it looks like a CSS bug and is actually bad data.
+
+:::
 
 `vite-plugin-iconify-offline` (catalog `^0.4.3`) is also in `apps/web` devDependencies but is **imported nowhere**; the plugin doing the work is the `@tomjs/*` one above.
 
@@ -50,7 +54,9 @@ A set outside that list fails silently A typo like `<Icon icon="carbon:card" />`
 2. the `local` array at `auto-import.ts:31`;
 3. `IconPicker.vue` — the `Prefix` union (`:53`), `COLLECTIONS` (`:62`) and `COLLECTION_LOADERS` (`:75`) (miss this and the set can neither be selected nor searched);
 4. `apps/web/test/icon-names.test.ts` — `COLLECTIONS` and the collection alternation in `LITERAL`;
-5. run `pnpm --filter @antdv/web build` once to confirm the data really is in the output. :::
+5. run `pnpm --filter @antdv/web build` once to confirm the data really is in the output.
+
+:::
 
 ## The icon-name audit test (a hard constraint here)
 
@@ -70,7 +76,9 @@ How to run it: `pnpm test:unit` (whole repository through turbo) or `pnpm --filt
 
 ::: warning
 
-Class-based icon names do not work in this repository `apps/web/src/views/system/micro-app/index.vue` still contains four UnoCSS-style `class="i-carbon-search"` / `i-carbon-application` spans (`:195`, `:333`, `:408`, `:450`; `MicroAppContainer` moved into `@antdv/common-ui` and its copy of that markup went with it). There is no UnoCSS here and no plugin compiling `i-*` into CSS (styling is Tailwind v4, see [Design tokens and global styles](/en/guide/essentials/design)), so those spans render **empty**. New code always writes the component form: `<Icon icon="carbon:search" />`. :::
+Class-based icon names do not work in this repository `apps/web/src/views/system/micro-app/index.vue` still contains four UnoCSS-style `class="i-carbon-search"` / `i-carbon-application` spans (`:195`, `:333`, `:408`, `:450`; `MicroAppContainer` moved into `@antdv/common-ui` and its copy of that markup went with it). There is no UnoCSS here and no plugin compiling `i-*` into CSS (styling is Tailwind v4, see [Design tokens and global styles](/en/guide/essentials/design)), so those spans render **empty**. New code always writes the component form: `<Icon icon="carbon:search" />`.
+
+:::
 
 ## Where icon names come from
 

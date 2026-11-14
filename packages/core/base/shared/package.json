@@ -1,6 +1,6 @@
 {
   "name": "@antdv/shared",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "浏览器侧通用能力：缓存、色值换算、跨层常量、工具方法（cn/日期/下载/Excel/脱敏/XSS/事件）、@tanstack/vue-store 出口",
   "private": true,
   "type": "module",
@@ -56,6 +56,7 @@
   "dependencies": {
     "@antdv/types": "workspace:*",
     "@ctrl/tinycolor": "catalog:",
+    "@e965/xlsx": "catalog:",
     "@iconify/vue": "catalog:",
     "@tanstack/vue-store": "catalog:",
     "@vueuse/core": "catalog:",
@@ -70,8 +71,7 @@
     "tailwind-merge": "catalog:",
     "theme-colors": "catalog:",
     "vue": "catalog:",
-    "vue-router": "catalog:",
-    "xlsx": "catalog:"
+    "vue-router": "catalog:"
   },
   "devDependencies": {
     "@antdv/tsconfig": "workspace:*",

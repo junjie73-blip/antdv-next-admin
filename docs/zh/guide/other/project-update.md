@@ -14,7 +14,9 @@
 
 ::: warning
 
-一处死配置 `pnpm-workspace.yaml` 末尾还有个具名 catalog `catalogs.conflicts_vue_h3_5_43`（`vue: ^3.5.43`），但全仓没有任何 package.json 写 `catalog(conflicts_vue_h3_5_43)` —— 它不参与解析，别指望它生效。:::
+一处死配置 `pnpm-workspace.yaml` 末尾还有个具名 catalog `catalogs.conflicts_vue_h3_5_43`（`vue: ^3.5.43`），但全仓没有任何 package.json 写 `catalog(conflicts_vue_h3_5_43)` —— 它不参与解析，别指望它生效。
+
+:::
 
 ## 安装期真正生效的开关
 
@@ -47,7 +49,9 @@ pnpm release                      # pnpm build && changeset publish
 
 ::: danger
 
-别把 `pnpm release` 当成"发 npm" `packages/*`、`apps/*` 与根包的 package.json **全部是 `"private": true`**，也没有 `publishConfig`。changesets 在这里只产出各包的 CHANGELOG 与 git tag，不会往 registry 推任何东西。发布历史也确实薄：`.github/workflows/` 里只有 `docs.yml`（它的注释还引用了一个不存在的 `ci.yml`），也没有 job 跑 changesets；0.1.0 之前仓库只有 `v0.0.3` 和一个误操作留下的 `vnull`。**升级与发版目前是一次纯本地动作**，`version` 之后自己提交，再 `pnpm exec changeset tag` 打 tag，推送要 `git push --follow-tags`（`git push` 默认不带 tag）。:::
+别把 `pnpm release` 当成"发 npm" `packages/*`、`apps/*` 与根包的 package.json **全部是 `"private": true`**，也没有 `publishConfig`。changesets 在这里只产出各包的 CHANGELOG 与 git tag，不会往 registry 推任何东西。发布历史也确实薄：`.github/workflows/` 里只有 `docs.yml`（它的注释还引用了一个不存在的 `ci.yml`），也没有 job 跑 changesets；0.1.0 之前仓库只有 `v0.0.3` 和一个误操作留下的 `vnull`。**升级与发版目前是一次纯本地动作**，`version` 之后自己提交，再 `pnpm exec changeset tag` 打 tag，推送要 `git push --follow-tags`（`git push` 默认不带 tag）。
+
+:::
 
 ## 一次 antdv-next 升级怎么跑
 
@@ -81,6 +85,8 @@ cd apps/web && pnpm exec playwright test --project=chromium --reporter=line
 
 ::: tip
 
-Vue 是唯一被钉死的运行时 catalog 里 `vue: 3.5.43` 是**精确版本**，注释写明了原因：范围号会让部分第三方 peer 树停在 3.5.42，于是 `@vue/runtime-core` 出现两份类型，跨包传 Directive 直接打架。升 Vue 之前先读懂这条注释，再决定 `overrides` 要不要跟着动。:::
+Vue 是唯一被钉死的运行时 catalog 里 `vue: 3.5.43` 是**精确版本**，注释写明了原因：范围号会让部分第三方 peer 树停在 3.5.42，于是 `@vue/runtime-core` 出现两份类型，跨包传 Directive 直接打架。升 Vue 之前先读懂这条注释，再决定 `overrides` 要不要跟着动。
+
+:::
 
 要把不需要的东西拆掉，看[移除代码](/zh/guide/other/remove-code)；工程侧的其它约定见 [开发规范与环境变量](/zh/guide/essentials/development)、[目录说明](/zh/guide/project/dir)。

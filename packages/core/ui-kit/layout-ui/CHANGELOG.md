@@ -1,5 +1,19 @@
 # @antdv/layout-ui
 
+## 0.2.0
+
+### Patch Changes
+
+- Updated dependencies [d77ddc4]
+- Updated dependencies [433d922]
+  - @antdv/common-ui@0.2.0
+  - @antdv/menu-ui@0.2.0
+  - @antdv/shadcn-ui@0.2.0
+  - @antdv/icons@0.2.0
+  - @antdv/shared@0.2.0
+  - @antdv/types@0.2.0
+  - @antdv/utils@0.2.0
+
 ## 0.1.0
 
 ### Patch Changes

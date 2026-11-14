@@ -78,7 +78,9 @@ the SM4 key for cached values is the prefix, not `VITE_CACHE_ENCRYPT_KEY` `index
 2. Missing it in production does **not** trigger the "a key is required" throw at `env.ts:59-68`; that branch is dead code for caching.
 3. The SM4 key is `padKey(VITE_APP_TITLE)` (padded or truncated to 32 characters, `encrypt.ts:18,93-98`), which means **changing the title changes the key names and the key together**, and any project reusing the same title reuses the same key.
 
-The derived-key machinery (SHA-256 over a device fingerprint, `encrypt.ts:40-75`) only serves the async `encryptValue` / `decryptValue`, and **nothing in the repository calls those two functions**. :::
+The derived-key machinery (SHA-256 over a device fingerprint, `encrypt.ts:40-75`) only serves the async `encryptValue` / `decryptValue`, and **nothing in the repository calls those two functions**.
+
+:::
 
 The token value has its own mechanism, independent of `shouldEncrypt`: `encryptToken()` builds a `jose` `EncryptJWT` with `alg: 'dir'` + `A256GCM` (`tokenCrypto.ts:86-90`), keyed by PBKDF2 (100 000 iterations) over a **device fingerprint** (`tokenCrypto.ts:21-69`) whose factors are `navigator.userAgent`, `navigator.language`, `screen.width/height` and the timezone offset (`:22-28`). It encrypts in dev too, which is why tokens in your local localStorage are JWE strings.
 
@@ -100,7 +102,9 @@ two places along that chain still do not line up (read from the code, not guesse
 - **`logout()` never clears `refresh_token`**: `user.ts:164-169` only removes `auth_token` and `user_info`, so the `refresh_token` written at `request-runtime.ts:24` stays on disk (only a full `cache.clear()` takes it away).
 - **The login flow never writes `refresh_token`**: the login response handled in `user.ts` carries only `user.token` (`:96-104`) and nothing calls `setRefresh`, so the first `doRefreshToken()` reaches `tokens.refresh()` returning empty → `缺少 refresh token` (`fetcher.ts:96-97`).
 
-Two defects that used to sit here are now fixed, so stop looking for them in the old wording: `initToken()` is awaited at `main.ts:153`, so after a reload `token.value` holds the plaintext **after** `decryptToken`, not the JWE string (regression spec `packages/stores/__tests__/user-session.test.ts:166-212`); and refresh tokens go through `setRefresh` at `request-runtime.ts:24` (`cache.setItem`, plaintext, no TTL) instead of abusing the second parameter of `setToken` as an expiry. One thing is still open: `clearDict()` has no call site anywhere, so logout does not clear dictionaries — they rely on the 1-hour `loadedAt` window expiring on its own (`apps/web/src/stores/modules/dict.ts:39,133`). :::
+Two defects that used to sit here are now fixed, so stop looking for them in the old wording: `initToken()` is awaited at `main.ts:153`, so after a reload `token.value` holds the plaintext **after** `decryptToken`, not the JWE string (regression spec `packages/stores/__tests__/user-session.test.ts:166-212`); and refresh tokens go through `setRefresh` at `request-runtime.ts:24` (`cache.setItem`, plaintext, no TTL) instead of abusing the second parameter of `setToken` as an expiry. One thing is still open: `clearDict()` has no call site anywhere, so logout does not clear dictionaries — they rely on the 1-hour `loadedAt` window expiring on its own (`apps/web/src/stores/modules/dict.ts:39,133`).
+
+:::
 
 ## Which browser storage is actually used
 
@@ -123,7 +127,9 @@ After you change the prefix (`VITE_APP_TITLE`) or the encryption shape, old cach
 
 ::: tip
 
-before you add another piece of persisted state Decide the key first. Application-scoped state follows `dict.ts`: add a `CacheKey` member (and actually reference it), `cache.setItem` inside a `watch`, and add the cleanup to `logout()` in `user.ts`. Purely visual preferences must not open their own key — they belong to `packages/core/preferences` (see [State management](/en/guide/essentials/stores)). Bare `localStorage` is for data that has nothing to do with cache semantics (menu visibility overrides, upload resume progress), and it must carry its own expiry check. :::
+before you add another piece of persisted state Decide the key first. Application-scoped state follows `dict.ts`: add a `CacheKey` member (and actually reference it), `cache.setItem` inside a `watch`, and add the cleanup to `logout()` in `user.ts`. Purely visual preferences must not open their own key — they belong to `packages/core/preferences` (see [State management](/en/guide/essentials/stores)). Bare `localStorage` is for data that has nothing to do with cache semantics (menu visibility overrides, upload resume progress), and it must carry its own expiry check.
+
+:::
 
 ## Related pages
 

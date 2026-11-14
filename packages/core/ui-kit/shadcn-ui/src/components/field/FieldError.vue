@@ -3,7 +3,7 @@ import type { HTMLAttributes } from 'vue';
 
 import { computed } from 'vue';
 
-import { cn } from '@antdv/shared/utils/cn';
+import { cn } from 'cn';
 
 const props = defineProps<{
   class?: HTMLAttributes['class'];

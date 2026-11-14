@@ -14,7 +14,9 @@ Once you clone this repository it is yours — nobody pushes updates to you. Thi
 
 ::: warning
 
-One named catalog, and `overrides` overrides it `catalogs.conflicts_vue_h3_5_43` (`pnpm-workspace.yaml:264-266`, `vue: ^3.5.43`) is genuinely referenced by `apps/web`, so it is not dead configuration — but `overrides.vue: 'catalog:'` (`:292-297`) pins it straight back onto the **exact** `3.5.43` in the default catalog (`:229`). That named channel therefore resolves to nothing different today; it survives as a historical artefact. To actually upgrade Vue, editing `catalog:` at `:229` is enough. :::
+One named catalog, and `overrides` overrides it `catalogs.conflicts_vue_h3_5_43` (`pnpm-workspace.yaml:264-266`, `vue: ^3.5.43`) is genuinely referenced by `apps/web`, so it is not dead configuration — but `overrides.vue: 'catalog:'` (`:292-297`) pins it straight back onto the **exact** `3.5.43` in the default catalog (`:229`). That named channel therefore resolves to nothing different today; it survives as a historical artefact. To actually upgrade Vue, editing `catalog:` at `:229` is enough.
+
+:::
 
 ## Switches that actually fire at install time
 
@@ -48,11 +50,15 @@ Three decisions in `.changeset/config.json` matter: `fixed: [["@antdv/*", "@antd
 
 ::: warning
 
-`fixed` means "the next release moves everyone to one number" — the landing version is the **highest number currently in the group** plus the largest bump level of the round. The first real `pnpm version`, on 2026-10-23, tripped over exactly that: the packages had been hand-numbered during the rework and sat on five different numbers (`0.0.0` / `0.1.0` / `0.4.0` / `0.5.0` / `5.8.0`), and `scripts/*` (`@antdv/turbo-run`, `@antdv/vsh`) still carried `5.8.0` inherited from upstream `vue-vben-admin`. Run as-is, it would have pushed the whole set to `5.9.0`. The fix was to reset every member to `0.0.0` first, so the first unified release landed on `0.1.0`. **So new packages are born at `0.0.0`**: the highest number in the group decides the landing point for all of them. :::
+`fixed` means "the next release moves everyone to one number" — the landing version is the **highest number currently in the group** plus the largest bump level of the round. The first real `pnpm version`, on 2026-10-23, tripped over exactly that: the packages had been hand-numbered during the rework and sat on five different numbers (`0.0.0` / `0.1.0` / `0.4.0` / `0.5.0` / `5.8.0`), and `scripts/*` (`@antdv/turbo-run`, `@antdv/vsh`) still carried `5.8.0` inherited from upstream `vue-vben-admin`. Run as-is, it would have pushed the whole set to `5.9.0`. The fix was to reset every member to `0.0.0` first, so the first unified release landed on `0.1.0`. **So new packages are born at `0.0.0`**: the highest number in the group decides the landing point for all of them.
+
+:::
 
 ::: danger
 
-`pnpm release` is not "publish to npm" `packages/*`, `apps/*`, `docs` and the root package.json are **all `"private": true`** (the single `publishConfig` is at `packages/core/ui-kit/shadcn-ui/package.json:31`, and it merely repeats the `src` exports verbatim — that package is private too). Here changesets only produce per-package CHANGELOGs and git tags; nothing goes to a registry. The release history is thin for the same reason: `.github/workflows/` contains only `docs.yml`, and no job runs changesets; before 0.1.0 the repository had nothing but `v0.0.3` plus a stray `vnull`. **Upgrading and releasing is a local act** — commit the `version` output yourself, then `pnpm exec changeset tag`, and push with `git push --follow-tags` because a plain `git push` leaves tags behind. :::
+`pnpm release` is not "publish to npm" `packages/*`, `apps/*`, `docs` and the root package.json are **all `"private": true`** (the single `publishConfig` is at `packages/core/ui-kit/shadcn-ui/package.json:31`, and it merely repeats the `src` exports verbatim — that package is private too). Here changesets only produce per-package CHANGELOGs and git tags; nothing goes to a registry. The release history is thin for the same reason: `.github/workflows/` contains only `docs.yml`, and no job runs changesets; before 0.1.0 the repository had nothing but `v0.0.3` plus a stray `vnull`. **Upgrading and releasing is a local act** — commit the `version` output yourself, then `pnpm exec changeset tag`, and push with `git push --follow-tags` because a plain `git push` leaves tags behind.
+
+:::
 
 ## Running a component-stack upgrade
 
@@ -94,6 +100,8 @@ Two more things about `pnpm build`: it sets `NODE_OPTIONS=--max-old-space-size=8
 
 ::: tip
 
-Vue is the one runtime that is nailed down. In the default catalog `vue: 3.5.43` (`pnpm-workspace.yaml:229`) carries **no range operator**; eleven other catalog entries are also exact (`reka-ui` at `:189`, `vue-sonner` at `:238`, `@vueuse/core`, `vee-validate`, `@lucide/vue`, `embla-carousel-vue`, `pdfjs-dist`, `zod`, …), but `vue` is the only one that additionally appears in `overrides` (`:292-297`), which forces a single instance across the whole tree. The reason a range is dangerous: it lets some third-party peer trees settle on 3.5.42, which duplicates `@vue/runtime-core` types and makes Directive types fight across package boundaries. Before bumping Vue, decide whether `overrides` should move with it. :::
+Vue is the one runtime that is nailed down. In the default catalog `vue: 3.5.43` (`pnpm-workspace.yaml:229`) carries **no range operator**; eleven other catalog entries are also exact (`reka-ui` at `:189`, `vue-sonner` at `:238`, `@vueuse/core`, `vee-validate`, `@lucide/vue`, `embla-carousel-vue`, `pdfjs-dist`, `zod`, …), but `vue` is the only one that additionally appears in `overrides` (`:292-297`), which forces a single instance across the whole tree. The reason a range is dangerous: it lets some third-party peer trees settle on 3.5.42, which duplicates `@vue/runtime-core` types and makes Directive types fight across package boundaries. Before bumping Vue, decide whether `overrides` should move with it.
+
+:::
 
 Stripping out what you do not need is covered by [Removing code](/en/guide/other/remove-code); the rest of the engineering conventions are in [Development conventions and environment variables](/en/guide/essentials/development) and [Directory structure](/en/guide/project/dir).

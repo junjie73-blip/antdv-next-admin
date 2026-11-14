@@ -39,6 +39,41 @@ The mock server is started **in-process** by the dev process (Nitro, port 5320),
 
 ---
 
+## Screenshots
+
+> Captured from the local dev environment (`admin` / `admin123`), light theme, 1440×900.
+
+### Analytics dashboard
+
+KPI cards + ECharts trend chart. All colors come from design tokens, so switching a theme preset updates them automatically.
+
+![Analytics dashboard](./screenshots/01-analysis.png)
+
+### System management
+
+Department tree on the left, data table on the right — every table has an action column. Create / edit uses a modal form; details use a drawer.
+
+![User management](./screenshots/02-system-user.png)
+
+<details>
+<summary>More screenshots</summary>
+
+**Component examples overview**
+
+![Component examples](./screenshots/03-components.png)
+
+**System logs** (operation / login / error logs merged into tabs)
+
+![System logs](./screenshots/04-system-log.png)
+
+**Modal form** (all fields visible with a pinned footer)
+
+![Modal form](./screenshots/05-modal-form.png)
+
+</details>
+
+---
+
 ## Repository structure
 
 ```

@@ -24,7 +24,9 @@ preferences store（持久化）
 
 ::: warning
 
-`--ant-*` 那四条桥已经整体删掉，变量名单的纪律是**只收有读取点的名字**（`@antdv/shared/constants` 的 `css-vars.ts:17`）。契约测试 `packages/core/preferences/__tests__/update-css-variables.test.ts:80-82` 反向钉住"内联样式上不许再出现这些名字"。:::
+`--ant-*` 那四条桥已经整体删掉，变量名单的纪律是**只收有读取点的名字**（`@antdv/shared/constants` 的 `css-vars.ts:17`）。契约测试 `packages/core/preferences/__tests__/update-css-variables.test.ts:80-82` 反向钉住"内联样式上不许再出现这些名字"。
+
+:::
 
 ## 用 Tailwind 写主题色
 
@@ -38,11 +40,15 @@ cn('bg-primary/10 text-primary ring-1 ring-primary/20');
 
 ::: danger
 
-不要再写 `*-ant-primary`。那组工具类来自 antdv-next 的 Tailwind 兼容层（`@antdv-next/tailwind/compat.css`），`@antdv/design` 已经不引它 —— 不是"颜色不对"，而是**整条类根本不生成**，表现成元素没底色、没边框。:::
+不要再写 `*-ant-primary`。那组工具类来自 antdv-next 的 Tailwind 兼容层（`@antdv-next/tailwind/compat.css`），`@antdv/design` 已经不引它 —— 不是"颜色不对"，而是**整条类根本不生成**，表现成元素没底色、没边框。
+
+:::
 
 ::: warning
 
-别写死蓝色 `bg-blue-600`、`text-blue-500`、`#1677ff` 这类硬编码在浅色下看着对，换主色 / 进暗黑就露馅。登录页有 `views/login/__tests__/login-styles.spec.ts` 当契约钉住"强调色只能来自主色令牌"，新写的页面建议照这条口径来。（存量：部分 view 文件里还留着 `blue-*` / `#1677ff`，属于逐步清理的技术债。）:::
+别写死蓝色 `bg-blue-600`、`text-blue-500`、`#1677ff` 这类硬编码在浅色下看着对，换主色 / 进暗黑就露馅。登录页有 `views/login/__tests__/login-styles.spec.ts` 当契约钉住"强调色只能来自主色令牌"，新写的页面建议照这条口径来。（存量：部分 view 文件里还留着 `blue-*` / `#1677ff`，属于逐步清理的技术债。）
+
+:::
 
 ## 每个主题都是一份完整色板
 
@@ -60,7 +66,9 @@ cn('bg-primary/10 text-primary ring-1 ring-primary/20');
 
 ::: warning
 
-判断"现在是不是深色"要用解析结果 `appStore.themeMode === 'dark'` 在 `auto` 模式下**永远为 false**，即使系统已经是深色。需要按明暗分支的地方（ECharts 配色、大屏底色）要读 `resolvedTheme`，不能读 `themeMode`。:::
+判断"现在是不是深色"要用解析结果 `appStore.themeMode === 'dark'` 在 `auto` 模式下**永远为 false**，即使系统已经是深色。需要按明暗分支的地方（ECharts 配色、大屏底色）要读 `resolvedTheme`，不能读 `themeMode`。
+
+:::
 
 DOM 侧的 class 由 `applyPreferencesToDom()` 增删（默认 `dark`，可传 `darkClass`），Tailwind 的 `dark:` 变体和 `@antdv/design` 的 dark 规则都挂在这个 class 上。
 

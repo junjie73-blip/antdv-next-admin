@@ -1,6 +1,6 @@
 {
   "name": "@antdv/vite-config",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "共享 Vite 配置：插件装配、分包策略、env 解析与 dev proxy（含 Nitro Mock 转发）",
   "private": true,
   "type": "module",
@@ -50,7 +50,6 @@
     "vite-plugin-dts": "catalog:",
     "vite-plugin-env-parse": "catalog:",
     "vite-plugin-html": "catalog:",
-    "vite-plugin-imagemin": "catalog:",
     "vite-plugin-inspect": "catalog:",
     "vite-plugin-performance": "catalog:",
     "vite-plugin-pwa": "catalog:",

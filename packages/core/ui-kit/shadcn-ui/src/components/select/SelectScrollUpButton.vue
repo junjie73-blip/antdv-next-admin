@@ -3,9 +3,9 @@ import type { SelectScrollUpButtonProps } from 'reka-ui';
 
 import type { HTMLAttributes } from 'vue';
 
-import { cn } from '@antdv/shared/utils/cn';
 import { ChevronUp } from '@lucide/vue';
 import { reactiveOmit } from '@vueuse/core';
+import { cn } from 'cn';
 import { SelectScrollUpButton, useForwardProps } from 'reka-ui';
 
 const props = defineProps<

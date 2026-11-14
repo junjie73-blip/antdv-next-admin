@@ -5,7 +5,7 @@ import type { ChartConfig } from '.';
 
 import { computed } from 'vue';
 
-import { cn } from '@antdv/shared/utils/cn';
+import { cn } from 'cn';
 
 const props = withDefaults(
   defineProps<{

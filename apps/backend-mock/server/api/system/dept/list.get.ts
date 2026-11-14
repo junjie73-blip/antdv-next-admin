@@ -1,4 +1,5 @@
 import { ALL_DEPTS_FLAT } from '../../../utils/db/dept';
+import { paginateList } from '../../../utils/pagination';
 import { success } from '../../../utils/response';
 import { defineMockRoute } from '../../../utils/runtime';
 
@@ -18,7 +19,7 @@ export default defineMockRoute({
       items = items.filter((d) => d.name.toLowerCase().includes(kw));
     }
 
-    return success({ list: items, total: items.length }, '获取部门列表成功');
+    return success(paginateList(items, query), '获取部门列表成功');
   },
   method: 'GET',
   path: '/system/dept/list',

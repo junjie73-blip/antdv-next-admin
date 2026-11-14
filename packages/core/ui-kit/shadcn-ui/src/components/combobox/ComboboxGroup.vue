@@ -3,8 +3,8 @@ import type { ComboboxGroupProps } from 'reka-ui';
 
 import type { HTMLAttributes } from 'vue';
 
-import { cn } from '@antdv/shared/utils/cn';
 import { reactiveOmit } from '@vueuse/core';
+import { cn } from 'cn';
 import { ComboboxGroup, ComboboxLabel } from 'reka-ui';
 
 const props = defineProps<

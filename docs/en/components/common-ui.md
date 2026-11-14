@@ -6,7 +6,9 @@ The refactor landed in code before it landed in docs, so this page is the catch-
 
 ::: tip APIs only, no narrative
 
-Every props / events / slots / instance-method line below is copied from the real `defineProps` / `defineEmits` / `defineExpose` in the source, with file:line. For "what do I click and what happens", use the routes listed under [Component examples](/en/components/); for the CSS variables these components consume, see [Design tokens and global styles](/en/guide/essentials/design). :::
+Every props / events / slots / instance-method line below is copied from the real `defineProps` / `defineEmits` / `defineExpose` in the source, with file:line. For "what do I click and what happens", use the routes listed under [Component examples](/en/components/); for the CSS variables these components consume, see [Design tokens and global styles](/en/guide/essentials/design).
+
+:::
 
 ## How to import: the root entry plus one charts subpath
 
@@ -65,7 +67,9 @@ Type exports: `BorderBeamProps`, `CountToEvents` / `CountToInstance` / `CountToP
 
 ::: warning `UploadProps` is not exported
 
-`components/upload/index.ts` declares `export type { UploadProps }`, but the re-export block in `packages/core/ui-kit/common-ui/src/index.ts:161-166` does not include it. To type Upload props in a page, compose `import type { UploadFile, UploadChangeParam } from '@antdv/common-ui'` instead — or leave it untyped. :::
+`components/upload/index.ts` declares `export type { UploadProps }`, but the re-export block in `packages/core/ui-kit/common-ui/src/index.ts:161-166` does not include it. To type Upload props in a page, compose `import type { UploadFile, UploadChangeParam } from '@antdv/common-ui'` instead — or leave it untyped.
+
+:::
 
 ## ConfigProvider (global config)
 
@@ -106,7 +110,9 @@ The first entry of `wrapperClass` is `'contents'` (`:164-173`): that `<div>` **g
 
 Every one of those components defaults its `size` / copy props to `undefined` — hardcoding `'default'` would make the global scale unreadable. The families do not share vocabulary, so `medium` maps into each one's own name: `Loading` → `default`, `Segmented` → `middle`, `Description` → `default` (that family only gets tighter at `small` / `middle`).
 
-::: warning The size has to reach child items reactively, not as a snapshot `Segmented`'s scale travels one level further: `ToggleGroup` in `@antdv/shadcn-ui` hands it to every `ToggleGroupItem` through `provide('toggleGroup', …)`. That provide used to pass a **plain object**, i.e. a snapshot taken at setup — switching the scale updated the group's own `data-size` but left the buttons at the old height, so it looked as if "the scale only wrote an attribute". It is now a getter-based `reactive()` (`toggle-group/ToggleGroup.vue:24-33`), so each item re-reads on every render. **The same applies to any scale you plumb across levels yourself.** :::
+::: warning
+
+The size has to reach child items reactively, not as a snapshot `Segmented`'s scale travels one level further: `ToggleGroup` in `@antdv/shadcn-ui` hands it to every `ToggleGroupItem` through `provide('toggleGroup', …)`. That provide used to pass a **plain object**, i.e. a snapshot taken at setup — switching the scale updated the group's own `data-size` but left the buttons at the old height, so it looked as if "the scale only wrote an attribute". It is now a getter-based `reactive()` (`toggle-group/ToggleGroup.vue:24-33`), so each item re-reads on every render. **The same applies to any scale you plumb across levels yourself.** :::
 
 ### Date typography goes through reka's injection
 
@@ -118,7 +124,9 @@ Every one of those components defaults its `size` / copy props to `undefined` �
 
 E2E anchor: `apps/web/e2e/config-provider.spec.ts` — after switching to `en-US` it asserts the heading goes from `2026年10月` to `Oct 2026` and the weekday header from `一 二 … 日` to `S M T W T F S`.
 
-::: warning Do not read theme or variables through `useGlobalConfig()` `theme` / `cssVars` are already applied by the provider as CSS variables plus `.dark` / `.light` on the container, so components keep using `var(--*)` and `bg-primary`. Branching on the JS values as well would mean "styles follow CSS variables, logic follows JS values" — two sources of truth (`use-global-config.ts:14-16`). :::
+::: warning
+
+Do not read theme or variables through `useGlobalConfig()` `theme` / `cssVars` are already applied by the provider as CSS variables plus `.dark` / `.light` on the container, so components keep using `var(--*)` and `bg-primary`. Branching on the JS values as well would mean "styles follow CSS variables, logic follows JS values" — two sources of truth (`use-global-config.ts:14-16`). :::
 
 ### Sub-tree theming, not a second global write side
 
@@ -126,9 +134,13 @@ E2E anchor: `apps/web/e2e/config-provider.spec.ts` — after switching to `en-US
 
 Sub-tree overrides work because `@antdv/design/src/token/index.css` declares its tokens with `@theme inline`: the value is inlined, so utilities compile to the `hsl(var(--primary))` **expression** itself rather than a colour resolved once at `:root` — any non-`:root` ancestor can still change them. `radius` is an **absolute value** (numbers are converted to rem against the 16px `--radius` base, `8` → `0.5rem`; strings pass through verbatim), unlike the preference's multiplier scale (0–1 over a 16px base) — a sub-tree override is for "this block should be squarer", not for re-scaling the global dial.
 
-::: warning Mode class and theme name must land on the same element `@antdv/design` writes dark presets as `.dark[data-theme='violet']` and Tailwind's `dark:` variant is `&:where(.dark, .dark *)`. The class generated from `mode` and the `data-theme` generated from `preset` therefore have to sit on the same node (the implementation does exactly that, `:202-211`); split them across two levels and only half of it applies. :::
+::: warning
 
-::: warning Teleported overlays are not inside this sub-tree `Dialog` / `Popover` / `Select` layers mount on `body` by default, and CSS variables inherit down the DOM tree, so those follow the `<html>` settings rather than the provider's. Point `teleportTo` into the sub-tree when a local theme has to reach the overlay (`scrollBody` / `nonce` / `useId` are unaffected). :::
+Mode class and theme name must land on the same element `@antdv/design` writes dark presets as `.dark[data-theme='violet']` and Tailwind's `dark:` variant is `&:where(.dark, .dark *)`. The class generated from `mode` and the `data-theme` generated from `preset` therefore have to sit on the same node (the implementation does exactly that, `:202-211`); split them across two levels and only half of it applies. :::
+
+::: warning
+
+Teleported overlays are not inside this sub-tree `Dialog` / `Popover` / `Select` layers mount on `body` by default, and CSS variables inherit down the DOM tree, so those follow the `<html>` settings rather than the provider's. Point `teleportTo` into the sub-tree when a local theme has to reach the overlay (`scrollBody` / `nonce` / `useId` are unaffected). :::
 
 ### Nesting
 
@@ -225,7 +237,9 @@ Emits: `update:previewVisible: [boolean]` (`:42`). The preview layer is shadcn `
 
 - omitted or `true` → clickable, uncontrolled.
 - <code v-pre>preview={{ visible }}</code> (`visible` is a boolean)→ **controlled**; pair it with `@update:preview-visible`.
-- <code v-pre>preview={{ visible: false }}</code> with no `onVisibleChange` → treated as **statically disabled**, the preview affordance is not rendered at all (`showPreview`, `:55-60`); `preview=false` behaves the same. This mirrors the pre-migration "hide preview" usage: `preview={false}` and <code v-pre>preview={{ visible: false }}</code> are equivalent, while <code v-pre>preview={{}}</code> is clickable. :::
+- <code v-pre>preview={{ visible: false }}</code> with no `onVisibleChange` → treated as **statically disabled**, the preview affordance is not rendered at all (`showPreview`, `:55-60`); `preview=false` behaves the same. This mirrors the pre-migration "hide preview" usage: `preview={false}` and <code v-pre>preview={{ visible: false }}</code> are equivalent, while <code v-pre>preview={{}}</code> is clickable.
+
+:::
 
 ## Upload / UploadDragger / UploadList
 
@@ -249,7 +263,9 @@ Instance methods (`defineExpose`, `:279`): **`upload()`** and `reset()`.
 ::: warning Two things that no longer exist
 
 1. **There is no `action`.** The only upload hook is `customRequest`; omit it and you get a local simulation — `onSuccess({})` after 300ms (`:164`), so progress, success and failure all run with no backend at all. Do not document or copy it as a real upload.
-2. **There is no `<a-upload>` `submit()`.** With `autoUpload=false` you call `upload()` (`components/upload/Upload.vue:254`). :::
+2. **There is no `<a-upload>` `submit()`.** With `autoUpload=false` you call `upload()` (`components/upload/Upload.vue:254`).
+
+:::
 
 File picking goes through `useFileDialog` from `@vueuse/core` (import `:7`, the call starts at `:70`), injected into the hidden `<input data-common-upload-input>` in the template (`:294-302`; the comment at `:65-69` explains why an explicit element is passed: unit tests can drive `change` on that input directly in jsdom). The app-side `AvatarUploader` (`packages/core/ui-kit/common-ui/src/components/avatar-uploader/AvatarUploader.vue:12`) and `ImportExport` (`packages/core/ui-kit/common-ui/src/components/import-export/ImportExport.vue:13`) use the same hook.
 
@@ -283,7 +299,9 @@ Three differences from antdv-next — all three were hit in practice
 
 1. **The pane prop is `value`, not `key`.** Writing `<TabPane key="a">` makes Vue consume `key` as a vnode diff key; the pane registers `undefined`, so the tab header appears but clicking does nothing.
 2. **There is no `add` event and no `edit`.** antdv-next's `Tabs` has `edit(key | MouseEvent, 'add' | 'remove')`; this `Tabs` only emits `change` and `update:activeKey` (`Tabs.vue:28`). Editable tabs need your own "+" and "×" buttons outside the component.
-3. **Panes mount lazily and keep state.** `TabPane.vue:27-31`: `mounted` only flips on first activation, then the template hides the pane with a `hidden` class (`:37`) instead of unmounting it with `v-if` — form content and scroll position survive switching back. If you want a fresh pane every time, reset it yourself in `@change`. :::
+3. **Panes mount lazily and keep state.** `TabPane.vue:27-31`: `mounted` only flips on first activation, then the template hides the pane with a `hidden` class (`:37`) instead of unmounting it with `v-if` — form content and scroll position survive switching back. If you want a fresh pane every time, reset it yourself in `@change`.
+
+:::
 
 Real usage: `apps/web/src/views/account/center/index.vue:13-14`, `apps/web/src/views/system/notice/index.vue:14-15`, `apps/web/src/views/components/editor/index.vue:16-17`.
 
@@ -300,7 +318,9 @@ Real usage: `apps/web/src/views/account/center/index.vue:13-14`, `apps/web/src/v
 
 ::: warning No content means no tooltip layer
 
-The template only wraps `TooltipProvider` when there is content; otherwise it emits a bare `<slot v-else>`. So `:title="row.remark"` with an empty string simply renders no tooltip (usually what you want) — but there is no empty bubble to hang asynchronous content on, so "content arrives on hover" needs your own guard. :::
+The template only wraps `TooltipProvider` when there is content; otherwise it emits a bare `<slot v-else>`. So `:title="row.remark"` with an empty string simply renders no tooltip (usually what you want) — but there is no empty bubble to hang asynchronous content on, so "content arrives on hover" needs your own guard.
+
+:::
 
 ## CronEditor
 
@@ -367,7 +387,9 @@ Four limits, each verified against behaviour
 - **`type: 'tag'` does not render a Tag**: `case 'tag'` falls into the same default branch as `case 'text'` (`:163-165`). Use `render` with `h(Tag,...)` instead.
 - **`type: 'dict'` no longer reads the pinia dictionary store**: it is injection-based now — the host calls `provide(DESCRIPTION_DICT_RESOLVER, fn)` (`description/context.ts:16`; the comment records that a shared component package may not import pinia or `~/...`). Without a provider, `dictResolver?.(...) ?? String(value)` (`description/Description.vue:51`, injected at `:46`)means **the raw value is shown**, and empty values show `-`. As of this update nothing in the repo provides the key (only the unit test does), so `type: 'dict'` currently only echoes raw values in the app — provide a resolver if you need real dictionaries.
 - **`setData()` is a stub**: its implementation only calls `console.warn('[Description] setData 不支持在只读模式下使用')` (`:175-177`). The component is read-only; the only usable instance method is `getData()` (`:174`, `defineExpose` at `:179`).
-- **`DescriptionBordered` (`types.ts:25`)is used nowhere** — a leftover type; recorded so nobody reaches for it. :::
+- **`DescriptionBordered` (`types.ts:25`)is used nowhere** — a leftover type; recorded so nobody reaches for it.
+
+:::
 
 Real usage: `apps/web/src/views/components/description/index.vue:23`, `apps/web/src/views/system/online/index.vue:24` (`Description as DetailDescription`).
 
@@ -383,7 +405,9 @@ Four components the app used to re-implement per page; all are in the package no
 
 ::: warning `maxStackDepth` has no effect path
 
-It is declared in `interface Props` (`:11-14`) with a default of 5 at `:20`, but the implementation only renders `error.stack` in full — there is no code that trims frames. Passing `:max-stack-depth` changes nothing; this page records it as "declared, unused" rather than documenting it as an API. :::
+It is declared in `interface Props` (`:11-14`) with a default of 5 at `:20`, but the implementation only renders `error.stack` in full — there is no code that trims frames. Passing `:max-stack-depth` changes nothing; this page records it as "declared, unused" rather than documenting it as an API.
+
+:::
 
 **PageSkeleton / TableSkeleton** (`skeleton/`): both build on shadcn `Skeleton`, with the placeholder colour in `cn('bg-gray-200 dark:bg-gray-700', 'rounded-sm')` (`PageSkeleton.vue:55`, `TableSkeleton.vue:53`).
 
@@ -416,7 +440,9 @@ The implementation has three moving parts: the root writes the CSS variables and
 ::: warning Two boundaries worth knowing
 
 1. **The ring fills the parent's padding box** (that is what an absolutely positioned `inset: 0` resolves against). If the container also carries `border-*` utilities, the beam sits inside them; let `borderWidth` draw the edge on its own.
-2. **The `border-beam` hook class is a static `class`, never inside `cn()`** (the class is at `:49`, `cn('relative', props.class)` only at `:50`; the comment explaining the rule sits **below it**, at `:53-57`, inside the root element): tailwind-merge reads it as the `border-{color}` family, so a caller passing `border-border` deletes the hook class in the conflict resolution, and the ring disappears. Same rule for the template: **do not put a comment before the root element** — dev builds keep comment nodes, which turns the component into a Fragment and breaks automatic `class` / `style` inheritance. :::
+2. **The `border-beam` hook class is a static `class`, never inside `cn()`** (the class is at `:49`, `cn('relative', props.class)` only at `:50`; the comment explaining the rule sits **below it**, at `:53-57`, inside the root element): tailwind-merge reads it as the `border-{color}` family, so a caller passing `border-border` deletes the hook class in the conflict resolution, and the ring disappears. Same rule for the template: **do not put a comment before the root element** — dev builds keep comment nodes, which turns the component into a Fragment and breaks automatic `class` / `style` inheritance.
+
+:::
 
 Real usage: `apps/web/src/views/components/border-beam/index.vue` (six configurations plus one live statistic card).
 
@@ -500,11 +526,15 @@ Three VueUse hooks carry it; none of the scroll arithmetic is hand written: `use
 
 ::: warning
 
-`selectable` is explicit, not "auto-cursor when a listener exists" Once a component declares `emits`, its listeners no longer appear in `attrs`, so the implementation cannot sniff whether anyone is listening (that is what the comment at `:199` records). And even if it could, giving hover feedback to a purely informational list would just trick users into clicking something that does nothing. :::
+`selectable` is explicit, not "auto-cursor when a listener exists" Once a component declares `emits`, its listeners no longer appear in `attrs`, so the implementation cannot sniff whether anyone is listening (that is what the comment at `:199` records). And even if it could, giving hover feedback to a purely informational list would just trick users into clicking something that does nothing.
+
+:::
 
 ::: warning
 
-Virtual mode needs a box that can actually scroll `container-height: '100%'` requires an ancestor with a height, otherwise the viewport measures 0 and the window collapses to the `overscan` rows. The height function (when you pass one) **must only read**: writing reactive state inside it makes "scroll → recompute → height changed → recompute" self-exciting. :::
+Virtual mode needs a box that can actually scroll `container-height: '100%'` requires an ancestor with a height, otherwise the viewport measures 0 and the window collapses to the `overscan` rows. The height function (when you pass one) **must only read**: writing reactive state inside it makes "scroll → recompute → height changed → recompute" self-exciting.
+
+:::
 
 Real usage: `apps/web/src/views/components/listy/index.vue` (eight cards: basic, loading, empty, slots, then fixed heights over 20 000 rows, function heights, measured dynamic heights and a plain-mode control). Two unit files: `__tests__/listy.test.ts` (12 cases) and `__tests__/listy-virtual.test.ts` (17 cases — jsdom pins state and styles only). The scroll geometry is measured in the browser by `apps/web/e2e/listy-virtual.spec.ts` (8 cases × three engines): whether rows really come out 48px tall, whether `marginTop + height` equals the content height, and whether the window shrinks when the container does.
 
@@ -564,7 +594,9 @@ export const AUTH_SOCIAL_ITEMS: AuthSocialItem[] = [
 
 ::: warning The component shape sizes itself
 
-`AuthSocialLogin` only puts `size-[18px]` on the outer wrapper, which cannot beat the inline width/height `SvgIcon` writes (16px when `size` is omitted), so the host must pass `size` explicitly. :::
+`AuthSocialLogin` only puts `size-[18px]` on the outer wrapper, which cannot beat the inline width/height `SvgIcon` writes (16px when `size` is omitted), so the host must pass `size` explicitly.
+
+:::
 
 Real usage: `apps/web/src/config/auth-social.ts` (the four sprite entries, shared by login and register) and `apps/web/src/views/login/index.vue`.
 
@@ -588,11 +620,15 @@ Events: `beforeload`, `mounted`, `unmount` take no payload; `error` carries an `
 
 ::: warning
 
-`<micro-app>` is not a component The tag is recognised by the `isCustomElement` hook in `internal/vite-config` (the comment at `MicroAppContainer.vue:17-18`), so it does not need registering in any `componentMap`; declaring it as a local component is what triggers `Failed to resolve component`. **In a host without the micro-app SDK this page is only a shell**: the overlay and the placeholder render normally, `<micro-app>` degrades into an unknown tag and no child app mounts. The retry button only flips local state (`handleRetry` resets `loading`/`hasError`/`retryCount`, `:69-73`); it does not re-trigger the SDK's load pipeline. :::
+`<micro-app>` is not a component The tag is recognised by the `isCustomElement` hook in `internal/vite-config` (the comment at `MicroAppContainer.vue:17-18`), so it does not need registering in any `componentMap`; declaring it as a local component is what triggers `Failed to resolve component`. **In a host without the micro-app SDK this page is only a shell**: the overlay and the placeholder render normally, `<micro-app>` degrades into an unknown tag and no child app mounts. The retry button only flips local state (`handleRetry` resets `loading`/`hasError`/`retryCount`, `:69-73`); it does not re-trigger the SDK's load pipeline.
+
+:::
 
 ::: warning
 
-Nobody consumes this component yet The embed page actually running in the app is `apps/web/src/views/micro-app/SubAppView.vue`, which writes `<micro-app>` itself (`:286`) and keeps its own loading/error state (`hasError` at `:29`, the handlers at `:136-164`, the loading/error fallback UI at `:308-332`) without importing this component. `MicroAppContainer` came over from `apps/web/src/components/business/` because it is the reusable shell — but today **nothing reuses it**. Before adopting it, decide whether SubAppView should consume it instead of adding a third variant. :::
+Nobody consumes this component yet The embed page actually running in the app is `apps/web/src/views/micro-app/SubAppView.vue`, which writes `<micro-app>` itself (`:286`) and keeps its own loading/error state (`hasError` at `:29`, the handlers at `:136-164`, the loading/error fallback UI at `:308-332`) without importing this component. `MicroAppContainer` came over from `apps/web/src/components/business/` because it is the reusable shell — but today **nothing reuses it**. Before adopting it, decide whether SubAppView should consume it instead of adding a third variant.
+
+:::
 
 ## Charts: `@antdv/common-ui/charts`
 
@@ -604,7 +640,9 @@ Nobody consumes this component yet The embed page actually running in the app is
 
 ::: warning
 
-The styling layer is not in `@antdv/shadcn-ui` That package's `Sonner.vue` hardcodes `rich-colors` _after_ `v-bind` (nothing can pass it in) and hardcodes its state icons inside slots (nothing can pass them out). Replacing either without editing its source means betting our selectors on which lucide icons it picked, and that bet expires on the next upgrade. So this package builds its own shell straight on vue-sonner: `@antdv/shadcn-ui` did not change by a line, and whatever it adds, removes or iterates cannot reach here. Hosts only change where they import from: `import { Toaster } from '@antdv/common-ui'`. :::
+The styling layer is not in `@antdv/shadcn-ui` That package's `Sonner.vue` hardcodes `rich-colors` _after_ `v-bind` (nothing can pass it in) and hardcodes its state icons inside slots (nothing can pass them out). Replacing either without editing its source means betting our selectors on which lucide icons it picked, and that bet expires on the next upgrade. So this package builds its own shell straight on vue-sonner: `@antdv/shadcn-ui` did not change by a line, and whatever it adds, removes or iterates cannot reach here. Hosts only change where they import from: `import { Toaster } from '@antdv/common-ui'`.
+
+:::
 
 ## The remaining entries
 

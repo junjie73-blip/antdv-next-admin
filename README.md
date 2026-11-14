@@ -39,6 +39,41 @@ Mock 服务由 dev 进程**在进程内**拉起（Nitro，端口 5320），`/api
 
 ---
 
+## 界面预览
+
+> 以下截图均取自本地 dev 环境（`admin` / `admin123`），浅色主题、1440×900。
+
+### 分析面板
+
+数据总览 + ECharts 趋势图，所有配色走 design token，切换主题预设自动跟随。
+
+![分析面板](./screenshots/01-analysis.png)
+
+### 系统管理
+
+左侧部门树 + 右侧数据表格，表格统一带操作栏；新增 / 编辑走弹窗表单，详情走抽屉。
+
+![用户管理](./screenshots/02-system-user.png)
+
+<details>
+<summary>展开更多页面截图</summary>
+
+**组件示例总览**
+
+![组件示例](./screenshots/03-components.png)
+
+**系统日志（操作日志 / 登录日志 / 错误日志 合并为标签页）**
+
+![系统日志](./screenshots/04-system-log.png)
+
+**弹窗表单（完整字段 + 常驻底部按钮）**
+
+![弹窗表单](./screenshots/05-modal-form.png)
+
+</details>
+
+---
+
 ## 仓库结构
 
 ```

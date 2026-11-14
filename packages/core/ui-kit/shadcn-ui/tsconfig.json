@@ -5,7 +5,7 @@
       "@antdv/shared/*": ["../../base/shared/src/*"],
       "@antdv/shadcn-ui/*": ["./src/*"]
     },
-    "types": ["vitest/globals"],
+    "types": ["vite/client", "vitest/globals"],
     "noEmit": true
   },
   "include": [

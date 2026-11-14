@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from 'vue';
 
-import { cn } from '@antdv/shared/utils/cn';
 import { reactiveOmit } from '@vueuse/core';
+import { cn } from 'cn';
 import { useForwardProps } from 'reka-ui';
 
 const props = defineProps<{ class?: HTMLAttributes['class'] }>();

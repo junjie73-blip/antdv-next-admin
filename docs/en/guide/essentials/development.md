@@ -23,7 +23,9 @@ Three files, merged per Vite mode (`.env` as the base, `.env.development` / `.en
 
 ::: warning
 
-Use `isEnvEnabled` for boolean switches, don't write `=== true` `VITE_*` values come out of the environment as strings. Writing `VITE_MICRO_APP === true` is always false, and the symptom is "I clearly turned the switch on, yet the micro-frontend page keeps reporting that it can't connect". :::
+Use `isEnvEnabled` for boolean switches, don't write `=== true` `VITE_*` values come out of the environment as strings. Writing `VITE_MICRO_APP === true` is always false, and the symptom is "I clearly turned the switch on, yet the micro-frontend page keeps reporting that it can't connect".
+
+:::
 
 ::: warning
 
@@ -32,7 +34,9 @@ The two switches that default to off are off for a reason
 - `VITE_MICRO_APP=false`: the child app has to actually run on the port configured in the registry (`src/config/micro-app.ts`), otherwise the "Micro frontend" menu page tries to connect to an address that isn't reachable.
 - `VITE_WS_URL=` (empty): the Nitro mock has no `/ws` handler, and reconnection is **unlimited** — starting a connection with no backend only floods the console and the end-to-end cases. When you hook up a real backend, fill in the full address (for example `ws://localhost:8080/ws`); the frontend attaches the token automatically.
 
-`VITE_DEV_POLLING` is also left commented out in `.env.development`: when the repo sits on a mapped drive (`J:` here) inotify events never arrive, so it looks like it should be enabled. Measured in practice **enabling it doesn't save it either** — the config does get `server.watch.usePolling`, and polling the same directory directly with chokidar does deliver change events, but the dev server's module graph never invalidates (stale modules keep being served until a restart). You burn CPU and still get no HMR, so it stays commented; after changing a shared package, rebuild and restart following [Getting started](/en/guide/introduction/quick-start#_3-you-changed-a-shared-package-but-nothing-took-effect). :::
+`VITE_DEV_POLLING` is also left commented out in `.env.development`: when the repo sits on a mapped drive (`J:` here) inotify events never arrive, so it looks like it should be enabled. Measured in practice **enabling it doesn't save it either** — the config does get `server.watch.usePolling`, and polling the same directory directly with chokidar does deliver change events, but the dev server's module graph never invalidates (stale modules keep being served until a restart). You burn CPU and still get no HMR, so it stays commented; after changing a shared package, rebuild and restart following [Getting started](/en/guide/introduction/quick-start#_3-you-changed-a-shared-package-but-nothing-took-effect).
+
+:::
 
 ## Coding conventions
 
@@ -106,7 +110,9 @@ The other hard constraints: `header-max-length` 108, `body-leading-blank` (a bla
 
 ::: warning
 
-Local hooks are currently off Every hook in `lefthook.yml` is commented out (`prepare` still runs `lefthook install`, but nothing actually intercepts). So **don't expect lint to run automatically on commit**, and keep in mind that `pnpm exec lefthook run pre-commit` currently does nothing — the real CI gate is on the CI side, see [CI and deployment](/en/guide/essentials/deploy). :::
+Local hooks are currently off Every hook in `lefthook.yml` is commented out (`prepare` still runs `lefthook install`, but nothing actually intercepts). So **don't expect lint to run automatically on commit**, and keep in mind that `pnpm exec lefthook run pre-commit` currently does nothing — the real CI gate is on the CI side, see [CI and deployment](/en/guide/essentials/deploy).
+
+:::
 
 ## Changeset
 

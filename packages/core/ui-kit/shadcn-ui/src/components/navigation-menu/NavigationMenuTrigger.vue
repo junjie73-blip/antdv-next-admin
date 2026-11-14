@@ -3,9 +3,9 @@ import type { NavigationMenuTriggerProps } from 'reka-ui';
 
 import type { HTMLAttributes } from 'vue';
 
-import { cn } from '@antdv/shared/utils/cn';
 import { ChevronDown } from '@lucide/vue';
 import { reactiveOmit } from '@vueuse/core';
+import { cn } from 'cn';
 import { NavigationMenuTrigger, useForwardProps } from 'reka-ui';
 
 import { navigationMenuTriggerStyle } from '.';

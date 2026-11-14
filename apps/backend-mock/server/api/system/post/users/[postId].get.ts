@@ -1,11 +1,12 @@
 import { faker } from '@faker-js/faker/locale/zh_CN';
 
 import { POST_DB } from '../../../../utils/db/post';
+import { paginateList } from '../../../../utils/pagination';
 import { envelope, success } from '../../../../utils/response';
 import { defineMockRoute } from '../../../../utils/runtime';
 
 export default defineMockRoute({
-  handler({ params }) {
+  handler({ params, query }) {
     const postId = Number(params.postId);
     const post = POST_DB.find((p) => p.id === postId);
 
@@ -22,10 +23,7 @@ export default defineMockRoute({
       deptName: post.deptName,
     }));
 
-    return success(
-      { list: users, total: users.length },
-      '获取岗位用户列表成功',
-    );
+    return success(paginateList(users, query), '获取岗位用户列表成功');
   },
   method: 'GET',
   path: '/system/post/users/:postId',

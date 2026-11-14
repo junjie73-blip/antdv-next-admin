@@ -41,6 +41,9 @@ export interface LibraryOptions {
 
 const TS_EXT = '(ts|tsx|mts|cts)';
 
+/** 样式入口：产物是 CSS 而不是 JS，也不该有 `.d.ts` */
+const STYLE_EXT = /\.(css|scss|sass|less)$/;
+
 /** 入口源文件统一成「相对 `src`」的正斜杠路径，Windows 传反斜杠也能用 */
 function normalizeSource(path: string): string {
   return path.replaceAll('\\', '/').replace(/^(\.\/)?(src\/)?/, '');
@@ -59,9 +62,17 @@ function exportTarget(value: unknown): string | undefined {
   return undefined;
 }
 
-/** `./a/b` → `a/b`；`.` → `index` */
+/**
+ * `./a/b` → `a/b`；`.` → `index`。
+ *
+ * 子路径自带样式扩展名时要把扩展名摘掉：产物名后面还会按入口类型补一次扩展名
+ * （见 `expectedArtifacts`），不摘就会把 `./style.css` 打成 `dist/style.css.css`，
+ * 与公共子路径对不上。内容登记随包走之后，每个带模板的包都有 `./style.css` 这个出口，
+ * 这条从"边角情况"变成了 15 个包的常规路径。
+ */
 function subpathToEntryName(subpath: string): string {
-  return subpath === '.' ? 'index' : subpath.replace(/^\.\//, '');
+  const name = subpath === '.' ? 'index' : subpath.replace(/^\.\//, '');
+  return name.replace(STYLE_EXT, '');
 }
 
 export interface LibEntry {
@@ -94,7 +105,16 @@ export function resolveLibraryEntries(
     if (!relative.startsWith('src/')) return;
     if (!existsSync(join(root, relative))) return;
     const source = relative.slice('src/'.length);
-    const name = subpathToEntryName(specifier);
+    let name = subpathToEntryName(specifier);
+    const existing = entries.get(name);
+    if (existing && existing.source !== source) {
+      /**
+       * 同名不同源：`./index.css` 摘掉扩展名后会撞上 `.`（`src/index.ts`）。
+       * Map 撞名是直接覆盖 —— JS 入口静默消失，产物校验也跟着只查 CSS，构建照样绿。
+       * 这时退回带扩展名的全名，两个入口各自成产物。
+       */
+      name = specifier.replace(/^\.\//, '');
+    }
     entries.set(name, { name, source, specifier });
   };
 
@@ -141,8 +161,6 @@ export function resolveLibraryEntries(
  * 这层校验是"统一构建标准"里唯一能自动兜住的部分 —— 子包平时按源码被消费，
  * `dist` 没人读，编译失败或入口漏配只会悄悄留一份残缺产物，构建照样绿。
  */
-const STYLE_EXT = /\.(css|scss|sass|less)$/;
-
 /** 入口应有的产物（相对 `dist`） */
 export function expectedArtifacts(entry: LibEntry, dts: boolean): string[] {
   const isStyle = STYLE_EXT.test(entry.source);
@@ -235,6 +253,17 @@ export function defineLibraryConfig(options: LibraryOptions = {}) {
       build: {
         copyPublicDir: false,
         emptyOutDir: true,
+        /**
+         * lib 模式默认 `cssCodeSplit: false`，而这种模式下 Vite 直接拒绝 CSS 入口：
+         * `When "build.cssCodeSplit: false" is set, "rolldownOptions.input" should not include CSS files`。
+         * 内容登记随包走之后，每个带模板的包都在 `exports` 里多了 `./style.css`，
+         * 推导出来的入口里就有 CSS —— 这个开关得由入口形态决定，不能让十几个包各写一遍 override
+         * （原来只有 `@antdv/design` 在自己的 vite.config.mts 里补了这一刀）。
+         * 没有样式入口的包不写这个键，保持 Vite 默认值，产物形态不变。
+         */
+        ...(entries.some((entry) => STYLE_EXT.test(entry.source))
+          ? { cssCodeSplit: true }
+          : {}),
         // 库产物要能被再次 tree-shake，压缩与 sourcemap 交给消费方
         minify: false,
         rolldownOptions: {

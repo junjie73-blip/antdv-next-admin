@@ -6,7 +6,9 @@ This page covers six demo routes — `/components/description`, `/components/cou
 
 1. **There is no `RelativeTime` component**: nothing called `RelativeTime` exists in the repository (the app-side `apps/web/src/components/` directory is now empty) and there is no import of it anywhere. `/components/relative-time` is just a page built from `a-timeline` plus **absolute timestamps** (see [relative time](#relative-time-pages-components-relative-time)).
 2. **`Description`'s `setData()` is a stub** that only calls `console.warn` (`packages/core/ui-kit/common-ui/src/components/description/Description.vue:175-177`).
-3. **The text prop of `Loading` is `tip`, not `description`**, and `useLoading` needs an explicit `target` (selector / element / ref / getter) — otherwise the overlay silently never mounts and only prints a `console.warn` (`packages/core/ui-kit/common-ui/src/components/loading/overlay.ts:101-105`). :::
+3. **The text prop of `Loading` is `tip`, not `description`**, and `useLoading` needs an explicit `target` (selector / element / ref / getter) — otherwise the overlay silently never mounts and only prints a `console.warn` (`packages/core/ui-kit/common-ui/src/components/loading/overlay.ts:101-105`).
+
+:::
 
 ## Why these six pages are all second-level menu entries
 
@@ -75,7 +77,9 @@ Labels work the same way: `#<field>-label` slot → `renderLabel` → `label` �
 - **`type: 'dict'` no longer reads the dictionary store**: a shared component package may not pull in pinia or the `~/...` alias, so this branch became injection-based — the host does `provide(DESCRIPTION_DICT_RESOLVER, fn)` (`description/context.ts:8-18`, consumed at `Description.vue:20`, `:37`); with nothing injected, an unmatched value renders as-is (`:41`) and an empty value becomes `-` (`:45`). It falls back to the raw text when `dictType` is missing (`:132`), and multi-value detection is "array, or string containing a comma" (`:133`, `:46`). The demo page **never uses `dict`** — a comment mentions it once (`index.vue:63`) but there is nothing clickable to show it.
 - **`setData()` is empty**: declared in the type (`types.ts:172-182`), implemented as `console.warn('[Description] setData 不支持在只读模式下使用')` (`Description.vue:175-177`). The component is read-only: to change data, replace `data` (the demo drives its masking switch with a `computed` data source, `index.vue:148-159`). The only usable instance method is `getData()` (`:174`; `defineExpose` at `:179`).
 
-For the record, the type `DescriptionBordered = 'bordered' | 'none' | boolean` at `types.ts:25` is not used anywhere (that declaration is its only occurrence in the repository; `DescriptionProps.bordered` is a plain `boolean`, `types.ts:138`) — a leftover, documented here so nobody reaches for it. :::
+For the record, the type `DescriptionBordered = 'bordered' | 'none' | boolean` at `types.ts:25` is not used anywhere (that declaration is its only occurrence in the repository; `DescriptionProps.bordered` is a plain `boolean`, `types.ts:138`) — a leftover, documented here so nobody reaches for it.
+
+:::
 
 ### Live example: `/components/description`
 
@@ -131,11 +135,15 @@ Interruptibility: it pauses, it does not resume
 
 - The first thing `start()` does is `if (isActive.value) return` (`:80`): calling it while an animation is running **does nothing**.
 - Immediately after that guard, `start()` writes `currentValue` back to `startVal` and resets the timestamp (`:81-82`).
-- `useRafFn`'s `resume()` is **never exposed** (`:54` destructures `pause` / `resume` / `isActive`, but the outside world only gets the four methods at `:113-118`). So "pause → continue from where it stopped" does not exist: after `pause()` your only option is `reset()` + `start()` (from the beginning). The demo's "🔄 replay animation" button is exactly those two steps (`views/components/count-to/index.vue:151-157`). :::
+- `useRafFn`'s `resume()` is **never exposed** (`:54` destructures `pause` / `resume` / `isActive`, but the outside world only gets the four methods at `:113-118`). So "pause → continue from where it stopped" does not exist: after `pause()` your only option is `reset()` + `start()` (from the beginning). The demo's "🔄 replay animation" button is exactly those two steps (`views/components/count-to/index.vue:151-157`).
+
+:::
 
 ::: tip
 
-Only endVal auto-replays The `watch` tracks `props.endVal` (`:97-105`) — changing `startVal` or `duration` does not restart the animation. "🎲 generate a new value" replays by itself only because it touches `dynamicEndVal` and nothing else (`index.vue:143-146`, `:540-547`). :::
+Only endVal auto-replays The `watch` tracks `props.endVal` (`:97-105`) — changing `startVal` or `duration` does not restart the animation. "🎲 generate a new value" replays by itself only because it touches `dynamicEndVal` and nothing else (`index.vue:143-146`, `:540-547`).
+
+:::
 
 ### Live example: `/components/count-to`
 
@@ -162,7 +170,9 @@ This section has no component to document There is **no `RelativeTime` component
 - The second card, "custom colors and position", hardcodes date text (`:111-135`).
 - The third card, "relative time in a table", renders `new Date(record.time).toLocaleString('zh-CN')` (`:144-148`) — a **localized absolute time**, not a relative one.
 
-The page contains no `fromNow()` from dayjs, no `relativeTime` plugin, and no timer of any kind. So the question "what drives the refresh" has no answer here: nothing needs refreshing. To copy relative-time code, go to the places that actually implement it (table below). :::
+The page contains no `fromNow()` from dayjs, no `relativeTime` plugin, and no timer of any kind. So the question "what drives the refresh" has no answer here: nothing needs refreshing. To copy relative-time code, go to the places that actually implement it (table below).
+
+:::
 
 Where relative time really comes from in this repository:
 
@@ -216,7 +226,9 @@ Internals:
 
 ::: tip
 
-Why the package only needs shadcn tags `IconPicker.vue` uses no antdv-next component at all: `Popover` / `Select` / `Input` / `Spinner` / `Empty` / `Tooltip` are **explicitly imported** from `@antdv/shadcn-ui` (`:5-22`), `Scrollbar` from `@antdv/common-ui` (`:4`), and the icons themselves come from `@iconify/vue`'s `<Icon>` (`:24`). Component resolvers have been removed from `internal/vite-config`, so there is no "the host injects the tags for us" implicit dependency left — any host that has these workspace packages installed can consume it. See [External modules](/en/guide/essentials/external). :::
+Why the package only needs shadcn tags `IconPicker.vue` uses no antdv-next component at all: `Popover` / `Select` / `Input` / `Spinner` / `Empty` / `Tooltip` are **explicitly imported** from `@antdv/shadcn-ui` (`:5-22`), `Scrollbar` from `@antdv/common-ui` (`:4`), and the icons themselves come from `@iconify/vue`'s `<Icon>` (`:24`). Component resolvers have been removed from `internal/vite-config`, so there is no "the host injects the tags for us" implicit dependency left — any host that has these workspace packages installed can consume it. See [External modules](/en/guide/essentials/external).
+
+:::
 
 ### Live example: `/components/icon-picker`
 
@@ -247,7 +259,9 @@ A mask that serves both fullscreen and container modes; inside it is a single sh
 
 ::: tip
 
-The `.loading-small` / `.loading-large` hooks Besides the size classes the component also carries two meaningless scope classes (`:48-49`): host styles and the e2e specs read the size tier through them, because `size-*` is exactly what `cn()`'s tailwind-merge collapses away. :::
+The `.loading-small` / `.loading-large` hooks Besides the size classes the component also carries two meaningless scope classes (`:48-49`): host styles and the e2e specs read the size tier through them, because `size-*` is exactly what `cn()`'s tailwind-merge collapses away.
+
+:::
 
 ### `useLoading` / `createLoading` / `v-loading`
 
@@ -280,7 +294,9 @@ const hookLoading = useLoading({
 });
 ```
 
-Passing a getter as `target` is safe: resolution is deferred until the moment the overlay actually wants to display (comment in `components/loading/types.ts:89-108`), so referencing a not-yet-mounted template ref during setup does not throw. :::
+Passing a getter as `target` is safe: resolution is deferred until the moment the overlay actually wants to display (comment in `components/loading/types.ts:89-108`), so referencing a not-yet-mounted template ref during setup does not throw.
+
+:::
 
 ::: warning
 
@@ -288,11 +304,15 @@ Three real bugs this family used to have (all fixed as of now)
 
 1. **The text prop was written as `description`** — `Loading` only has `tip`, and the demo keeps that lesson in a code comment: `<!-- tip 才是 Loading 组件的文案属性（没有 description 这个 prop） -->` (`views/components/loading/index.vue:1147`).
 2. **`useLoading()` could not find its target** — see the warning above; `useTemplateRef` must be given the key explicitly (`index.vue:344-348`).
-3. **Passing a snapshot at instance creation made `open()` a no-op** — `createApp(Loading, { loading: loading.value })` hands over the value of that instant, so later writes to the ref produce no visual change. The fix reads the refs inside `render()` so Vue can establish the dependency (`overlay.ts:120-133`; the comment states outright that this was the original bug fixed during extraction). The same class of issue once in `v-loading`: instances are cached and reused on a `WeakMap` (`directive.ts:45`, `:70-73`), so **changing `loading-size` / `loading-theme` / `loading-background` after the element is mounted is not re-read**; only `binding.arg` (`v-loading:文本=`) is synced into the tip on `updated` (`:93-99`). One more: the comment at `directive.ts:17` claims "priority: attribute > directive argument", which is the opposite of the code — `:81` reads `tip: binding.arg ?? attributeProps.tip`, so **the directive argument wins**. :::
+3. **Passing a snapshot at instance creation made `open()` a no-op** — `createApp(Loading, { loading: loading.value })` hands over the value of that instant, so later writes to the ref produce no visual change. The fix reads the refs inside `render()` so Vue can establish the dependency (`overlay.ts:120-133`; the comment states outright that this was the original bug fixed during extraction). The same class of issue once in `v-loading`: instances are cached and reused on a `WeakMap` (`directive.ts:45`, `:70-73`), so **changing `loading-size` / `loading-theme` / `loading-background` after the element is mounted is not re-read**; only `binding.arg` (`v-loading:文本=`) is synced into the tip on `updated` (`:93-99`). One more: the comment at `directive.ts:17` claims "priority: attribute > directive argument", which is the opposite of the code — `:81` reads `tip: binding.arg ?? attributeProps.tip`, so **the directive argument wins**.
+
+:::
 
 ::: tip
 
-What does not exist `@antdv/common-ui` has **no `delay` prop** and no throttling or debouncing. The "PageLoading and delayed mask" card in the demo hand-rolls that behaviour with two real timers (a request finishing under 300ms cancels the mask before it ever lights up), and its body text says explicitly that the delay policy belongs to the caller (`index.vue:371-402`, `:1163-1170`). :::
+What does not exist `@antdv/common-ui` has **no `delay` prop** and no throttling or debouncing. The "PageLoading and delayed mask" card in the demo hand-rolls that behaviour with two real timers (a request finishing under 300ms cancels the mask before it ever lights up), and its body text says explicitly that the delay policy belongs to the caller (`index.vue:371-402`, `:1163-1170`).
+
+:::
 
 ### `Scrollbar`
 
@@ -312,11 +332,15 @@ There is exactly one event: `@scroll`, payload `{ scrollTop, scrollLeft }` (decl
 
 ::: warning
 
-Do not pass `max-height` casually: `props.maxHeight` is fed to `useResponsiveMaxHeight` as the _base value_ (base default 495, `Scrollbar.vue:39-41`), and that hook's `min` floor defaults to **712px** with exponent 1.938 against a 1080 reference height (`packages/core/ui-kit/common-ui/src/components/scrollbar/useResponsiveMaxHeight.ts:44-48`), with the final `clamp` at `:52`. So on a 1080-high window, `:max-height="400"` goes through `clamp(400, 712, ∞)` and becomes **712px** — anything shorter than 712 is unreachable. Also note the base line tests `isNumber` (`:40`), so the string form the type allows (`types.ts:18`) falls back to the 495 base and what ends up inline is still the hook's computed px. For a genuinely smaller fixed height, use a class like the drawer demo does: `root-class="h-60"` (`apps/web/src/views/components/modal-drawer/index.vue:655-668`, which spells out the reason in its own copy at `:617-620`). :::
+Do not pass `max-height` casually: `props.maxHeight` is fed to `useResponsiveMaxHeight` as the _base value_ (base default 495, `Scrollbar.vue:39-41`), and that hook's `min` floor defaults to **712px** with exponent 1.938 against a 1080 reference height (`packages/core/ui-kit/common-ui/src/components/scrollbar/useResponsiveMaxHeight.ts:44-48`), with the final `clamp` at `:52`. So on a 1080-high window, `:max-height="400"` goes through `clamp(400, 712, ∞)` and becomes **712px** — anything shorter than 712 is unreachable. Also note the base line tests `isNumber` (`:40`), so the string form the type allows (`types.ts:18`) falls back to the 495 base and what ends up inline is still the hook's computed px. For a genuinely smaller fixed height, use a class like the drawer demo does: `root-class="h-60"` (`apps/web/src/views/components/modal-drawer/index.vue:655-668`, which spells out the reason in its own copy at `:617-620`).
+
+:::
 
 ::: warning
 
-Its styles do not depend on the host Tailwind. The `<style>` block in `Scrollbar.vue` deliberately avoids `@apply` and expands the utility classes into equivalent native CSS inside `@layer components` (`:158`); the comment at `:152-156` gives the reason: a standalone SFC style block has no Tailwind theme entry, so the build fails with `Cannot apply unknown utility class`, and the components layer keeps the template's own `flex-1 / min-h-0` utilities able to override. A second invariant comment at `:170-180` explains that reka inserts a height-less content div between the viewport and the slot and stamps it with inline `min-width: fit-content`, so `:181-184` pins height and min-width back to the container (only `important` can beat the inline style). This is precisely what lets the component live in its own package. :::
+Its styles do not depend on the host Tailwind. The `<style>` block in `Scrollbar.vue` deliberately avoids `@apply` and expands the utility classes into equivalent native CSS inside `@layer components` (`:158`); the comment at `:152-156` gives the reason: a standalone SFC style block has no Tailwind theme entry, so the build fails with `Cannot apply unknown utility class`, and the components layer keeps the template's own `flex-1 / min-h-0` utilities able to override. A second invariant comment at `:170-180` explains that reka inserts a height-less content div between the viewport and the slot and stamps it with inline `min-width: fit-content`, so `:181-184` pins height and min-width back to the container (only `important` can beat the inline style). This is precisely what lets the component live in its own package.
+
+:::
 
 As for registration, `Scrollbar` is **always imported explicitly**: `apps/web/src/views/components/scroll/basic/index.vue:4`, `packages/core/ui-kit/menu-ui/src/BasicMenu.vue:8`, `packages/core/ui-kit/tabs-ui/src/TabsBar.vue:14`, `packages/core/ui-kit/table-ui/src/components/TreeTable.vue:15`, `packages/core/ui-kit/layout-ui/src/components/layout-content/index.vue:8` and the rest all do `import { Scrollbar } from '@antdv/common-ui'`. The `Components()` call at `internal/vite-config/src/plugins/auto-import.ts:27-29` configures no `resolvers` at all, so package components never reach `apps/web/types/components.d.ts` (that file's `:15-22` only lists the app's own `src/components` entries) and a bare `<Scrollbar>` simply fails to resolve (see [External modules](/en/guide/essentials/external)).
 
@@ -357,7 +381,9 @@ As for registration, `Scrollbar` is **always imported explicitly**: `apps/web/sr
 const basicItems = Array.from({ length: 30 }, (_, i) => ({/* ... */}));
 ```
 
-The button runs `basicItems.push(...)` (`:101-105`). With no reactive proxy behind it, `v-for="item in basicItems"` (`:116`) never re-renders, so clicking leaves the list the same length and raises no error. For contrast, the chat section on the same page keeps its messages in a `ref(...)` (`:31`) and its Send works. Wrapping `basicItems` in a `ref` would fix it; this page documents the current state only. :::
+The button runs `basicItems.push(...)` (`:101-105`). With no reactive proxy behind it, `v-for="item in basicItems"` (`:116`) never re-renders, so clicking leaves the list the same length and raises no error. For contrast, the chat section on the same page keeps its messages in a `ref(...)` (`:31`) and its Send works. Wrapping `basicItems` in a `ref` would fix it; this page documents the current state only.
+
+:::
 
 ## Which package each atom lives in
 

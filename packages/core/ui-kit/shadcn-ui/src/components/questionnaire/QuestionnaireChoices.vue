@@ -3,7 +3,7 @@ import type { PrimitiveProps } from 'reka-ui';
 
 import type { HTMLAttributes } from 'vue';
 
-import { cn } from '@antdv/shared/utils/cn';
+import { cn } from 'cn';
 import { Primitive } from 'reka-ui';
 
 import { injectQuestionnaireItemContext } from './useQuestionnaire';

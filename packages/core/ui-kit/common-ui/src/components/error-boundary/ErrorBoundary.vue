@@ -72,29 +72,29 @@ const defaultFallbackClassName = cn(
   'flex flex-col items-center justify-center',
   'min-h-[200px] p-6',
   'bg-destructive/5',
-  'rounded-lg border border-destructive/30',
+  'border-destructive/30 rounded-lg border',
 );
 
-const titleClassName = cn('text-lg font-semibold text-destructive', 'mb-2');
+const titleClassName = cn('text-destructive text-lg font-semibold', 'mb-2');
 
 const messageClassName = cn(
-  'text-sm text-destructive',
+  'text-destructive text-sm',
   'mb-4 max-w-md text-center',
   'break-all',
 );
 
 const retryButtonClassName = cn(
   'px-4 py-2',
-  'rounded-md bg-destructive text-destructive-foreground hover:bg-destructive/90',
+  'bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-md',
   'transition-colors duration-200',
-  'focus:ring-2 focus:ring-destructive focus:ring-offset-2 focus:outline-none',
+  'focus:ring-destructive focus:ring-2 focus:ring-offset-2 focus:outline-none',
   'cursor-pointer',
 );
 
 const detailsClassName = cn(
   'mt-4 w-full max-w-lg p-3',
-  'rounded-sm border border-destructive/30 bg-card',
-  'text-xs text-muted-foreground',
+  'bg-card border-destructive/30 rounded-sm border',
+  'text-muted-foreground text-xs',
 );
 </script>
 

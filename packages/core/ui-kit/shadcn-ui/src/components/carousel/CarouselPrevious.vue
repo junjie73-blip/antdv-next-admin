@@ -2,8 +2,8 @@
 import type { ButtonVariants } from '../button';
 import type { WithClassAsProps } from './interface';
 
-import { cn } from '@antdv/shared/utils/cn';
 import { ArrowLeft } from '@lucide/vue';
+import { cn } from 'cn';
 
 import { Button } from '../button';
 import { useCarousel } from './useCarousel';

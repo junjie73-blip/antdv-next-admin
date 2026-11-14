@@ -6,7 +6,9 @@
 
 ::: tip 本页只写 API，不写故事
 
-每个组件的 props / 事件 / 插槽 / 实例方法都照 `defineProps` / `defineEmits` / `defineExpose` 的源码抄，附 file:line。想看"点哪里看到什么"，去[组件示例](/components/)里对应的路由页；想看设计令牌，去[设计令牌与全局样式](/guide/essentials/design)。:::
+每个组件的 props / 事件 / 插槽 / 实例方法都照 `defineProps` / `defineEmits` / `defineExpose` 的源码抄，附 file:line。想看"点哪里看到什么"，去[组件示例](/components/)里对应的路由页；想看设计令牌，去[设计令牌与全局样式](/guide/essentials/design)。
+
+:::
 
 ## 怎么引用：根入口 + 一条 charts 子路径
 
@@ -65,7 +67,9 @@ packages/core/ui-kit/common-ui/src/components/<kebab>/
 
 ::: warning `UploadProps` 没有对外导出
 
-`components/upload/index.ts` 里声明了 `export type { UploadProps }`，但 `packages/core/ui-kit/common-ui/src/index.ts:161-166` 的再导出不含它。想在页面里标注 Upload 的 props 类型，只能自己 `import type { UploadFile, UploadChangeParam } from '@antdv/common-ui'` 拼，或者不标。:::
+`components/upload/index.ts` 里声明了 `export type { UploadProps }`，但 `packages/core/ui-kit/common-ui/src/index.ts:161-166` 的再导出不含它。想在页面里标注 Upload 的 props 类型，只能自己 `import type { UploadFile, UploadChangeParam } from '@antdv/common-ui'` 拼，或者不标。
+
+:::
 
 ## ConfigProvider（全局配置）
 
@@ -106,7 +110,9 @@ packages/core/ui-kit/common-ui/src/components/<kebab>/
 
 这些组件的 `size` / 文案 props 默认值一律是 `undefined` —— 写死 `'default'` 就等于没有全局档位。各家的词汇不统一，所以 `medium` 落地时按各自的叫法映射：`Loading` → `default`、`Segmented` → `middle`、`Description` → `default`（它只有 `small` / `middle` 两档比默认更紧凑）。
 
-::: warning 档位下发给子项要 reactive，不能快照 `Segmented` 的档位还要再往下走一层：`@antdv/shadcn-ui` 的 `ToggleGroup` 用 `provide('toggleGroup', …)` 把它交给每个 `ToggleGroupItem`。那层 provide 原先给的是**普通对象**，等于 setup 那一刻的快照 —— 切档时组自己身上的 `data-size` 跟着变了、按钮高度却不动，看起来就像"档位只写了个属性"。现在写成带 getter 的 `reactive()`（`toggle-group/ToggleGroup.vue:24-33`），子项每次渲染重新取。**自己写跨层的档位下发时同样别快照。** :::
+::: warning
+
+档位下发给子项要 reactive，不能快照 `Segmented` 的档位还要再往下走一层：`@antdv/shadcn-ui` 的 `ToggleGroup` 用 `provide('toggleGroup', …)` 把它交给每个 `ToggleGroupItem`。那层 provide 原先给的是**普通对象**，等于 setup 那一刻的快照 —— 切档时组自己身上的 `data-size` 跟着变了、按钮高度却不动，看起来就像"档位只写了个属性"。现在写成带 getter 的 `reactive()`（`toggle-group/ToggleGroup.vue:24-33`），子项每次渲染重新取。**自己写跨层的档位下发时同样别快照。** :::
 
 ### 日期排版走 reka 的注入
 
@@ -118,7 +124,9 @@ packages/core/ui-kit/common-ui/src/components/<kebab>/
 
 端到端锚点：`apps/web/e2e/config-provider.spec.ts` —— 切到 `en-US` 后断言标题从 `2026年10月` 变成 `Oct 2026`、星期表头从 `一 二 … 日` 变成 `S M T W T F S`。
 
-::: warning 主题与变量不要从 `useGlobalConfig()` 读 `theme` / `cssVars` 已经由 provider 写成容器上的 CSS 变量和 `.dark` / `.light` class，组件继续用 `var(--*)`、`bg-primary` 这些工具类即可。再按 JS 值分支就出现"样式走 CSS 变量、逻辑走 JS 值"两套口径（`use-global-config.ts:14-16`）。:::
+::: warning
+
+主题与变量不要从 `useGlobalConfig()` 读 `theme` / `cssVars` 已经由 provider 写成容器上的 CSS 变量和 `.dark` / `.light` class，组件继续用 `var(--*)`、`bg-primary` 这些工具类即可。再按 JS 值分支就出现"样式走 CSS 变量、逻辑走 JS 值"两套口径（`use-global-config.ts:14-16`）。:::
 
 ### 子树主题，不是第二个全局写侧
 
@@ -126,9 +134,13 @@ packages/core/ui-kit/common-ui/src/components/<kebab>/
 
 子树覆盖能生效，靠的是 `@antdv/design/src/token/index.css` 用 `@theme inline` 声明 token：值就地展开，工具类编译成 `hsl(var(--primary))` 这条**表达式**本身，而不是在 `:root` 求过一次的实际颜色，所以非 `:root` 的祖先改了就跟着改。`radius` 用**绝对值**（数字按 `--radius` 的 16px 基准换算成 rem，`8` → `0.5rem`；字符串原样），与偏好的倍率刻度（0–1，基准 16px）不是一回事 —— 子树覆盖是给"这一块要更方/更圆"用的。
 
-::: warning 档位与主题名要落在同一个元素 `@antdv/design` 的暗色预设写成 `.dark[data-theme='violet']`，Tailwind 的 `dark:` 变体是 `&:where(.dark, .dark *)`。所以 `mode` 生成的 class 与 `preset` 生成的 `data-theme` 必须挂在同一个节点上（实现里就是这么写的，`:202-211`），拆到两层就只剩一半生效。:::
+::: warning
 
-::: warning 被 teleport 出去的弹层不在这棵子树里 `Dialog` / `Popover` / `Select` 的浮层默认挂到 `body`，CSS 变量按 DOM 树继承，于是它们跟的是 `<html>` 上的档位，不是 provider 的。要让局部主题覆盖到弹层，把 `teleportTo` 指进这棵子树（`scrollBody` / `nonce` / `useId` 不受影响）。:::
+档位与主题名要落在同一个元素 `@antdv/design` 的暗色预设写成 `.dark[data-theme='violet']`，Tailwind 的 `dark:` 变体是 `&:where(.dark, .dark *)`。所以 `mode` 生成的 class 与 `preset` 生成的 `data-theme` 必须挂在同一个节点上（实现里就是这么写的，`:202-211`），拆到两层就只剩一半生效。:::
+
+::: warning
+
+被 teleport 出去的弹层不在这棵子树里 `Dialog` / `Popover` / `Select` 的浮层默认挂到 `body`，CSS 变量按 DOM 树继承，于是它们跟的是 `<html>` 上的档位，不是 provider 的。要让局部主题覆盖到弹层，把 `teleportTo` 指进这棵子树（`scrollBody` / `nonce` / `useId` 不受影响）。:::
 
 ### 嵌套
 
@@ -225,7 +237,9 @@ packages/core/ui-kit/common-ui/src/components/<kebab>/
 
 - `preview` 不给 / `true` → 可点，非受控。
 - <code v-pre>preview={{ visible }}</code>（`visible` 是 boolean）→ **受控**，配合 `@update:preview-visible` 回写。
-- <code v-pre>preview={{ visible: false }}</code> 且没有 `onVisibleChange` → 视为**静态关闭**，整块预览入口不渲染（`showPreview`，`:55-60`）；`preview=false` 同样关闭。这是迁移前"隐藏预览"的用法，行为保留但写法容易写错，注意 `preview={false}` 与 <code v-pre>preview={{ visible: false }}</code> 等价、而 <code v-pre>preview={{}}</code> 是可点。:::
+- <code v-pre>preview={{ visible: false }}</code> 且没有 `onVisibleChange` → 视为**静态关闭**，整块预览入口不渲染（`showPreview`，`:55-60`）；`preview=false` 同样关闭。这是迁移前"隐藏预览"的用法，行为保留但写法容易写错，注意 `preview={false}` 与 <code v-pre>preview={{ visible: false }}</code> 等价、而 <code v-pre>preview={{}}</code> 是可点。
+
+:::
 
 ## Upload / UploadDragger / UploadList
 
@@ -249,7 +263,9 @@ packages/core/ui-kit/common-ui/src/components/<kebab>/
 ::: warning 迁移后没有的两件事
 
 1. **没有 `action`**。上传动作只有 `customRequest` 一条路；不传就是"本地模拟"—— 300ms 后 `onSuccess({})`（`:164`），进度、成功、失败都能在没有任何后端的情况下走完。写文档或抄示例时别把它当成真实上传。
-2. **没有 `<a-upload>` 的 `submit()`**。`autoUpload=false` 场景调的是 `upload()`（`components/upload/Upload.vue:254`）。:::
+2. **没有 `<a-upload>` 的 `submit()`**。`autoUpload=false` 场景调的是 `upload()`（`components/upload/Upload.vue:254`）。
+
+:::
 
 选文件走 `@vueuse/core` 的 `useFileDialog`（`:7`、`:70` 起），注入点是模板里那个隐藏 `<input data-common-upload-input>`（`:294-302`；`:65-69` 的注释解释了为什么给它显式元素：单测能在 jsdom 里直接对该 input 驱动 `change`）。应用侧的 `AvatarUploader`（`packages/core/ui-kit/common-ui/src/components/avatar-uploader/AvatarUploader.vue:12`）、`ImportExport`（`packages/core/ui-kit/common-ui/src/components/import-export/ImportExport.vue:13`）用的是同一个 hook。
 
@@ -281,7 +297,9 @@ Tabs 事件：`change: [number | string]`、`update:activeKey: [number \| string
 
 1. **pane 用 `value`，不是 `key`。** 写 `<TabPane key="a">` 时 `key` 会被 Vue 当 vnode diff 键吃掉，pane 拿不到 `value`，注册进 `Tabs` 的是 `undefined` —— 标签头出来但点了没反应。
 2. **没有 `add` 事件，也没有 `edit`。** antdv-next 的 `Tabs` 有 `edit(key | MouseEvent, 'add' | 'remove')`；本包的 `Tabs` 只发 `change` 与 `update:activeKey`（`Tabs.vue:28`）。可编辑标签页要在外面自己放「+」「×」按钮。
-3. **pane 是懒挂载 + 保状态。** `TabPane.vue:27-31`：`mounted` 只在首次激活时置真，模板 `:37` 之后用 `hidden` 类隐藏而不是 `v-if` 卸载 —— 切回去时表单内容、滚动位置都还在。要"每次切回都重来"请自己在 `@change` 里 `reset()`。:::
+3. **pane 是懒挂载 + 保状态。** `TabPane.vue:27-31`：`mounted` 只在首次激活时置真，模板 `:37` 之后用 `hidden` 类隐藏而不是 `v-if` 卸载 —— 切回去时表单内容、滚动位置都还在。要"每次切回都重来"请自己在 `@change` 里 `reset()`。
+
+:::
 
 真实用例：`apps/web/src/views/account/center/index.vue:13-14`、`apps/web/src/views/system/notice/index.vue:14-15`、`apps/web/src/views/components/editor/index.vue:16-17`。
 
@@ -298,7 +316,9 @@ Tabs 事件：`change: [number | string]`、`update:activeKey: [number \| string
 
 ::: warning `title` 为空时整个提示层不渲染
 
-`Tooltip.vue` 的模板是 `v-if` 有内容才包 `TooltipProvider`，否则 `<slot v-else>` 原样输出。所以 `:title="row.remark"` 传空串 = 没有 tooltip（这是想要的行为），但也意味着"鼠标悬停才有内容"得自己判断，不要指望空提示框会显示一个空白气泡。:::
+`Tooltip.vue` 的模板是 `v-if` 有内容才包 `TooltipProvider`，否则 `<slot v-else>` 原样输出。所以 `:title="row.remark"` 传空串 = 没有 tooltip（这是想要的行为），但也意味着"鼠标悬停才有内容"得自己判断，不要指望空提示框会显示一个空白气泡。
+
+:::
 
 ## CronEditor（Cron 表达式）
 
@@ -363,7 +383,9 @@ Tabs 事件：`change: [number | string]`、`update:activeKey: [number \| string
 - **`type: 'tag'` 不渲染 Tag**：`case 'tag'` 与 `case 'text'` 与 `default` 落到同一个分支（`:163-165`）。要标签请用 `render` 自己 `h(Tag, ...)`。
 - **`type: 'dict'` 不再读 pinia 字典 store**：改成注入式 —— 宿主 `provide(DESCRIPTION_DICT_RESOLVER, fn)`（`description/context.ts:16`，注释说明了包不允许引 pinia / `~/...`）。没注入时 `dictResolver?.(...) ?? String(value)`（`description/Description.vue:51`，注入在 `:46`），即**显示原值**，空值显示 `-`。截至本文更新，本仓库没有任何地方 provide 这个键（只单测里 provide 过），所以应用里 `type: 'dict'` 目前只会回显原值 —— 要用真字典，自己 provide。
 - **`setData()` 是空壳**：实现只 `console.warn('[Description] setData 不支持在只读模式下使用')`（`:175-177`），组件只读，可用实例方法只有 `getData()`（`:174`，`defineExpose` 在 `:179`）。
-- **`DescriptionBordered`（`types.ts:25`）没有任何地方使用**，遗留类型。:::
+- **`DescriptionBordered`（`types.ts:25`）没有任何地方使用**，遗留类型。
+
+:::
 
 真实用例：`apps/web/src/views/components/description/index.vue:23`、`apps/web/src/views/system/online/index.vue:24`（`Description as DetailDescription`）。
 
@@ -379,7 +401,9 @@ Tabs 事件：`change: [number | string]`、`update:activeKey: [number \| string
 
 ::: warning `maxStackDepth` 目前没有生效路径
 
-它在 `interface Props`（`:11-14`）里声明、默认值给在 `:20`，但实现里只用了 `error.stack` 整段展示，没有按层数裁剪的代码。写进 `:max-stack-depth` 不会改变渲染结果 —— 别把它当可用 API，本文按"声明了但没用"记录。:::
+它在 `interface Props`（`:11-14`）里声明、默认值给在 `:20`，但实现里只用了 `error.stack` 整段展示，没有按层数裁剪的代码。写进 `:max-stack-depth` 不会改变渲染结果 —— 别把它当可用 API，本文按"声明了但没用"记录。
+
+:::
 
 **PageSkeleton / TableSkeleton**（`skeleton/`）：都基于 shadcn `Skeleton`，底色统一 `cn('bg-gray-200 dark:bg-gray-700', 'rounded-sm')`（`PageSkeleton.vue:55`、`TableSkeleton.vue:53`）。
 
@@ -412,7 +436,9 @@ Tabs 事件：`change: [number | string]`、`update:activeKey: [number \| string
 ::: warning 两个必须知道的边界
 
 1. **环铺满的是父级的 padding box**（绝对定位的 `inset: 0` 参照它）。容器自己再写 `border-*` 工具类，光带会压在边框内侧；要描边就让 `borderWidth` 一个人做。
-2. **`border-beam` 这个钩子类走静态 `class`，不进 `cn()`**（钩子类在 `:49`，`:50` 才是 `cn('relative', props.class)`；解释这条的注释**在它下方**的 `:53-57`，位于根元素内部）：tailwind-merge 把它认成 `border-{color}` 那一档，调用方一旦传 `border-border`，同名冲突会把钩子类整条吃掉，表现为"边框没了"。同理，`<template>` 根节点前**不要放注释** —— dev 构建会保留注释节点，组件根就变成 Fragment，`class` / `style` 透传与 `attrs` 继承一起失效。:::
+2. **`border-beam` 这个钩子类走静态 `class`，不进 `cn()`**（钩子类在 `:49`，`:50` 才是 `cn('relative', props.class)`；解释这条的注释**在它下方**的 `:53-57`，位于根元素内部）：tailwind-merge 把它认成 `border-{color}` 那一档，调用方一旦传 `border-border`，同名冲突会把钩子类整条吃掉，表现为"边框没了"。同理，`<template>` 根节点前**不要放注释** —— dev 构建会保留注释节点，组件根就变成 Fragment，`class` / `style` 透传与 `attrs` 继承一起失效。
+
+:::
 
 真实用例：`apps/web/src/views/components/border-beam/index.vue`（六组配置 + 一张真实统计卡）。
 
@@ -496,11 +522,15 @@ function onScroll(state: ListyScrollState) {
 
 ::: warning `selectable` 是显式的，不是"挂了监听就自动变手型"
 
-组件声明了 `emits`，监听器就不再出现在 `attrs` 里，实现层嗅不到"有没有人监听"（`:199` 的注释记的就是这条）。反过来说就算嗅得到也不该那么做：纯展示的列表给出 hover 反馈，是在骗用户去点一个点了没用的东西。:::
+组件声明了 `emits`，监听器就不再出现在 `attrs` 里，实现层嗅不到"有没有人监听"（`:199` 的注释记的就是这条）。反过来说就算嗅得到也不该那么做：纯展示的列表给出 hover 反馈，是在骗用户去点一个点了没用的东西。
+
+:::
 
 ::: warning 虚拟模式需要一个能滚的盒子
 
-`container-height` 给 `'100%'` 时要求祖先有高度，否则视口量出来是 0，窗口只剩 `overscan` 那几行。高度函数（`itemHeight` 传函数时）**必须只读不写**：在里面改响应式状态会让"滚动 → 重算 → 高度变 → 再重算"自激。:::
+`container-height` 给 `'100%'` 时要求祖先有高度，否则视口量出来是 0，窗口只剩 `overscan` 那几行。高度函数（`itemHeight` 传函数时）**必须只读不写**：在里面改响应式状态会让"滚动 → 重算 → 高度变 → 再重算"自激。
+
+:::
 
 真实用例：`apps/web/src/views/components/listy/index.vue`（基础 / 加载 / 空状态 / 插槽 + 固定行高 20 000 条 / 函数行高 / 动态实测 / 直排对照，共八张卡）。单测两份：`__tests__/listy.test.ts`（12 例）与 `__tests__/listy-virtual.test.ts`（17 例，jsdom 只钉状态与样式）；滚动几何由 `apps/web/e2e/listy-virtual.spec.ts`（8 例 × 三引擎）在浏览器里量：行高是否真等于 48px、`marginTop + height` 是否等于内容总高、容器变矮后行数是否跟着缩。
 
@@ -560,7 +590,9 @@ export const AUTH_SOCIAL_ITEMS: AuthSocialItem[] = [
 
 ::: warning 组件形态自己负责尺寸
 
-`AuthSocialLogin` 只给最外层那圈 `size-[18px]` 类名，压不住 `SvgIcon` 写在内联 style 上的宽高（不给 `size` 就是默认的 16px），所以宿主必须显式传 `size`。:::
+`AuthSocialLogin` 只给最外层那圈 `size-[18px]` 类名，压不住 `SvgIcon` 写在内联 style 上的宽高（不给 `size` 就是默认的 16px），所以宿主必须显式传 `size`。
+
+:::
 
 真实用例：`apps/web/src/config/auth-social.ts`（四枚雪碧图入口，登录与注册共用）与 `apps/web/src/views/login/index.vue`。
 
@@ -584,11 +616,15 @@ props（`types.ts:1-11`，默认值 `MicroAppContainer.vue:20-26`）：
 
 ::: warning
 
-`<micro-app>` 标签不是组件 `<micro-app>` 由 `internal/vite-config` 的 `isCustomElement` 认下（`MicroAppContainer.vue:17-18` 的注释），所以不需要在任何 `componentMap` 里注册；把它当局部组件声明反而会触发 `Failed to resolve component`。**没有装 micro-app SDK 的宿主工程里这一页只是外壳**：遮罩与占位照常渲染，`<micro-app>` 退化成未知标签，不会有任何子应用挂载。重试按钮只翻本地状态（`handleRetry` 仅重置 `loading`/`hasError`/`retryCount`，`:69-73`），不会重新触发 SDK 的加载流程。:::
+`<micro-app>` 标签不是组件 `<micro-app>` 由 `internal/vite-config` 的 `isCustomElement` 认下（`MicroAppContainer.vue:17-18` 的注释），所以不需要在任何 `componentMap` 里注册；把它当局部组件声明反而会触发 `Failed to resolve component`。**没有装 micro-app SDK 的宿主工程里这一页只是外壳**：遮罩与占位照常渲染，`<micro-app>` 退化成未知标签，不会有任何子应用挂载。重试按钮只翻本地状态（`handleRetry` 仅重置 `loading`/`hasError`/`retryCount`，`:69-73`），不会重新触发 SDK 的加载流程。
+
+:::
 
 ::: warning
 
-这个组件目前还没有消费者 应用侧真正在跑的嵌入页是 `apps/web/src/views/micro-app/SubAppView.vue`，它自己直接写 `<micro-app>`（`:286`）并另有一套 loading/error 状态（`hasError` 在 `:29`，处理函数 `:136-164`，加载/错误兜底 UI `:308-332`），没有引本组件。本组件是从 `apps/web/src/components/business/` 迁进来的通用外壳，迁移动机是"可复用"，但目前**复用它的地方是零** —— 用之前先确认要不要顺手把 SubAppView 改成消费它，别再加第三份。:::
+这个组件目前还没有消费者 应用侧真正在跑的嵌入页是 `apps/web/src/views/micro-app/SubAppView.vue`，它自己直接写 `<micro-app>`（`:286`）并另有一套 loading/error 状态（`hasError` 在 `:29`，处理函数 `:136-164`，加载/错误兜底 UI `:308-332`），没有引本组件。本组件是从 `apps/web/src/components/business/` 迁进来的通用外壳，迁移动机是"可复用"，但目前**复用它的地方是零** —— 用之前先确认要不要顺手把 SubAppView 改成消费它，别再加第三份。
+
+:::
 
 ## 图表：`@antdv/common-ui/charts`
 
@@ -600,7 +636,9 @@ props（`types.ts:1-11`，默认值 `MicroAppContainer.vue:20-26`）：
 
 ::: warning 样式层不放在 `@antdv/shadcn-ui` 里
 
-shadcn 那只 `Sonner.vue` 把 `rich-colors` 写死在 `v-bind` 之后、状态图标写死在插槽里，外部既传不进也传不出；不改它源码就只能用选择器去赌它选了哪几个 lucide 图标，子包一升级就失效。所以本包直接以 vue-sonner 为底座自建外壳，`@antdv/shadcn-ui` 一行未动，它新增/删除/迭代组件都波及不到这里。宿主侧对应地只换 import 来源：`import { Toaster } from '@antdv/common-ui'`。:::
+shadcn 那只 `Sonner.vue` 把 `rich-colors` 写死在 `v-bind` 之后、状态图标写死在插槽里，外部既传不进也传不出；不改它源码就只能用选择器去赌它选了哪几个 lucide 图标，子包一升级就失效。所以本包直接以 vue-sonner 为底座自建外壳，`@antdv/shadcn-ui` 一行未动，它新增/删除/迭代组件都波及不到这里。宿主侧对应地只换 import 来源：`import { Toaster } from '@antdv/common-ui'`。
+
+:::
 
 ## 其余条目一览
 
@@ -640,14 +678,16 @@ shadcn 那只 `Sonner.vue` 把 `rich-colors` 写死在 `v-bind` 之后、状态�
 
 ::: tip
 
-`antdv-next` 已经从可执行代码里清零 口径：把「导入形态」（`from 'antdv-next'` / `import('antdv-next')` / `@antdv-next/*`）当正则扫 `apps` + `packages` + `internal` 的 `*.ts` / `*.mts` / `*.tsx` / `*.vue` / `*.js`，命中 3 条，**全部在 `__tests__` 目录里且全是字符串** —— 守卫用例自己喂进去的正/反例样本（`apps/web/src/views/__tests__/gallery-api-usage.spec.ts:156`、`:159`）和一条注释（`packages/core/hooks/__tests__/boundary.test.ts:14`）。去掉测试目录之后是**零命中**。`apps/web` 那侧曾经的四处落脚点已经逐个拆掉：给 `@form-create/antd-designer` 手工登记 36 个 `a-*` 名字的 `plugins/vendor-antd-components.ts` 连同表单设计器一起删除；`settings/theme/` 整目录没了，`apps/web/src/settings/index.ts` 只剩「偏好 → DOM」这一条链路，注释（`:9-14`）明确写着不再翻译任何 UI 库的 `ThemeConfig`；`App.vue:3-7` 现在从 `@antdv/common-ui` 取 `ConfigProvider` 与 `Toaster`；`views/screen/components/ScreenHeader.vue:4-5` 的全屏图标改成了 `@iconify/vue` 的 `Icon`。构建层同样干净：`createOptimizeDeps()` 的白名单是 `['@vueuse/core', 'es-toolkit']`（`internal/vite-config/src/config/application.ts:59-66`），`internal/vite-config/src/optimize.ts` 里既没有 `antdv-next` 也没有 `vendor-ui` 分桶。:::
+`antdv-next` 已经从可执行代码里清零 口径：把「导入形态」（`from 'antdv-next'` / `import('antdv-next')` / `@antdv-next/*`）当正则扫 `apps` + `packages` + `internal` 的 `*.ts` / `*.mts` / `*.tsx` / `*.vue` / `*.js`，命中 3 条，**全部在 `__tests__` 目录里且全是字符串** —— 守卫用例自己喂进去的正/反例样本（`apps/web/src/views/__tests__/gallery-api-usage.spec.ts:156`、`:159`）和一条注释（`packages/core/hooks/__tests__/boundary.test.ts:14`）。去掉测试目录之后是**零命中**。`apps/web` 那侧曾经的四处落脚点已经逐个拆掉：给 `@form-create/antd-designer` 手工登记 36 个 `a-*` 名字的 `plugins/vendor-antd-components.ts` 连同表单设计器一起删除；`settings/theme/` 整目录没了，`apps/web/src/settings/index.ts` 只剩「偏好 → DOM」这一条链路，注释（`:9-14`）明确写着不再翻译任何 UI 库的 `ThemeConfig`；`App.vue:3-7` 现在从 `@antdv/common-ui` 取 `ConfigProvider` 与 `Toaster`；`views/screen/components/ScreenHeader.vue:4-5` 的全屏图标改成了 `@iconify/vue` 的 `Icon`。构建层同样干净：`createOptimizeDeps()` 的白名单是 `['@vueuse/core', 'es-toolkit']`（`internal/vite-config/src/config/application.ts:59-66`），`internal/vite-config/src/optimize.ts` 里既没有 `antdv-next` 也没有 `vendor-ui` 分桶。
+
+:::
 
 剩下的字面命中分三类，都不是依赖：`packages/core/base/shared/src/cache/tokenCrypto.ts:13`、`:60` 里的 `'antdv-next-token-*'` 是历史缓存键（改了会让已登录用户掉线，属于刻意保留，边界守卫也不拦字符串）；守卫测试（`gallery-api-usage.spec.ts:122` 的合并正则、`packages/core/base/icons/__tests__/icons.test.ts:30-32`、`packages/core/base/design/__tests__/design.test.ts:462`、`:587`、`packages/request/__tests__/structure.spec.ts:46`）把它当**反例**写死，是防止有人塞回去的保险丝；`internal/vite-config/__tests__/config.test.ts:133-137` 甚至留了一条 `/node_modules/antdv-next/es/button/index.js` 的断言，要求它落进兜底的 `vendor` 桶 —— 注释说明这是"防止有人把 antd 塞回构建又不补分组规则"。除此之外仓库里出现的 `antdv-next.com` 全是 mock 菜单的示例外链与测试 fixture，`antdv-next-admin` 是仓库名本身。
 
 ## 相关页面
 
 - [组件示例](/components/) —— 示例页路由与打开方式
-- [设计令牌与全局样式](/guide/essentials/design) —— 本包组件用的 `--*` 变量、`@source` 登记规则
+- [设计令牌与全局样式](/guide/essentials/design) —— 本包组件用的 `--*` 变量、内容登记三环（包自己的 `src/index.css` → `exports['./style.css']` → 应用装配入口）
 - [数据与展示](/components/display) —— `Description` / `CountTo` 的示例页与坑
 - [编辑器与文件上传](/components/editor-upload) —— `Upload` / `Image` / 裁剪的示例页
 - [图表与 Cron](/components/chart-cron) —— `CronEditor` 示例页

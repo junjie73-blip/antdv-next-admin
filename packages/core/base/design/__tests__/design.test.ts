@@ -627,44 +627,59 @@ describe('@antdv/design —— 包边界', () => {
 
   /**
    * Tailwind v4 的自动内容检测从 Vite 根目录（`apps/web`）往上扫，扫不到 `packages/**`，
-   * 所以每个子包模板里的工具类都必须在这里显式 `@source`。
-   * 漏掉的包不会构建失败 —— 只是页面少一层圆角、少一个间距，属于最难查的那类"静默变样"，
-   * 所以用目录清单反查登记项：新增子包却忘了登记 `@source` 时，这条先红。
+   * 所以每个带模板的子包都必须显式 `@source`。这份名单曾经集中在本文件里：新增一个 ui 子包
+   * 要去改**另一个包**的样式入口，漏改不会构建失败 —— 只是页面少一层圆角、少一个间距。
    *
-   * 比的是**解析后的绝对目录**而不是登记时写的那串相对路径：子包搬家会让 `@source` 指空，
-   * 字符串对照反而看不出问题。
+   * 现在登记跟着包走（各包 `src/index.css` 一句 `@source './';`，经 `./style.css` 暴露），
+   * 由应用侧的装配入口收进同一个 root。本文件只守自己这一侧：一条也不代管。
+   * "每个包都登记了、应用也都引到了"那两条在 `@antdv/hooks` 的 boundary.test.ts，
+   * 因为那要跨包与应用两侧一起看。
    */
-  it('每个子包的源码目录都登记了 @source，且登记路径解析得到真实目录', () => {
+  it('入口不代管任何子包的内容登记：一条 @source 都不留', () => {
+    expect([...stripComments(index).matchAll(/^@source\s+/gmu)]).toEqual([]);
+  });
+
+  it('每个带模板的子包都自己登记 @source，并经 ./style.css 暴露', () => {
     const designDir = fileURLToPath(new URL('../', import.meta.url));
-    const cssDir = resolve(designDir, 'src');
     const coreDir = resolve(designDir, '../..');
-
-    const registered = [...index.matchAll(/^@source\s+'([^']+)';/gmu)].map(
-      (m) => resolve(cssDir, m[1]),
-    );
-
-    for (const dir of registered) {
-      expect(
-        existsSync(dir),
-        `@source 登记的 ${dir} 不存在，Tailwind 会扫不到这些模板`,
-      ).toBe(true);
-    }
-
     const uiKitDir = resolve(coreDir, 'ui-kit');
+
     const expected = [
-      resolve(coreDir, 'base/icons/src'),
+      resolve(coreDir, 'base/icons'),
       // 布局装配层在 packages 根下（不在 core 里），模板同样是包内源码
-      resolve(coreDir, '../layouts/src'),
+      resolve(coreDir, '../layouts'),
       ...readdirSync(uiKitDir)
         .filter((name) => existsSync(resolve(uiKitDir, name, 'src')))
-        .map((name) => resolve(uiKitDir, name, 'src')),
+        .map((name) => resolve(uiKitDir, name)),
     ];
+    expect(expected.length).toBeGreaterThan(0);
 
-    for (const dir of expected) {
+    for (const root of expected) {
+      const entry = resolve(root, 'src/index.css');
       expect(
-        registered,
-        `${dir} 没登记 @source，模板里的工具类不会被生成`,
-      ).toContain(dir);
+        existsSync(entry),
+        `${root} 缺 src/index.css，模板里的工具类不会被生成`,
+      ).toBe(true);
+      if (!existsSync(entry)) continue;
+
+      // 比的是**解析后的绝对目录**而不是登记时写的那串相对路径：包搬家会让 @source 指空，
+      // 字符串对照反而看不出问题。
+      const registered = [
+        ...stripComments(readFileSync(entry, 'utf8')).matchAll(
+          /@source\s+'([^']+)';/gu,
+        ),
+      ].map((match) => resolve(root, 'src', match[1] as string));
+      expect(registered, `${root} 应该只登记自己的 src`).toStrictEqual([
+        resolve(root, 'src'),
+      ]);
+
+      const pkg = JSON.parse(
+        readFileSync(resolve(root, 'package.json'), 'utf8'),
+      ) as { exports?: Record<string, string> };
+      expect(
+        pkg.exports?.['./style.css'],
+        `${root} 的 exports 缺 ./style.css，应用侧 @import 会 resolve 失败`,
+      ).toBe('./src/index.css');
     }
   });
 });

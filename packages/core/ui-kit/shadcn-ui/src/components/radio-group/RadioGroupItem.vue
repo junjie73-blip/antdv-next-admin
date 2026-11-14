@@ -3,9 +3,9 @@ import type { RadioGroupItemProps } from 'reka-ui';
 
 import type { HTMLAttributes } from 'vue';
 
-import { cn } from '@antdv/shared/utils/cn';
 import { CircleIcon } from '@lucide/vue';
 import { reactiveOmit } from '@vueuse/core';
+import { cn } from 'cn';
 import { RadioGroupIndicator, RadioGroupItem, useForwardProps } from 'reka-ui';
 
 const props = defineProps<

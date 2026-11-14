@@ -1,6 +1,6 @@
 {
   "name": "@antdv/stores",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "会话状态子包：偏好派生视图（app）、标签页（tabs）、菜单即权限（route）、凭证与用户信息（user）、页面缓存登记表。可以用 pinia，但不 import vue-router 实例与任何 UI 库；路由与后端地址由调用方注入",
   "private": true,
   "type": "module",

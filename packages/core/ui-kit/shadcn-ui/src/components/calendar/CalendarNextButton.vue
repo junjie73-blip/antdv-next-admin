@@ -3,9 +3,9 @@ import type { CalendarNextProps } from 'reka-ui';
 
 import type { HTMLAttributes } from 'vue';
 
-import { cn } from '@antdv/shared/utils/cn';
 import { ChevronRight } from '@lucide/vue';
 import { reactiveOmit } from '@vueuse/core';
+import { cn } from 'cn';
 import { CalendarNext, useForwardProps } from 'reka-ui';
 
 import { buttonVariants } from '../button';

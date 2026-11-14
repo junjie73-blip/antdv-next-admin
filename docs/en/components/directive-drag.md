@@ -16,7 +16,9 @@ The only `app.directive(...)` calls in the entire repository are these five, at 
 
 ::: warning
 
-Don't look for everything under the package name `@antdv/directives` contains **only permission and lazy** (its `src/index.ts:10-11` has exactly those two exports). `escape` / `safe-html` live in `@antdv/shared/utils/xss`, `v-loading` lives in `@antdv/common-ui`. `apps/web/src/directives/index.ts` exists to inject project dependencies into the factories: the packages never import pinia / stores (the design constraint is stated at `packages/directives/src/index.ts:4-7`); checkers and the subscription source come from the app. :::
+Don't look for everything under the package name `@antdv/directives` contains **only permission and lazy** (its `src/index.ts:10-11` has exactly those two exports). `escape` / `safe-html` live in `@antdv/shared/utils/xss`, `v-loading` lives in `@antdv/common-ui`. `apps/web/src/directives/index.ts` exists to inject project dependencies into the factories: the packages never import pinia / stores (the design constraint is stated at `packages/directives/src/index.ts:4-7`); checkers and the subscription source come from the app.
+
+:::
 
 ## v-permission: decisions outside the package, DOM flags inside it
 
@@ -46,7 +48,9 @@ Don't look for everything under the package name `@antdv/directives` contains **
 
 1. **`:role` is an arg, `.role` is a modifier** — the evaluator only reads the arg (`utils.ts:41`); `.role` silently degrades to permission-code interpretation. The demo prints this on its UI (`apps/web/src/views/components/directive/index.vue:284-289`).
 2. **Empty values pass**: `undefined` / `null` / `''` / `[]` all grant access (`utils.ts:90-97`). `v-permission="[]"` is the same as not writing it.
-3. **Mode precedence**: `mode` in the object > `.all` modifier > default `any` (`utils.ts:100-101`); once the object sets `mode: 'all'`, `.all` no longer says anything. :::
+3. **Mode precedence**: `mode` in the object > `.all` modifier > default `any` (`utils.ts:100-101`); once the object sets `mode: 'all'`, `.all` no longer says anything.
+
+:::
 
 ### What happens to the DOM when access is denied
 
@@ -54,7 +58,9 @@ Don't look for everything under the package name `@antdv/directives` contains **
 
 ::: tip
 
-The router layer reads none of this The `RouteMeta` type declares `roles?: string[]` / `permissions?: string[]` (`packages/core/base/typings/src/app-router.ts:9-10`), but **nothing anywhere in `apps/web/src/router/**` or `packages/router/src/**` reads them** — route admission is actually driven by menu data ("menu is the permission"; `packages/stores/src/route.ts:181, 210` only handles `meta.requiresAuth`). `v-permission` governs only the element layer; the full three-layer picture is in [Access control](/en/guide/in-depth/access). :::
+The router layer reads none of this The `RouteMeta` type declares `roles?: string[]` / `permissions?: string[]` (`packages/core/base/typings/src/app-router.ts:9-10`), but **nothing anywhere in `apps/web/src/router/**` or `packages/router/src/**` reads them** — route admission is actually driven by menu data ("menu is the permission"; `packages/stores/src/route.ts:181, 210` only handles `meta.requiresAuth`). `v-permission` governs only the element layer; the full three-layer picture is in [Access control](/en/guide/in-depth/access).
+
+:::
 
 ## v-loading: boolean-driven, configuration read from attributes
 
@@ -66,7 +72,9 @@ The directive value is a `boolean` (type annotation at `packages/core/ui-kit/com
 
 ::: warning
 
-Attributes are read exactly once, at overlay creation `getPropsFromAttributes()` runs only when the overlay instance is **first created** (`directive.ts:70-76` — an existing instance is returned as-is). Changing `loading-tip` / `loading-theme` attributes after mount has **no effect**; the only hot-updatable setting is the directive arg `binding.arg` (`directive.ts:96-98`). :::
+Attributes are read exactly once, at overlay creation `getPropsFromAttributes()` runs only when the overlay instance is **first created** (`directive.ts:70-76` — an existing instance is returned as-is). Changing `loading-tip` / `loading-theme` attributes after mount has **no effect**; the only hot-updatable setting is the directive arg `binding.arg` (`directive.ts:96-98`).
+
+:::
 
 ## v-lazy: the default instance plus a four-layer resolution
 
@@ -118,7 +126,9 @@ The whole `/components/drag-layout` page is built on `vue-draggable-plus`'s **`V
 
 ::: tip
 
-The component form is used; the library's other two forms have no callers `vue-draggable-plus` also exports a `v-draggable` directive and a `useDraggable` composable (three entry points in `dist/index.d.ts`), but a repository-wide search finds **zero call sites** — neither this demo nor the table's `dragSort` uses them (table row dragging binds Sortable inside `BasicTable`; see `packages/core/ui-kit/table-ui/src/hooks/useDragSort.ts`, documented on the [Table](/en/components/table) page, not repeated here). :::
+The component form is used; the library's other two forms have no callers `vue-draggable-plus` also exports a `v-draggable` directive and a `useDraggable` composable (three entry points in `dist/index.d.ts`), but a repository-wide search finds **zero call sites** — neither this demo nor the table's `dragSort` uses them (table row dragging binds Sortable inside `BasicTable`; see `packages/core/ui-kit/table-ui/src/hooks/useDragSort.ts`, documented on the [Table](/en/components/table) page, not repeated here).
+
+:::
 
 ### Props are sortablejs Options
 

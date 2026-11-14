@@ -42,7 +42,7 @@
     "test:e2e": "turbo run test:e2e",
     "test:e2e:install": "pnpm --filter @antdv/web exec playwright install",
     "update:deps": "npx taze -r -w",
-    "version": "pnpm exec changeset version && pnpm install --no-frozen-lockfile",
+    "changeset:version": "pnpm exec changeset version && pnpm install --no-frozen-lockfile",
     "catalog": "pnpm dlx codemod pnpm/catalog",
     "sync-upstream": " sync-upstream"
   },

@@ -26,7 +26,9 @@
 | `helpers/cellContent.ts` | 单元格内容优先级链：插槽 → `customRender` → `format` → 编辑 → 图片 → 原值 |
 | `helpers/renderVNode.ts` | `RenderVNode`：把 `string \| VNode \| 数组` 统一渲染出去 |
 
-::: tip 为什么这么拆 `useStickyColumns` 那类"要看别的 hook 结果"的模块一律**通过参数注入**（`getColumn` / `getHeader` / `visibleColumns`），不反过来 import 兄弟 hook —— 装配关系只在 `BasicTable.vue` 里出现一次，单测也好按参数喂假数据。:::
+::: tip
+
+为什么这么拆 `useStickyColumns` 那类"要看别的 hook 结果"的模块一律**通过参数注入**（`getColumn` / `getHeader` / `visibleColumns`），不反过来 import 兄弟 hook —— 装配关系只在 `BasicTable.vue` 里出现一次，单测也好按参数喂假数据。:::
 
 ## useTable：注册与实例
 
@@ -148,7 +150,9 @@ dragSortConfig?: {
 ::: warning 两个边界
 
 1. **前端分页只重排当前页**。`pagination` 开着且数据是本地 `dataSource` 时，行下标只覆盖当前页 —— 要「拖出来的顺序就是全量顺序」，配 `pagination: false` 或走服务端分页（`types.ts:682-688` 的注释原文）。
-2. **前导行的下标错位有防御**：`hooks/useDragSort.ts:44-59` 的 `snapshotRows()` 在每次拖拽开始前量一次「第一个带 `data-row-key` 的 `<tr>` 前面有几行」（`filter` 与 `onStart` 各调一次，`:101`、`:109`），再用 `dataIndex(i) = i - leadingRowCount`（`:41-42`）还原数据下标；认记录优先按 `data-row-key` 查表（`:62-67`），下标换算只是兜底。`<tbody>` 由本组件自绘（`BasicTable.vue:762`），当前实现里并不会插测量行 —— `:21-31` 的注释把它写成"首条数据行之前可能有测量行 / 占位行"的防御前提，所以这段常态返回 0；一旦将来在数据行前面加了占位/分组行，也不用回来改这里。:::
+2. **前导行的下标错位有防御**：`hooks/useDragSort.ts:44-59` 的 `snapshotRows()` 在每次拖拽开始前量一次「第一个带 `data-row-key` 的 `<tr>` 前面有几行」（`filter` 与 `onStart` 各调一次，`:101`、`:109`），再用 `dataIndex(i) = i - leadingRowCount`（`:41-42`）还原数据下标；认记录优先按 `data-row-key` 查表（`:62-67`），下标换算只是兜底。`<tbody>` 由本组件自绘（`BasicTable.vue:762`），当前实现里并不会插测量行 —— `:21-31` 的注释把它写成"首条数据行之前可能有测量行 / 占位行"的防御前提，所以这段常态返回 0；一旦将来在数据行前面加了占位/分组行，也不用回来改这里。
+
+:::
 
 ## TreeTable
 
@@ -179,4 +183,6 @@ dragSortConfig?: {
 
 ::: danger
 
-示例页自己说错了第三张卡片的 alert 写「添加/删除行时会有平滑的过渡动画效果」（`views/components/table/animation/index.vue:145`），但这个卡片**没有添加/删除行的入口**，`BasicTable.vue` 里也没有任何 `TransitionGroup` 或行过渡样式（table-ui 全目录检索 0 命中）—— 这行文案描述的行为在当前实现里不存在。要看动画请往前两张卡：loading 态和骨架屏。:::
+示例页自己说错了第三张卡片的 alert 写「添加/删除行时会有平滑的过渡动画效果」（`views/components/table/animation/index.vue:145`），但这个卡片**没有添加/删除行的入口**，`BasicTable.vue` 里也没有任何 `TransitionGroup` 或行过渡样式（table-ui 全目录检索 0 命中）—— 这行文案描述的行为在当前实现里不存在。要看动画请往前两张卡：loading 态和骨架屏。
+
+:::

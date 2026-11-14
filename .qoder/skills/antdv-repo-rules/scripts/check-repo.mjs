@@ -187,47 +187,133 @@ const CHECKS = {
     return hits;
   },
 
-  /** @source 只住在 design，且每个带 .vue 的包都登记、路径解析得到真实目录 */
-  '@source': function () {
+  /**
+   * 内容登记跟着包走，不再集中在 design。
+   *
+   * Tailwind v4 的自动检测从 Vite 根（`apps/web`）往上扫，`packages/**` 全在扫描范围外，
+   * 所以每个带模板的包都要显式 `@source`。新口径三件事：
+   *   1. 包自己的 `src/index.css` 只登记自己（`@source './';`），并经 exports 的 `./style.css` 暴露；
+   *   2. 应用侧 `apps/web/src/styles/index.css` 逐条 `@import '<包名>/style.css'` 收进同一个 root，
+   *      且这个装配入口真的挂在 `apps/web/src/main.ts` 上；
+   *   3. design 一条 `@source` 都不留，任何包的 CSS 相对路径都不许伸进别包。
+   * 漏一环的失败形态是"组件渲染出来了但少一层圆角"——不报错，所以这里逐环查。
+   * 与 `packages/core/hooks/__tests__/boundary.test.ts` 同口径（那边是守门测试，这边是快速体检）。
+   */
+  '@source': function (_files, pkgs) {
     const hits = [];
-    const cssIndex = join(ROOT, 'packages/core/base/design/src/index.css');
-    if (!existsSync(cssIndex)) return ['design/src/index.css 不见了'];
-    const text = readFileSync(cssIndex, 'utf8');
-    const cssDir = dirname(cssIndex);
-    const registered = [...text.matchAll(/^@source\s+'([^']+)';/gmu)].map((m) =>
-      resolve(cssDir, m[1]),
+    /** CSS 里带路径的指令：@source 是内容登记，其余是样式引用 */
+    const CSS_SPECIFIER =
+      /@(?:import|plugin|reference|source)\s+['"]([^'"]+)['"]/gu;
+    const SOURCE_SPECIFIER = /@source\s+['"]([^'"]+)['"]/gu;
+    // 注释里讲历史（提到 @source、提到别包路径）不算依赖
+    const stripComments = (s) =>
+      s.replaceAll(/\/\*[\s\S]*?\*\//gu, '').replaceAll(/^\s*\*.*$/gmu, '');
+    const specifiersOf = (file, re) =>
+      [...stripComments(readFileSync(file, 'utf8')).matchAll(re)].map(
+        (m) => m[1],
+      );
+
+    const packagesDir = fwd(join(ROOT, 'packages'));
+    const dirs = pkgs
+      .map((p) => fwd(p.dir))
+      .toSorted((a, b) => b.length - a.length);
+    const pkgOf = (f) => dirs.find((dir) => under(fwd(f), dir));
+
+    // 1. 任何包内 CSS 的相对路径都只许指自己包里（跨包一律走包名）
+    const packageCss = walk(join(ROOT, 'packages')).filter((f) =>
+      f.endsWith('.css'),
     );
-    if (registered.length === 0) {
-      hits.push('index.css 里一条 @source 都没有（工具类会静默不生成）');
+    for (const f of packageCss) {
+      const root = pkgOf(f);
+      if (!root) continue;
+      for (const spec of specifiersOf(f, CSS_SPECIFIER)) {
+        if (!spec.startsWith('.')) continue;
+        if (!under(fwd(resolve(dirname(f), spec)), root)) {
+          hits.push(`${rel(f)} 的相对路径伸进别包 → ${spec}`);
+        }
+      }
     }
 
-    for (const dir of registered) {
-      if (!existsSync(dir)) hits.push(`登记的路径解析不到目录：${dir}`);
+    // 2. design 不代管任何子包的内容登记
+    const designIndex = join(ROOT, 'packages/core/base/design/src/index.css');
+    if (!existsSync(designIndex)) {
+      hits.push('design/src/index.css 不见了');
+    } else if (specifiersOf(designIndex, SOURCE_SPECIFIER).length > 0) {
+      hits.push(
+        `${rel(designIndex)} 里还有 @source（内容登记已随包走，设计规范不代管子包模板）`,
+      );
     }
 
-    const coreDir = resolve(ROOT, 'packages/core');
-    const expected = [
-      resolve(coreDir, 'base/icons/src'),
-      resolve(ROOT, 'packages/layouts/src'),
-      ...readdirSync(join(coreDir, 'ui-kit'))
-        .filter((n) => existsSync(join(coreDir, 'ui-kit', n, 'src')))
-        .map((n) => resolve(coreDir, 'ui-kit', n, 'src')),
-    ];
-    const registeredSet = new Set(registered);
-    const expectedSet = new Set(expected);
-    for (const dir of expected) {
-      if (registeredSet.has(dir)) continue;
-      hits.push(`未登记 @source：${rel(resolve(dir))}`);
+    // 3. 每个带 .vue 的包：入口存在 + 只登记自己 + exports 暴露 + 应用引到
+    const withVue = pkgs.filter(
+      (p) =>
+        under(fwd(p.dir), packagesDir) &&
+        walk(join(p.dir, 'src')).some((f) => f.endsWith('.vue')),
+    );
+    if (withVue.length === 0) {
+      hits.push('packages/** 下没找到任何带 .vue 的包（枚举口径可能坏了）');
     }
-    for (const dir of registered) {
-      if (expectedSet.has(dir)) continue;
-      hits.push(`登记了不该登记的目录：${dir}`);
+    const appEntry = join(ROOT, 'apps/web/src/styles/index.css');
+    const imported = existsSync(appEntry)
+      ? specifiersOf(appEntry, CSS_SPECIFIER)
+      : [];
+    if (!existsSync(appEntry))
+      hits.push(`应用样式装配入口不存在：${rel(appEntry)}`);
+
+    const entryFiles = new Set();
+    for (const p of withVue) {
+      const entry = join(p.dir, 'src/index.css');
+      entryFiles.add(fwd(entry));
+      if (!existsSync(entry)) {
+        hits.push(`${p.name} 缺 src/index.css（模板里的工具类会静默不生成）`);
+        continue;
+      }
+      const registered = specifiersOf(entry, SOURCE_SPECIFIER).map((spec) =>
+        fwd(resolve(dirname(entry), spec)),
+      );
+      if (
+        registered.length !== 1 ||
+        registered[0] !== fwd(join(p.dir, 'src'))
+      ) {
+        hits.push(
+          `${rel(entry)} 的 @source 应该只有 ./（实际 ${registered.join(', ') || '空'}）`,
+        );
+      }
+      const exported = p.json.exports?.['./style.css'];
+      if (exported !== './src/index.css') {
+        hits.push(
+          `${p.name} 的 exports['./style.css'] 应为 ./src/index.css，实际 ${exported ?? '缺失'}`,
+        );
+      }
+      const published = p.json.publishConfig?.exports?.['./style.css'];
+      if (p.json.publishConfig?.exports && published !== './src/index.css') {
+        hits.push(
+          `${p.name} 的 publishConfig.exports['./style.css'] 与 exports 不一致（发版后会 resolve 失败）`,
+        );
+      }
+      if (!imported.includes(`${p.name}/style.css`)) {
+        hits.push(`${rel(appEntry)} 没 @import '${p.name}/style.css'`);
+      }
     }
 
+    // 4. 装配入口必须真的挂在应用入口上，否则名单再全也只是没人读的死文件
+    const main = join(ROOT, 'apps/web/src/main.ts');
+    if (
+      existsSync(main) &&
+      !readFileSync(main, 'utf8').includes("import './styles/index.css';")
+    ) {
+      hits.push(
+        `${rel(main)} 没有 import './styles/index.css';（样式装配入口没被挂上）`,
+      );
+    }
+
+    // 5. @source 只许出现在这些包自己的样式入口里
     for (const f of walk(ROOT).filter((x) => x.endsWith('.css'))) {
-      if (f === cssIndex) continue;
-      if (/^\s*@source\s/mu.test(readFileSync(f, 'utf8'))) {
-        hits.push(`${rel(f)} 里出现 @source（名单只属于 design）`);
+      if (entryFiles.has(fwd(f))) continue;
+      if (/^\s*@source\s/mu.test(stripComments(readFileSync(f, 'utf8')))) {
+        hits.push(
+          `${rel(f)} 里出现 @source（内容登记只属于各包自己的 src/index.css）`,
+        );
       }
     }
     return hits;

@@ -107,6 +107,22 @@ const SOURCE_ROUTES: SourceRoute[] = [
   { method: 'PUT', path: '/system/user/:id' },
   { method: 'DELETE', path: '/system/user/:id' },
   { method: 'GET', path: '/system/user/options' },
+  // 本轮补齐的系统管理 + 企业能力接口：面板启动时就能列出全量，
+  // 不必等这些新页面第一次发出请求（Nitro handler 是懒加载的）。
+  { method: 'GET', path: '/system/monitor/snapshot' },
+  { method: 'GET', path: '/system/client-log/list' },
+  { method: 'GET', path: '/system/captcha-log/list' },
+  { method: 'GET', path: '/system/config/list' },
+  { method: 'PUT', path: '/system/config/save' },
+  { method: 'PUT', path: '/system/config/reset' },
+  { method: 'GET', path: '/system/record/:module/:id' },
+  { method: 'GET', path: '/enterprise/workflow/list' },
+  { method: 'POST', path: '/enterprise/workflow/save' },
+  { method: 'PUT', path: '/enterprise/workflow/status' },
+  { method: 'DELETE', path: '/enterprise/workflow/:id' },
+  { method: 'GET', path: '/enterprise/workflow/instances' },
+  { method: 'GET', path: '/enterprise/ai/resources' },
+  { method: 'GET', path: '/enterprise/report/datasets' },
 ];
 
 /** 把紧凑表展开成 store 需要的 RouteManifestItem[] */

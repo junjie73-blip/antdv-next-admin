@@ -1,7 +1,16 @@
 <script setup lang="ts">
 import type { DrawerInnerMethods, DrawerMethods, DrawerProps } from './types';
 
-import { computed, onMounted, ref, useId, useSlots, watch } from 'vue';
+import {
+  computed,
+  getCurrentInstance,
+  onDeactivated,
+  onMounted,
+  ref,
+  useId,
+  useSlots,
+  watch,
+} from 'vue';
 
 import {
   Button,
@@ -17,6 +26,7 @@ import { Check, X } from '@lucide/vue';
 import { useTimeoutFn } from '@vueuse/core';
 
 import { resolvePopupButton } from '../shared/button';
+import { resolveConfirmHandler } from '../shared/confirm';
 import { isFocusOutsideEvent } from '../shared/dismiss';
 import { CLOSED_PANEL_INERT } from '../shared/presence';
 
@@ -46,6 +56,8 @@ const emit = defineEmits<{
 }>();
 
 const slots = useSlots();
+/** setup 同期抓取：事件回调里 getCurrentInstance() 已为 null */
+const vm = getCurrentInstance();
 
 const drawerId = useId();
 const drawerTitleId = `${drawerId}-title`;
@@ -188,6 +200,17 @@ onMounted(() => {
   scheduleRegister();
 });
 
+/** 与 BasicModal 同构：KeepAlive 失活时 Teleport 出去的面板不会跟着进缓存容器，主动收起 */
+onDeactivated(() => {
+  if (!visibleRef.value) return;
+  visibleRef.value = false;
+  okLoadingRef.value = false;
+  loadingRef.value = false;
+  emit('visibleChange', false);
+  emit('update:visible', false);
+  emit('update:open', false);
+});
+
 // `open` / `visible` 没绑就等于「不归 props 管」，不能拿默认值 false 去顶掉 visibleRef：
 // 源写成 `[open, visible]` 数组的话，父组件每次重渲染（比如换了个 okButtonProps 对象）都会
 // 触发回调，抽屉会在用户点到底部按钮之前自己关掉。
@@ -199,9 +222,26 @@ watch(
   },
 );
 
+/**
+ * 与 BasicModal.handleOk 同构：await 提交回调并在 finally 无条件复位 loading，
+ * 校验失败 / 接口报错都不会把确认按钮留在转圈禁用状态；回调 reject 视为
+ * 「提交未成功、保持抽屉打开等重试」的正常业务分支，不当组件异常往外抛。
+ */
 async function handleOk(e: MouseEvent) {
+  if (okLoadingRef.value) return;
   okLoadingRef.value = true;
-  emit('ok', e);
+  try {
+    const handler = resolveConfirmHandler(merged.value.onOk, vm);
+    if (handler) {
+      await handler(e);
+    } else {
+      emit('ok', e);
+    }
+  } catch {
+    // 提交未成功：保持抽屉打开，用户可修正后重试（无操作，仅吞掉业务失败）
+  } finally {
+    okLoadingRef.value = false;
+  }
 }
 
 async function handleCancel(e?: MouseEvent) {
@@ -334,9 +374,9 @@ const cancelBtn = computed(() =>
       </DrawerDescription>
       <div
         :class="
-          cn('drawer-body relative min-h-0 flex-1 overflow-hidden!', {
-            'p-4': merged.useWrapper,
-          })
+          cn(
+            'drawer-body relative flex min-h-0 flex-1 flex-col overflow-hidden!',
+          )
         "
         role="region"
         :aria-label="merged.title || '抽屉内容'"
@@ -368,11 +408,28 @@ const cancelBtn = computed(() =>
           </div>
         </div>
 
-        <!-- 内容滚动区（shadcn ScrollArea 自绘滚动条）；调用方自带滚动时这层要让位 -->
-        <ScrollArea v-if="merged.bodyScroll" class="h-full">
-          <slot></slot>
+        <!--
+          内容滚动区（shadcn ScrollArea 自绘滚动条）；调用方自带滚动时这层要让位。
+          与 ModalWrapper 同构：整条用 flex 撑，viewport 以 viewportStyle 改成
+          `flex:1 1 auto; min-height:0; height:auto`，否则 `size-full` 的百分比
+          高度在 flex 父级上退化，长内容会被 overflow-hidden 裁掉。
+        -->
+        <ScrollArea
+          v-if="merged.bodyScroll"
+          class="flex min-h-0 flex-1 flex-col"
+          :viewport-style="{ height: 'auto', flex: '1 1 auto', minHeight: 0 }"
+          type="auto"
+          scrollbar-class="p-0 data-[orientation=vertical]:w-1.5 data-[orientation=horizontal]:h-1.5"
+          thumb-class="bg-muted-foreground/60 hover:bg-muted-foreground/80 transition-colors"
+        >
+          <!-- 原来挂在 .drawer-body 上的 p-4 移进滚动内容，绝对定位层才不会把内边距吃掉 -->
+          <div :class="merged.useWrapper ? 'p-4' : ''">
+            <slot></slot>
+          </div>
         </ScrollArea>
-        <slot v-else></slot>
+        <div v-else :class="merged.useWrapper ? 'p-4' : ''">
+          <slot></slot>
+        </div>
       </div>
 
       <!-- 底部按钮 -->

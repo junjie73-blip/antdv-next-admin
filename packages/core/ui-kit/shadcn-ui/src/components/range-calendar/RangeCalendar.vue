@@ -3,8 +3,8 @@ import type { RangeCalendarRootEmits, RangeCalendarRootProps } from 'reka-ui';
 
 import type { HTMLAttributes } from 'vue';
 
-import { cn } from '@antdv/shared/utils/cn';
 import { reactiveOmit } from '@vueuse/core';
+import { cn } from 'cn';
 import { RangeCalendarRoot, useForwardPropsEmits } from 'reka-ui';
 
 import {

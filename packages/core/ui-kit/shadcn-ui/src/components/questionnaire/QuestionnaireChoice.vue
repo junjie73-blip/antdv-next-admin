@@ -3,8 +3,8 @@ import type { HTMLAttributes } from 'vue';
 
 import { computed, onBeforeUnmount, ref, useId, watch } from 'vue';
 
-import { cn } from '@antdv/shared/utils/cn';
 import { CheckIcon } from '@lucide/vue';
+import { cn } from 'cn';
 
 import {
   getAnswerKeyShortcuts,
@@ -210,7 +210,7 @@ onBeforeUnmount(() => {
     <span
       aria-hidden="true"
       data-slot="questionnaire-choice-indicator"
-      class="border-input dark:bg-input/30 group-data-checked/questionnaire-choice:bg-primary dark:group-data-checked/questionnaire-choice:bg-primary group-data-checked/questionnaire-choice:text-primary-foreground group-data-checked/questionnaire-choice:border-primary size-4 translate-y-[--spacing(0.45)] group-has-data-[slot=questionnaire-choice-description]/questionnaire-choice:translate-y-0.5 rounded-[0.25rem] pointer-events-none relative flex shrink-0 items-center justify-center border group-data-[type=radio]/questionnaire-choice:rounded-full"
+      class="border-input dark:bg-input/30 group-data-checked/questionnaire-choice:bg-primary dark:group-data-checked/questionnaire-choice:bg-primary group-data-checked/questionnaire-choice:text-primary-foreground group-data-checked/questionnaire-choice:border-primary size-4 translate-y-[--spacing(0.45)] group-has-data-[slot=questionnaire-choice-description]/questionnaire-choice:translate-y-0.5 rounded-[4px] pointer-events-none relative flex shrink-0 items-center justify-center border group-data-[type=radio]/questionnaire-choice:rounded-full"
     >
       <span
         data-slot="questionnaire-choice-indicator-dot"

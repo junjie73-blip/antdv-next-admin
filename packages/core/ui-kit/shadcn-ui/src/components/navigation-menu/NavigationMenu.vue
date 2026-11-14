@@ -3,8 +3,8 @@ import type { NavigationMenuRootEmits, NavigationMenuRootProps } from 'reka-ui';
 
 import type { HTMLAttributes } from 'vue';
 
-import { cn } from '@antdv/shared/utils/cn';
 import { reactiveOmit } from '@vueuse/core';
+import { cn } from 'cn';
 import { NavigationMenuRoot, useForwardPropsEmits } from 'reka-ui';
 
 import NavigationMenuViewport from './NavigationMenuViewport.vue';

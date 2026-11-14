@@ -8,7 +8,9 @@ This page covers exactly one demo route — `/components/modal-drawer` — and t
 2. `ModalProps` / `DrawerProps` contain fields that are **declared but never read by the components**: `helpMessage`, `maskStyle`, plus `bodyStyle` on the modal side (see the two props tables below).
 3. `useDrawerInner` **is only an alias export of `useDrawer`** (`drawer/index.ts:13-15`), not a second "inner-component" implementation; the drawer side has no data channel, only `useModalInner` does.
 
-Every section below cites the behaviour code; do not copy the fields from item 2 into product code as if they were API. :::
+Every section below cites the behaviour code; do not copy the fields from item 2 into product code as if they were API.
+
+:::
 
 ## What problem they solve
 
@@ -83,7 +85,9 @@ Because the outer `useModal` keeps the **same object reference**, its `instance.
 
 ::: tip
 
-When you do not need useModalInner Modal content written directly in the page template (demo sections 2, 3 and 5 work that way) has no child component at all, so nobody can receive `data` — read the page's own `ref`s instead. The demo page prints this sentence in its info bar (`modal-drawer/index.vue:305-310`). :::
+When you do not need useModalInner Modal content written directly in the page template (demo sections 2, 3 and 5 work that way) has no child component at all, so nobody can receive `data` — read the page's own `ref`s instead. The demo page prints this sentence in its info bar (`modal-drawer/index.vue:305-310`).
+
+:::
 
 ## BasicModal API
 
@@ -156,7 +160,9 @@ The reason for calling `preventDefault()` and then running `closeModal()` oursel
 
 ::: warning
 
-The OK button loading: either close the modal or reset it yourself `handleOk` sets `okLoadingRef` to `true` unconditionally (`:154-156`), and the component's only automatic reset point is `closeModal()` (`:112`). What `BasicModal` emits is **`innerMethods`, which contains `changeOkLoading` / `changeLoading`** (`:126-134`, `:137`), so only a component that destructures `useModalInner()` inside the modal gets those two methods (`useModalInner.ts:64-69`); the page-level `useModal()` forwards only four keys (`useModal.ts:41-55`). Consequence: if your `@ok` handler decides to keep the modal open (validation failure, for instance), either call `changeOkLoading(false)` in the child component, or close the modal. Every submit path in demo section 1 closes, and the page prints that precondition on screen (`modal-drawer/index.vue:360-377`). :::
+The OK button loading: either close the modal or reset it yourself `handleOk` sets `okLoadingRef` to `true` unconditionally (`:154-156`), and the component's only automatic reset point is `closeModal()` (`:112`). What `BasicModal` emits is **`innerMethods`, which contains `changeOkLoading` / `changeLoading`** (`:126-134`, `:137`), so only a component that destructures `useModalInner()` inside the modal gets those two methods (`useModalInner.ts:64-69`); the page-level `useModal()` forwards only four keys (`useModal.ts:41-55`). Consequence: if your `@ok` handler decides to keep the modal open (validation failure, for instance), either call `changeOkLoading(false)` in the child component, or close the modal. Every submit path in demo section 1 closes, and the page prints that precondition on screen (`modal-drawer/index.vue:360-377`).
+
+:::
 
 ## BasicDrawer API
 
@@ -215,7 +221,9 @@ export { useDrawer } from './useDrawer';
 export { useDrawer as useDrawerInner } from './useDrawer';
 ```
 
-So the `callback` of `useDrawerInner(callback)` **is neither accepted nor invoked** (the signature at `useDrawer.ts:10` takes no parameters at all) — the drawer side has no data channel comparable to `useModalInner`. The destructured second element really contains only the four keys `openDrawer/closeDrawer/setDrawerProps/getVisible`; destructuring `changeOkLoading` / `changeLoading` off it (as `DrawerInnerMethods`, `drawer/types.ts:71-78` invites you to) yields `undefined`, and calling it throws a `TypeError`. `BasicDrawer` does prepare an `innerMethods` containing those two methods and sends it as the `register` payload (`:165-173`, `:180-189`), but `useDrawer` only forwards four keys (`useDrawer.ts:40-54`), so the two ends still never meet. Demo section 4 therefore uses only `openDrawer/closeDrawer`. :::
+So the `callback` of `useDrawerInner(callback)` **is neither accepted nor invoked** (the signature at `useDrawer.ts:10` takes no parameters at all) — the drawer side has no data channel comparable to `useModalInner`. The destructured second element really contains only the four keys `openDrawer/closeDrawer/setDrawerProps/getVisible`; destructuring `changeOkLoading` / `changeLoading` off it (as `DrawerInnerMethods`, `drawer/types.ts:71-78` invites you to) yields `undefined`, and calling it throws a `TypeError`. `BasicDrawer` does prepare an `innerMethods` containing those two methods and sends it as the `register` payload (`:165-173`, `:180-189`), but `useDrawer` only forwards four keys (`useDrawer.ts:40-54`), so the two ends still never meet. Demo section 4 therefore uses only `openDrawer/closeDrawer`.
+
+:::
 
 ## Body scrolling and the loading overlay
 
@@ -270,7 +278,9 @@ How to open it: `pnpm dev:web` + `pnpm --filter @antdv/backend-mock dev`, then v
 
 ::: tip
 
-Why the height uses `root-class` instead of `max-height` The page text (`:607-621`) gives the reason: the `max-height` prop is recomputed by `Scrollbar`'s internal `useResponsiveMaxHeight` with a 712px floor, so the height is pinned with `root-class="h-60"` here; the same sentence also notes that the built-in `ScrollArea` layer can be turned off with `:body-scroll="false"`. Details in the scrolling section of [Data and display](/en/components/display). :::
+Why the height uses `root-class` instead of `max-height` The page text (`:607-621`) gives the reason: the `max-height` prop is recomputed by `Scrollbar`'s internal `useResponsiveMaxHeight` with a 712px floor, so the height is pinned with `root-class="h-60"` here; the same sentence also notes that the built-in `ScrollArea` layer can be turned off with `:body-scroll="false"`. Details in the scrolling section of [Data and display](/en/components/display).
+
+:::
 
 ### 5. Nesting and close interception (`index.vue:683-759`, logic `:233-280`)
 
@@ -320,7 +330,9 @@ All of it lives in `packages/core/ui-kit/common-ui/src/components/toast/Toaster.
 
 ::: warning
 
-Do not touch the top block of `message/index.ts` `:25-31` are, in order, the CSS side-effect type-declaration comment, `// oxlint-disable-next-line typescript/triple-slash-reference`, the `<reference path="../types/css.d.ts" />` directive, `import type { ExternalToast }`, `import { toast } from 'vue-sonner'`, and `import 'vue-sonner/style.css'`. This package ships source, so downstream cannot see popup-ui's own tsconfig include — that `<reference>` directive is the only thing typing the CSS side-effect import for consumers. **It has to stay a real triple-slash directive (`/// <reference … />`)**: `eslint --fix`'s `spaced-comment` rule rewrites `///` into the space-separated `// /`, which silently disables the directive and makes downstream `vue-tsc` fail with TS2882 — line `:27` in the current source is the compliant form, so this block must stay out of `--fix` range. :::
+Do not touch the top block of `message/index.ts` `:25-31` are, in order, the CSS side-effect type-declaration comment, `// oxlint-disable-next-line typescript/triple-slash-reference`, the `<reference path="../types/css.d.ts" />` directive, `import type { ExternalToast }`, `import { toast } from 'vue-sonner'`, and `import 'vue-sonner/style.css'`. This package ships source, so downstream cannot see popup-ui's own tsconfig include — that `<reference>` directive is the only thing typing the CSS side-effect import for consumers. **It has to stay a real triple-slash directive (`/// <reference … />`)**: `eslint --fix`'s `spaced-comment` rule rewrites `///` into the space-separated `// /`, which silently disables the directive and makes downstream `vue-tsc` fail with TS2882 — line `:27` in the current source is the compliant form, so this block must stay out of `--fix` range.
+
+:::
 
 ### Live example: `/components/feedback`
 

@@ -14,6 +14,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import {
   createValidateDistPlugin,
+  defineLibraryConfig,
   expectedArtifacts,
   resolveLibraryEntries,
 } from '../src/config/library';
@@ -152,6 +153,79 @@ describe('resolveLibraryEntries', () => {
     expect(resolveLibraryEntries('/pkg', {})).toEqual([
       { name: 'index', source: 'index.ts', specifier: '.' },
     ]);
+  });
+
+  /**
+   * 内容登记随包走之后，每个带模板的包都在 exports 里多了 `./style.css`。
+   * 子路径自带样式扩展名，产物名后面还要按入口类型补一次 —— 不摘就打成 `dist/style.css.css`，
+   * 与公共子路径对不上（实测摘掉后落盘正是 `dist/style.css`，validate-dist 放行）。
+   */
+  it('样式子路径自带扩展名：产物名不再叠一层', () => {
+    const { exports, root } = makePackage(['index.ts', 'index.css']);
+    delete exports['./index.css'];
+    exports['./style.css'] = './src/index.css';
+    const entries = resolveLibraryEntries(root, { exports });
+    expect(entries).toEqual([
+      { name: 'index', source: 'index.ts', specifier: '.' },
+      { name: 'style', source: 'index.css', specifier: './style.css' },
+    ]);
+    expect(entries.map((entry) => expectedArtifacts(entry, true))).toEqual([
+      ['index.js', 'index.d.ts'],
+      ['style.css'],
+    ]);
+  });
+
+  it('同名不同源不互相覆盖：. 与 ./index.css 各自成入口', () => {
+    // makePackage 给出的正是 '.' → src/index.ts 与 './index.css' → src/index.css：
+    // 摘掉扩展名后两者都叫 index，Map 撞名会直接覆盖，JS 入口静默消失。
+    const { exports, root } = makePackage(['index.ts', 'index.css']);
+    expect(
+      resolveLibraryEntries(root, { exports }).map((entry) => [
+        entry.name,
+        entry.source,
+      ]),
+    ).toEqual([
+      ['index', 'index.ts'],
+      ['index.css', 'index.css'],
+    ]);
+  });
+});
+
+/**
+ * CSS 入口与 `cssCodeSplit` 的联动。
+ *
+ * lib 模式默认 `cssCodeSplit: false`，而该模式下 Vite 直接拒绝 CSS 入口：
+ * `When "build.cssCodeSplit: false" is set, "rolldownOptions.input" should not include CSS files`。
+ * 这条开关必须由入口形态推导 —— 让十几个包各抄一遍 override，漏一个就是那个包 build 红。
+ */
+describe('defineLibraryConfig', () => {
+  /** 库形态 + dts:false 时插件链只有 Vue/JSX，不读 tsconfig，可以在临时目录里驱动 */
+  async function resolveConfig(root: string, pkg: Record<string, unknown>) {
+    writeFileSync(join(root, 'package.json'), JSON.stringify(pkg), 'utf8');
+    return defineLibraryConfig({ dts: false, root })({
+      command: 'build',
+      mode: 'production',
+    });
+  }
+
+  it('入口里有 CSS 就开 cssCodeSplit，并把样式子路径接成入口', async () => {
+    const { exports, root } = makePackage(['index.ts', 'index.css']);
+    delete exports['./index.css'];
+    exports['./style.css'] = './src/index.css';
+    const config = await resolveConfig(root, { exports, name: '@antdv/probe' });
+    expect(config.build?.cssCodeSplit).toBe(true);
+    expect(config.build?.lib).toMatchObject({
+      entry: {
+        index: join(root, 'src', 'index.ts'),
+        style: join(root, 'src', 'index.css'),
+      },
+    });
+  });
+
+  it('没有样式入口就不写这个键：产物形态保持 Vite 默认', async () => {
+    const { exports, root } = makePackage(['index.ts']);
+    const config = await resolveConfig(root, { exports, name: '@antdv/probe' });
+    expect(config.build?.cssCodeSplit).toBeUndefined();
   });
 });
 

@@ -6,8 +6,8 @@ import type { HTMLAttributes } from 'vue';
 
 import { inject } from 'vue';
 
-import { cn } from '@antdv/shared/utils/cn';
 import { reactiveOmit } from '@vueuse/core';
+import { cn } from 'cn';
 import { ToggleGroupItem, useForwardProps } from 'reka-ui';
 
 import { toggleVariants } from '../toggle';

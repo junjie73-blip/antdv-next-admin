@@ -63,4 +63,6 @@ http://localhost:6080/#/components/chart
 
 ::: warning
 
-缺陷照实写 `setModalProps` / `setDrawerProps` 是静默空操作、`useDrawerInner` 只是 `useDrawer` 的别名、`Modal` 的 `changeOkLoading` 拿不到 —— 这些都验证到行为代码了（见对应小节的 file:line），本章不会把它们写成可用 API。示例页自己也把这些话印在界面上。:::
+缺陷照实写 `setModalProps` / `setDrawerProps` 是静默空操作、`useDrawerInner` 只是 `useDrawer` 的别名、`Modal` 的 `changeOkLoading` 拿不到 —— 这些都验证到行为代码了（见对应小节的 file:line），本章不会把它们写成可用 API。示例页自己也把这些话印在界面上。
+
+:::

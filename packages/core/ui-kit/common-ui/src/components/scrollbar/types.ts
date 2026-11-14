@@ -13,11 +13,11 @@ export interface ScrollbarProps {
   viewClass?: (string | undefined)[] | string;
   viewStyle?: ScrollbarStyle;
   tag?: string;
-  /** 滚动条常驻；默认只在滚动过程中显示 */
+  /** 滚动条常驻；默认只在内容溢出时出现（reka `auto`） */
   always?: boolean;
   maxHeight?: number | string;
   rootClass?: (string | undefined)[] | string;
-  /** 停止滚动后隐藏滚动条的延迟（ms） */
+  /** 停止滚动后隐藏滚动条的延迟（ms）；`auto` 型不使用，保留给 `always=false` 的旧语义兼容 */
   hideDelay?: number;
 }
 

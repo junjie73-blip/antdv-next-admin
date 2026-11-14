@@ -704,8 +704,8 @@ function handlePreviewOpenChange(value: boolean) {
         :multiple="true"
         :drag="true"
       >
-        <p class="mb-2 text-2xl text-gray-400">
-          <Icon icon="ant-design:inbox-outlined" />
+        <p class="mb-2 text-2xl text-muted-foreground/60">
+          <Icon icon="ant-design:inbox-outlined" class="mx-auto" />
         </p>
         <p class="text-sm">点击或拖拽文件到此区域上传</p>
         <p :class="customHintClassName">

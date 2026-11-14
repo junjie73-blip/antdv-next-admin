@@ -1,6 +1,6 @@
 # Tailwind CSS
 
-一句话：**Tailwind v4、CSS-first —— 没有 `tailwind.config.*`（全仓搜不到），入口在 `packages/core/base/design/src/index.css`，由 `@tailwindcss/vite` 插件编译，主题色全部走 `@antdv/design` 自己的 shadcn-vue 令牌而不是硬编码色板。**
+一句话：**Tailwind v4、CSS-first —— 没有 `tailwind.config.*`（全仓搜不到），全站只有一个 Tailwind root：`apps/web/src/styles/index.css`（它先 `@import '@antdv/design'` 拿设计规范，再逐条 `@import` 各组件包的 `./style.css` 内容登记），由 `@tailwindcss/vite` 插件编译，主题色全部走 `@antdv/design` 自己的 shadcn-vue 令牌而不是硬编码色板。**
 
 ## 版本与装配
 
@@ -8,26 +8,45 @@
 | --- | --- | --- |
 | Tailwind | `^4.3.3`（catalog `pnpm-workspace.yaml:198`，`@tailwindcss/vite` 同档 `:57`） | 版本只钉在 catalog 一处，其余全写 `catalog:`（`apps/web/package.json:47-49,144`、`internal/vite-config/package.json:35`、`packages/core/base/design/package.json:32-35`） |
 | Vite 插件 | `@tailwindcss/vite ^4.3.3`，在 `internal/vite-config/src/plugins/vue.ts:35` 里 `tailwindcss()` 注册 | 应用与库共用这套插件装配 |
-| 动画 | `tw-animate-css ^1.4.0`（catalog `:202`；**不是** v3 时代的 tailwindcss-animate） | `index.css:30` 的 `@import 'tw-animate-css'` |
-| 排版 | `@plugin "@tailwindcss/typography"`；`@plugin "@tailwindcss/nesting"`（`index.css:57-58`） | catalog `:56` / `:55` |
-| 入口 | `main.ts:43` 一句 `import '@antdv/design'`，全局样式只此一处 | 应用侧不再维护 global.css（`@antdv/design` 的 `main` 就是 `src/index.css`） |
+| 动画 | `tw-animate-css ^1.4.0`（catalog `:202`；**不是** v3 时代的 tailwindcss-animate） | `design/src/index.css` 的 `@import 'tw-animate-css'` |
+| 排版 | `@plugin "@tailwindcss/typography"`；`@plugin "@tailwindcss/nesting"`（同上） | catalog `:56` / `:55` |
+| 装配入口 | `apps/web/src/styles/index.css`：`@import '@antdv/design';` 打头，随后 15 条 `@import '<pkg>/style.css'`（`layouts` / `icons` 先，再 `ui-kit/*` 按包名字母序） | 全站唯一的 Tailwind root，`main.ts:46` 只引这一条 |
+| 设计规范 | `packages/core/base/design/src/index.css`：层级顺序 + Tailwind 本体 + token + 五个公共 css 分部 + 插件 + dark 变体 | **不再代管任何子包的内容登记** |
 
-## 入口 CSS 的三件关键事
+## 装配入口长什么样
 
 ```css
-@layer theme, base, components, utilities; /* :27 显式层级表 */
-@import 'tailwindcss'; /* :29 */
-@import 'tw-animate-css'; /* :30 */
-@import './token/index.css'; /* :31 shadcn-vue 令牌 → --color-* */
-@import './css/base.css'; /* :32-36 基础层 / nprogress / a11y / permission / scrollbar */
-@source '../../../ui-kit/common-ui/src'; /* :46-55 十个组件包的扫描路径 */
-@plugin "@tailwindcss/typography"; /* :57-58 */
-@custom-variant dark (&:where(.dark, .dark *)); /* :60 暗黑：class 策略 */
+/* apps/web/src/styles/index.css —— 唯一的 Tailwind root */
+@import '@antdv/design';
+
+@import '@antdv/layouts/style.css'; /* 装配层与图标先 */
+@import '@antdv/icons/style.css';
+@import '@antdv/common-ui/style.css'; /* 再 ui-kit/* 按包名字母序；五个业务域已并入 common-ui */
+/* …common-ui / form-ui / im-ui / layout-ui / lowcode-ui / menu-ui */
+/* …popup-ui / report-ui / shadcn-ui / table-ui / tabs-ui / workflow-ui */
+```
+
+- 每一条 `@import '<pkg>/style.css'` 就是那个包自己的 `@source './';`：**工具类的扫描范围跟着功能模块走**，新增一个 ui 子包时改的是它自己的文件，外加在这里补一行。
+- **必须是 CSS 的 `@import`，不能改成在 `main.ts` 里逐条 JS `import`**：只有 `@source` 的样式文件自己**不构成 Tailwind root**（实测 `features=0`、产物 13 字节、零工具类），从 JS 模块图进来等于没登记；`@import` 会被内联进本文件这一个 root，登记才真正参与扫描。
+- 同理 `@antdv/design` 只引一次：重复 `@import 'tw-animate-css'` 这类它已经引过的东西会把那份 CSS 输出两遍（实测 +1746 字节）。
+- 这些包都只有内容登记、没有规则，所以它们之间谁先谁后不影响层叠；`@antdv/design` 必须打头，因为它的 `@layer` 声明要在所有规则之前定好优先级。
+
+## 设计规范入口的三件关键事
+
+```css
+@layer theme, base, components, utilities; /* 显式层级表，必须是第一条 */
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import './token/index.css'; /* shadcn-vue 令牌 → --color-* */
+@import './css/base.css'; /* 基础层 / nprogress / a11y / permission / scrollbar */
+/* 组件包的工具类不在这里登记：名单跟着各个包走 */
+@plugin "@tailwindcss/typography";
+@custom-variant dark (&:where(.dark, .dark *)); /* 暗黑：class 策略 */
 ```
 
 - **层级顺序是刻意的**：`utilities` 排最后，模板里的工具类才能覆盖 `components` 层规则（自绘 Scrollbar、布局外壳依赖这一点）。
-- `@source`（`:46-55`，共 10 条）必须逐个登记自带工具类的组件包：v4 的内容检测从**构建根**（`apps/web`）往下扫，而 `@antdv/*` 都在仓库根的 `packages/` 下（软链进 `node_modules`，也在检测范围之外）。漏登记的表现是"组件渲染出来了但没样式"，且不报错。`__tests__/design.test.ts:637-669` 按 ui-kit 目录清单反查：漏登记或路径解析不到真实目录时，测试先红。**这段名单被跟样式无关的重构提交整段删过一次** —— 改到 `index.css` 后必须跑这条，别只看构建绿。
-- `@custom-variant dark`（`:60`）把 `dark:` 变体绑到 `.dark` class，而这个 class 由 `applyPreferencesToDom()`（`packages/core/preferences/src/update-css-variables.ts:39`）增删（`theme: 'auto'` 先经 `matchMedia` 解析）。**暗黑不是 media 策略**，否则偏好抽屉里的开关就失效了。明暗链路的完整口径见[主题与偏好设置](/guide/in-depth/theme)。
+- **内容登记随包走**，三环缺一不可：① 包自己的 `src/index.css` 写 `@source './';` → ② `package.json` 的 `exports['./style.css']` 指向它 → ③ 应用装配入口 `@import` 到它。v4 的内容检测从**构建根**（`apps/web`）往下扫，而 `@antdv/*` 都在仓库根的 `packages/` 下（软链进 `node_modules`，也在检测范围之外），所以必须显式登记。漏登记的表现是"组件渲染出来了但没样式"（侧栏白底不缩进、标签栏挤成一行、抽屉落在视口之外），且不报错。**这份名单曾经集中在 `design/src/index.css` 里，被跟样式无关的重构提交整段删过一次** —— 守门用例（判据用标题，行号会漂）：`design.test.ts`「入口不代管任何子包的内容登记」、`@antdv/hooks` 的 `boundary.test.ts`「每个带 `.vue` 的包都自己登记 `@source`、暴露 `./style.css`，并被应用入口引到」；快速体检 `node <skill-dir>/scripts/check-repo.mjs --only @source`。改到任一环后都要跑，别只看构建绿。
+- `@custom-variant dark` 把 `dark:` 变体绑到 `.dark` class，而这个 class 由 `applyPreferencesToDom()`（`packages/core/preferences/src/update-css-variables.ts:39`）增删（`theme: 'auto'` 先经 `matchMedia` 解析）。**暗黑不是 media 策略**，否则偏好抽屉里的开关就失效了。明暗链路的完整口径见[主题与偏好设置](/guide/in-depth/theme)。
 
 ## 样式只有一条链路
 
@@ -45,7 +64,9 @@ cn('bg-primary text-primary-foreground shadow-primary/30'); // 永远跟主色
 
 ::: danger
 
-不要用 `*-ant-primary`。那组类来自 antdv-next 的 Tailwind 兼容层（`@antdv-next/tailwind/compat.css`），这个包早从依赖里删干净了（守卫：`packages/core/base/design/__tests__/design.test.ts:585-588`），本包源码里连 `-ant-` 字样都不许出现（`:459-465`）—— 不是颜色不对，而是**整条类根本不生成**，还不报错。:::
+不要用 `*-ant-primary`。那组类来自 antdv-next 的 Tailwind 兼容层（`@antdv-next/tailwind/compat.css`），这个包早从依赖里删干净了（守卫：`packages/core/base/design/__tests__/design.test.ts:585-588`），本包源码里连 `-ant-` 字样都不许出现（`:459-465`）—— 不是颜色不对，而是**整条类根本不生成**，还不报错。
+
+:::
 
 写死 `bg-blue-600` / `#1677ff` 在换主色或进暗黑时必露馅。原先钉这一条的 `views/login/__tests__/login-styles.spec.ts` 已随登录页改版删除，现在这一条只剩约定（`apps/web/src/views` 下按 `bg-blue-*` / `text-blue-*` / `#1677ff` 检索还有 98 处、散在 33 个文件里，属逐步清理的技术债 —— 见主题页同款警告）。
 

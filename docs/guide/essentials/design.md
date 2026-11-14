@@ -1,8 +1,8 @@
 # 设计令牌与全局样式（`@antdv/design`）
 
-样式只有**一条链路**：Tailwind CSS v4 + `@antdv/design` 的 CSS 变量令牌 + 一层极薄的自定义 CSS。仓库里没有 SCSS / Less 源文件，也没有第二个全局样式入口。
+样式只有**一条链路**：Tailwind CSS v4 + `@antdv/design` 的 CSS 变量令牌 + 一层极薄的自定义 CSS。仓库里没有 SCSS / Less 源文件。链路里也只有一个 **Tailwind root**（一份真正参与工具类生成的样式图）：`apps/web/src/styles/index.css`，它先 `@import '@antdv/design'` 拿到设计规范，再逐条 `@import` 各组件包的样式入口（见下面「内容登记」一节）。
 
-`@antdv/design` 就是这条链路的**令牌与样式层**（`packages/core/base/design`，包边界写在 `packages/core/base/design/package.json:4` 的 description 里）：**只写变量与 CSS，不含组件逻辑，也不感知组件库**。组件自身的样式随组件放在 `packages/core/ui-kit/*` 与 `packages/core/base/icons`，本包只负责登记它们的 Tailwind 扫描路径（见下面「`@source`」一节）。
+`@antdv/design` 就是这条链路的**令牌与样式层**（`packages/core/base/design`，包边界写在 `packages/core/base/design/package.json:4` 的 description 里）：**只写变量与 CSS，不含组件逻辑，也不感知组件库，更不代管任何子包的内容登记**。组件自身的样式随组件走 —— 每个带模板的包有自己的 `src/index.css`，里面只有 `@source './';`（登记自己的扫描范围），经 `exports` 的 `./style.css` 暴露出去，由应用侧的装配入口收进同一个 root。
 
 ## 它包含什么
 
@@ -12,7 +12,7 @@
 packages/core/base/design/
 ├─ package.json              包名 @antdv/design，exports 只到 .css 粒度
 └─ src/
-   ├─ index.css         ← 唯一入口，apps/web/src/main.ts:43 引一次
+   ├─ index.css         ← 唯一入口，由 apps/web/src/styles/index.css 引一次
    ├─ token/                 主题令牌，内容只有变量声明
    │  ├─ default.css         亮色：`:root` / `.light` + 13 套 `[data-theme]` 预设色板
    │  ├─ dark.css            暗色：`.dark` + 同样 13 套 `[data-theme]` 预设色板
@@ -27,17 +27,19 @@ packages/core/base/design/
 
 明暗是**两套独立的值**，不是"亮色改几条"：名单必须逐条对齐（少一条暗色声明，切到深色就是白底黑字浮层），取值可以完全不同。映射只有一份，住在 `token/index.css` —— 主题文件不管 Tailwind 契约，加一条变量忘了映射，表现和漏登记 `@source` 一样是静默失效，所以这三条不变量（名单对齐、变量↔映射一一对应、token 目录只有变量）都钉在 `__tests__/design.test.ts` 里。
 
-`src/index.css` 把 token 入口和五个 css 分部引齐（CSS 规范只允许 `@import` 出现在普通规则之前，所以必须排在 `@layer` / `@source` / `@plugin` 之前，见 `index.css:25` 的注释）。每个分部也能单独引 —— `package.json` 的 `exports` 给了 `.`、`./index.css`、`./token`、`./token/index.css`、`./token/default.css`、`./token/dark.css`、`./css/base.css`、`./css/nprogress.css`、`./css/a11y.css`、`./css/permission.css`、`./css/scrollbar.css`、`./package.json`，只要令牌不要样式时可以用 `@antdv/design/token`。
+`src/index.css` 把 token 入口和五个 css 分部引齐（CSS 规范只允许 `@import` 出现在普通规则之前，所以必须排在 `@layer` / `@plugin` 之前，见 `index.css:23` 的注释）。每个分部也能单独引 —— `package.json` 的 `exports` 给了 `.`、`./index.css`、`./token`、`./token/index.css`、`./token/default.css`、`./token/dark.css`、`./css/base.css`、`./css/nprogress.css`、`./css/a11y.css`、`./css/permission.css`、`./css/scrollbar.css`、`./package.json`，只要令牌不要样式时可以用 `@antdv/design/token`。
 
 ::: warning `@antdv/design` 不包含什么
 
 - **不含组件**：包里没有一行 `.vue`，也没有 `src/index.ts`。卡片、标签、步骤条这类公共展示件在 `@antdv/common-ui`，图标原子在 `@antdv/icons`，`index.css:18` 的注释专门写了这条边界。
 - **不感知组件库**：不 import 任何组件库的 JS，也不引它们的样式兼容层 —— 令牌与规则全部来自本包，组件包改名或换库都不需要动这里。早先残留的两条 `.ant-upload` 光标补丁（antd 给上传触发区漏了 `cursor: pointer`）已经随组件库 DOM 一起退场，现在**反向钉死**：全局分部的注释外不许出现 `.ant-`（`__tests__/design.test.ts:528-529`），`--ant-` 与 `-ant-` 这一族也各自有守门（`:461`、`:464`）。能点元素的光标全部由本包按标签与 `role` 接上（`css/base.css:123-129` 按钮、`:154-164` 勾选/单选/下拉、`:175-192` ARIA role 那组、`:144-148` 的 `<a href>`），不再依赖任何浏览器内建样式表。
-- **不含业务样式**：需要读 store 的薄壳（如 `packages/layouts/src/basic/content/page-loading.vue`）留在应用里，不往本包搬。:::
+- **不含业务样式**：需要读 store 的薄壳（如 `packages/layouts/src/basic/content/page-loading.vue`）留在应用里，不往本包搬。
+
+:::
 
 ## 层顺序是显式声明的
 
-`packages/core/base/design/src/index.css:27-52`：
+`packages/core/base/design/src/index.css`：
 
 ```css
 @layer theme, base, components, utilities;
@@ -47,9 +49,7 @@ packages/core/base/design/
 @import './css/base.css';
 /* …css/nprogress · css/a11y · css/permission · css/scrollbar */
 
-@source '../../icons/src';
-@source '../../../ui-kit/common-ui/src';
-/* …form-ui / layout-ui / menu-ui / popup-ui / shadcn-ui / table-ui / tabs-ui */
+/* 组件包的工具类不在这里登记：名单跟着各个包走，由应用侧装配入口收拢 */
 
 @plugin "@tailwindcss/typography";
 @plugin "@tailwindcss/nesting";
@@ -59,17 +59,26 @@ packages/core/base/design/
 
 - 层表里**没有组件库的份**：本包不给 antd 让位，`utilities` 排最后，模板里写的工具类才覆盖得住 `components` 层的规则（自绘 `Scrollbar`、布局外壳都依赖这一点）。
 - `dark` 变体绑定 `.dark` class（由偏好写到 `html` 上），不是媒体查询 —— 所以 `theme: 'auto'` 下 Tailwind 与组件库看到的是同一个结果。
-- `apps/web` 自己不保留 `global.css`，原因写在 `main.ts:39-42` 的注释里：全局样式归 `@antdv/design`。
+- `apps/web` 不保留 `global.css`，但**保留一个样式装配入口** `src/styles/index.css`：它是全站唯一的 Tailwind root，`main.ts:46` 只引这一条（原因写在 `main.ts:39-45` 的注释里）。
 
 Tailwind 通过 `@tailwindcss/vite` 接入（`internal/vite-config/src/plugins/vue.ts`），版本来自 catalog（`pnpm-workspace.yaml`）。
 
-## `@source`：为什么每个组件包都要登记一次
+## 内容登记：三环，每一环住在不同的地方
 
-Tailwind v4 的自动内容检测从**构建根**开始扫，而应用侧的构建根是 `apps/web`，`@antdv/*` 全在仓库根的 `packages/` 下（软链进 `node_modules`，也在检测范围之外）。所以组件包里的工具类必须在入口 CSS 里**逐包显式登记**（`index.css:20-23` 的注释记录了症状）。
+Tailwind v4 的自动内容检测从**构建根**开始扫，而应用侧的构建根是 `apps/web`，`@antdv/*` 全在仓库根的 `packages/` 下（软链进 `node_modules`，也在检测范围之外）。所以组件包里的工具类必须**显式 `@source` 登记**，漏登记的表现是「组件渲染出来了但没样式」—— 侧栏白底不缩进、标签栏挤成一行、抽屉落在视口之外，**且不报任何错，构建照样绿**。
 
-- 漏登记的表现是「组件渲染出来了但没样式」—— 侧栏白底不缩进、标签栏挤成一行，**且不报任何错**。
-- 目前登记的是 `packages/core/base/icons/src` 加 `packages/core/ui-kit/*` 的八个 `src`。
-- 新增一个 ui-kit 子包，或者给某个包新写一批工具类，**要同时改这张 `@source` 列表**；只加包不加登记是最省事的一类「构建通过、页面裸奔」。`__tests__/design.test.ts` 会拿目录清单反查登记项，并且比的是**解析后的绝对路径**—— 子包搬家让 `@source` 指空时，字符串对照反而看不出来。
+登记这件事被拆成三环，各自住在自己的地方 —— 这份名单**曾经集中在 `design/src/index.css` 里**（45 行连注释一起被一次跟样式无关的重构提交整段删掉过，症状就是上面那串）：
+
+| 环 | 位置 | 内容 |
+| --- | --- | --- |
+| ① 包自己声明扫什么 | `<pkg>/src/index.css` | 只有一行 `@source './';` —— 工具类的扫描范围跟着功能模块走 |
+| ② 包把入口暴露出去 | `<pkg>/package.json` 的 `exports['./style.css']` | 指向 `./src/index.css`；`internal/vite-config` 的库构建会据此推出一个 CSS 入口（产物名摘掉扩展名，`dist/style.css`） |
+| ③ 应用把它们收进一个 root | `apps/web/src/styles/index.css` | `@import '@antdv/design';` 打头，随后逐条 `@import '<pkg>/style.css'`（`layouts` / `icons` 先，再 `ui-kit/*` 按包名字母序），共 15 条 |
+
+- **装配必须是 CSS 的 `@import`，不能改成在 `main.ts` 里逐条 JS `import`**：只有 `@source` 的文件自己**不构成 Tailwind root**（实测 `features=0`、产物 13 字节、零工具类），从 JS 模块图进来等于没登记。`@import` 会被内联进同一个 root，登记才真正生效。同理 `@antdv/design` 只引一次 —— 重复 `@import 'tw-animate-css'` 这类它已经引过的东西会把那份 CSS 输出两遍（实测 +1746 字节）。
+- **新增一个带模板的子包**要同批改三环：建 `src/index.css`、加 `exports['./style.css']`、在装配入口补一行。漏补第三环的症状就是那个包的工具类静默不生成。
+- **默认 ui 子包 `@antdv/shadcn-ui` 额外获准在 barrel 里自引 CSS**（`src/index.ts` 一句 `import './index.css';`）。这是本轮明确开的口子，但**不替代**装配：自引对 `@source` 是惰性的，每个包都跟着自引只会往页面里塞一堆不构成 root 的空样式。口子只开给它一个，守门在 `@antdv/hooks` 的 `boundary.test.ts`。
+- 守门用例（判据用**用例标题**，行号会漂）：`@antdv/design` 的 `design.test.ts`「入口不代管任何子包的内容登记：一条 `@source` 都不留」；`@antdv/hooks` 的 `boundary.test.ts`「每个带 `.vue` 的包都自己登记 `@source`、暴露 `./style.css`，并被应用入口引到」与「只有默认 ui 子包可以在 barrel 里自引 CSS，且引的必须是自己的样式入口」。快速体检同口径：`node <skill-dir>/scripts/check-repo.mjs --only @source`。
 - 反过来说，某个包如果像 `Scrollbar` 那样把工具类展开成等价原生 CSS 塞进 `@layer components`（`packages/core/ui-kit/common-ui/src/components/scrollbar/Scrollbar.vue` 的 `<style>` 块），它就不依赖这份登记 —— 这也是它敢被外部工程单独消费的前提。
 
 ## 变量令牌怎么用
@@ -127,11 +136,15 @@ Tailwind v4 的自动内容检测从**构建根**开始扫，而应用侧的构�
 
 - 类名必须是**源码里出现的完整字符串**。拼接（`text-${color}-500`）、把档位拼进变量、或写进 `@source` 没覆盖到的目录，都不会生成对应 CSS，而且不报错。
 - `cn(...)` 不要写在模板属性里带**尾随逗号**（`cn('a', cond && 'b',)` 之外的 `:class="cn('a',)"` 形式同理易被格式工具改坏）；组件包里的通行做法是**在 `<script setup>` 里收成 `computed`**，模板只引用变量 —— `packages/core/ui-kit/common-ui` 的各组件都这么写，既避免模板里塞表达式，也让 class 字符串保持是字面量。
-- 状态到配色一律用**查表**（`Record<string, string>`，值是完整类名串），不要 `cn('text-' + tone)`。常见例子见 `packages/core/ui-kit/common-ui/src/components/badge/Badge.vue`、`steps/Steps.vue`、`tag/Tag.vue` 里的 `STATUS_DOT` / `CIRCLE` / `PRESET` 常量。:::
+- 状态到配色一律用**查表**（`Record<string, string>`，值是完整类名串），不要 `cn('text-' + tone)`。常见例子见 `packages/core/ui-kit/common-ui/src/components/badge/Badge.vue`、`steps/Steps.vue`、`tag/Tag.vue` 里的 `STATUS_DOT` / `CIRCLE` / `PRESET` 常量。
+
+:::
 
 ::: warning
 
-不要在路由页面的外层容器写 padding 内容区内边距归布局管。页面自己加一层 padding 会在切布局形态时重复。见[开发规范与环境变量](/guide/essentials/development)与[布局、菜单与标签页](/guide/in-depth/layout)。:::
+不要在路由页面的外层容器写 padding 内容区内边距归布局管。页面自己加一层 padding 会在切布局形态时重复。见[开发规范与环境变量](/guide/essentials/development)与[布局、菜单与标签页](/guide/in-depth/layout)。
+
+:::
 
 颜色不要钉死。全站只有**一条**主色链路：偏好由 `applyPreferencesToDom()`（`packages/core/preferences/src/update-css-variables.ts:39`）折算成 `<html>` 上的 `--primary`（只有取色器自选的颜色才内联，预设主题把整块色板交给 `[data-theme]`），`@theme inline` 再把它映射成 `bg-primary` 这一族工具类 —— 页面内部与 portal 出去的浮层解的是同一份值，所以同一屏不可能出现两种橙色。写测试时别把色值钉死：要么在浅色下断，要么断"同源关系"（两个元素的计算色相等）。细节见[主题与偏好设置](/guide/in-depth/theme)。
 
@@ -153,7 +166,9 @@ Tailwind v4 的自动内容检测从**构建根**开始扫，而应用侧的构�
 
 ::: warning 已知的欠账（不在名单里，巡检也不覆盖）
 
-名单外还有 **38 个文件 / 289 行**写死的中性色工具类（口径与守门测试完全一致：同一条正则、同样先剥注释、同一份名单），集中在 `views/components/**` 的示例页 —— 最多的是编辑器 37 行、上传 28、loading 26、弹窗抽屉 26、图片裁剪 19、拖拽布局 16、滚动 14、数字滚动 12 —— 外加 `views/error/{403,404,503}.vue` 共 13 行、`views/micro-app/SubAppView.vue` 8 行、`views/screen/**` 10 行。它们是示例与异常页，本轮没纳入名单；新业务页请直接从名单里那套骨架起步（`apps/web/src/views/system/user/index.vue` 是样板页），并把路径加进 `page-shell-convention.spec.ts` 的 `PAGES`。:::
+名单外还有 **38 个文件 / 289 行**写死的中性色工具类（口径与守门测试完全一致：同一条正则、同样先剥注释、同一份名单），集中在 `views/components/**` 的示例页 —— 最多的是编辑器 37 行、上传 28、loading 26、弹窗抽屉 26、图片裁剪 19、拖拽布局 16、滚动 14、数字滚动 12 —— 外加 `views/error/{403,404,503}.vue` 共 13 行、`views/micro-app/SubAppView.vue` 8 行、`views/screen/**` 10 行。它们是示例与异常页，本轮没纳入名单；新业务页请直接从名单里那套骨架起步（`apps/web/src/views/system/user/index.vue` 是样板页），并把路径加进 `page-shell-convention.spec.ts` 的 `PAGES`。
+
+:::
 
 ## stylelint 现状
 

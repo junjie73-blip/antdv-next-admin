@@ -20,13 +20,15 @@ scripts/           仓库任务（vsh、turbo-run、clean、deploy）
 | 形态 | 包 | `main` 指向 | 改完 src 之后 |
 | --- | --- | --- | --- |
 | dist 发布 | `@antdv/shared`、`@antdv/hooks`、`@antdv/directives`、`@antdv/preferences`、`@antdv/router`、`@antdv/types` | `./dist/index.js`（`@antdv/types` 是 `./dist/index.mjs`） | 必须 `pnpm --filter @antdv/shared build`，再重启 dev |
-| 源码发布 | `@antdv/icons`、`@antdv/design`、`packages/core/ui-kit/` 下那八个（`@antdv/common-ui` / `@antdv/shadcn-ui` / `@antdv/form-ui` / `@antdv/table-ui` / `@antdv/popup-ui` / `@antdv/layout-ui` / `@antdv/menu-ui` / `@antdv/tabs-ui` —— 没有 `@antdv/ui-kit` 这个包，`ui-kit` 只是目录名），加上 `@antdv/layouts` / `@antdv/stores` / `@antdv/enums` / `@antdv/utils` / `@antdv/request` | `./src/index.ts`（`design` 是 `./src/index.css`） | 直接热更新，没有构建步骤 |
+| 源码发布 | `@antdv/icons`、`@antdv/design`、`packages/core/ui-kit/` 下那八个（`@antdv/shadcn-ui` / `@antdv/common-ui` / `@antdv/form-ui` / `@antdv/table-ui` / `@antdv/popup-ui` / `@antdv/layout-ui` / `@antdv/menu-ui` / `@antdv/tabs-ui` —— 没有 `@antdv/ui-kit` 这个包，`ui-kit` 只是目录名），加上 `@antdv/layouts` / `@antdv/stores` / `@antdv/enums` / `@antdv/utils` / `@antdv/request` | `./src/index.ts`（`design` 是 `./src/index.css`） | 宿主直接编译源码，保存即热更；包自己仍带 `build: vite build`（全仓统一构建口径，产物用于校验 `exports` 公共面，不是给宿主消费的） |
 
 依据：`packages/**/package.json` 的 `main` 字段（底座在 `packages/core/base/`、UI 层在 `packages/core/ui-kit/`），以及 `packages/core/base/shared/tsdown.config.ts` 的 `entry`（`:16-22`，**五个**模式：`'src/index.ts'`、`'src/*.ts'`、`'src/*/*.ts'`、`'src/*/index.ts'`、`'src/*/*/index.ts'`）。这六个包各自的 `build` 脚本都是 `tsdown`，不跑它就永远不出新产物，`dev` 脚本是 `tsdown --watch`。
 
 ::: warning
 
-改了 dist 发布包却没生效这是本仓库最常见的"我明明改了"。Vite 的依赖缓存和 `optimizeDeps` 都指向 dist， `src` 不在构建图里。表现是改代码、保存、页面毫无变化，且不报错。:::
+改了 dist 发布包却没生效这是本仓库最常见的"我明明改了"。Vite 的依赖缓存和 `optimizeDeps` 都指向 dist， `src` 不在构建图里。表现是改代码、保存、页面毫无变化，且不报错。
+
+:::
 
 源码发布是有代价的：这些包没有 build 脚本（`packages/core/base/icons/package.json` 只有 `clean` / `test:unit` / `type-check`），组件里的 `<script setup>` 由应用的 `@vitejs/plugin-vue` 编译，所以它们**不能**被脱离 Vite 的消费者直接用。
 
@@ -49,7 +51,9 @@ scripts/           仓库任务（vsh、turbo-run、clean、deploy）
 
 ::: tip
 
-新代码该放哪只跟这个页面有关 → 页面目录里（`views/<模块>/<页面>/`）。跨页面但只服务应用（store、api、ws） → `apps/web/src/` 对应目录。纯函数、不依赖应用状态、换个项目还想用 → `packages/core/base/shared` 或 `packages/core/hooks`。需要 pinia / router / 后端数据才能工作 → 留在应用里做薄壳，包只接收注入。:::
+新代码该放哪只跟这个页面有关 → 页面目录里（`views/<模块>/<页面>/`）。跨页面但只服务应用（store、api、ws） → `apps/web/src/` 对应目录。纯函数、不依赖应用状态、换个项目还想用 → `packages/core/base/shared` 或 `packages/core/hooks`。需要 pinia / router / 后端数据才能工作 → 留在应用里做薄壳，包只接收注入。
+
+:::
 
 ## 路径别名与自动导入
 

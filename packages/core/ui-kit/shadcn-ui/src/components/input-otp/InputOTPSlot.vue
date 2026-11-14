@@ -4,8 +4,8 @@ import type { HTMLAttributes } from 'vue';
 import { computed } from 'vue';
 import { useVueOTPContext } from 'vue-input-otp';
 
-import { cn } from '@antdv/shared/utils/cn';
 import { reactiveOmit } from '@vueuse/core';
+import { cn } from 'cn';
 import { useForwardProps } from 'reka-ui';
 
 const props = defineProps<{ index: number; class?: HTMLAttributes['class'] }>();
@@ -36,9 +36,7 @@ const slot = computed(() => context?.value.slots[props.index]);
       v-if="slot?.hasFakeCaret"
       class="pointer-events-none absolute inset-0 flex items-center justify-center"
     >
-      <div
-        class="animate-caret-blink bg-foreground h-4 w-px duration-1000"
-      ></div>
+      <div class="animate-caret-blink bg-foreground h-4 w-px duration-1000"></div>
     </div>
   </div>
 </template>

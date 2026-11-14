@@ -3,9 +3,9 @@ import type { SelectTriggerProps } from 'reka-ui';
 
 import type { HTMLAttributes } from 'vue';
 
-import { cn } from '@antdv/shared/utils/cn';
 import { ChevronDown } from '@lucide/vue';
 import { reactiveOmit } from '@vueuse/core';
+import { cn } from 'cn';
 import { SelectIcon, SelectTrigger, useForwardProps } from 'reka-ui';
 
 const props = withDefaults(

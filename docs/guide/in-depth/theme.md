@@ -24,7 +24,9 @@ preferences store（持久化）
 
 ::: warning
 
-`--ant-*` 那四条桥已经整体删掉。`--ant-color-primary`、`--ant-primary-color`、`--ant-border-radius` 等原本是给页面上 antd 组件的桥，antd 的 DOM 请出去之后它们只剩"每次换主题多写几条没人读的声明"，于是连同变量名单一起清了（`@antdv/shared/constants` 的 `css-vars.ts:17` 写了这条名单纪律：**只收有读取点的名字**）。契约测试 `packages/core/preferences/__tests__/update-css-variables.test.ts:80-82` 反向钉住"内联样式上不许再出现这两个名字"。:::
+`--ant-*` 那四条桥已经整体删掉。`--ant-color-primary`、`--ant-primary-color`、`--ant-border-radius` 等原本是给页面上 antd 组件的桥，antd 的 DOM 请出去之后它们只剩"每次换主题多写几条没人读的声明"，于是连同变量名单一起清了（`@antdv/shared/constants` 的 `css-vars.ts:17` 写了这条名单纪律：**只收有读取点的名字**）。契约测试 `packages/core/preferences/__tests__/update-css-variables.test.ts:80-82` 反向钉住"内联样式上不许再出现这两个名字"。
+
+:::
 
 ## 用 Tailwind 写主题色
 
@@ -38,11 +40,15 @@ cn('bg-primary/10 text-primary ring-1 ring-primary/20');
 
 ::: danger
 
-不要再写 `*-ant-primary`。那组工具类来自 antdv-next 的 Tailwind 兼容层（`@antdv-next/tailwind/compat.css`），`@antdv/design` 已经不引它 —— 不是"颜色不对"，而是**整条类根本不生成**，表现成元素没底色、没边框。目录里现在没有任何包依赖 `@antdv-next/tailwind`（catalog 还挂着 `^1.1.2` 这一条，但引用点为零），并且有测试反着钉：`design.test.ts:399-405` 断言 token 源码里不出现 `--ant-` 与 `-ant-[a-z]`，`:527` 断言本包依赖名单里不许出现 `@antdv-next/tailwind`。:::
+不要再写 `*-ant-primary`。那组工具类来自 antdv-next 的 Tailwind 兼容层（`@antdv-next/tailwind/compat.css`），`@antdv/design` 已经不引它 —— 不是"颜色不对"，而是**整条类根本不生成**，表现成元素没底色、没边框。目录里现在没有任何包依赖 `@antdv-next/tailwind`（catalog 还挂着 `^1.1.2` 这一条，但引用点为零），并且有测试反着钉：`design.test.ts:399-405` 断言 token 源码里不出现 `--ant-` 与 `-ant-[a-z]`，`:527` 断言本包依赖名单里不许出现 `@antdv-next/tailwind`。
+
+:::
 
 ::: warning
 
-别写死蓝色 `bg-blue-600`、`text-blue-500`、`#1677ff` 这类硬编码在浅色下看着对，换主色 / 进暗黑就露馅。新写的页面请只从主色令牌取强调色。（存量：部分 view 文件里还留着 `blue-*` / `#1677ff`，属于逐步清理的技术债；原先钉这一条的 `views/login/__tests__/login-styles.spec.ts` 已随登录页改版删除。）:::
+别写死蓝色 `bg-blue-600`、`text-blue-500`、`#1677ff` 这类硬编码在浅色下看着对，换主色 / 进暗黑就露馅。新写的页面请只从主色令牌取强调色。（存量：部分 view 文件里还留着 `blue-*` / `#1677ff`，属于逐步清理的技术债；原先钉这一条的 `views/login/__tests__/login-styles.spec.ts` 已随登录页改版删除。）
+
+:::
 
 ## 每个主题都是一份完整色板
 
@@ -60,7 +66,9 @@ cn('bg-primary/10 text-primary ring-1 ring-primary/20');
 
 ::: warning
 
-判断"现在是不是深色"要用解析结果 `appStore.themeMode === 'dark'` 在 `auto` 模式下**永远为 false**，即使系统已经是深色。需要按明暗分支的地方（ECharts 配色、大屏底色）要读 `resolvedTheme`，不能读 `themeMode`。:::
+判断"现在是不是深色"要用解析结果 `appStore.themeMode === 'dark'` 在 `auto` 模式下**永远为 false**，即使系统已经是深色。需要按明暗分支的地方（ECharts 配色、大屏底色）要读 `resolvedTheme`，不能读 `themeMode`。
+
+:::
 
 DOM 侧的 class 由 `applyPreferencesToDom()` 增删（默认 `dark`，可传 `darkClass`），Tailwind 的 `dark:` 变体和 `@antdv/design` 的 dark 规则都挂在这个 class 上。
 

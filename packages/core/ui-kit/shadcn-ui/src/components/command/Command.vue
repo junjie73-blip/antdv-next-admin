@@ -5,8 +5,8 @@ import type { HTMLAttributes } from 'vue';
 
 import { reactive, ref, watch } from 'vue';
 
-import { cn } from '@antdv/shared/utils/cn';
 import { reactiveOmit } from '@vueuse/core';
+import { cn } from 'cn';
 import { ListboxRoot, useFilter, useForwardPropsEmits } from 'reka-ui';
 
 import { provideCommandContext } from '.';

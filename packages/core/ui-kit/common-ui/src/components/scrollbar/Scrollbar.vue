@@ -122,15 +122,16 @@ defineExpose({
     </div>
 
     <!--
-      默认走 reka 的 `scroll` 而不是 `hover`：`hover` 的显隐只看指针，鼠标停在侧栏上
-      轨道就一直在，"自动隐藏"名存实亡；`scroll` 只在真正滚动的过程中亮，停下
-      `hideDelay` 后收起，指针留在原地也不影响。`scroll` 态机在 idle 时仍响应
-      POINTER_ENTER，所以条亮着的时候可以直接拖滑块。
+      默认走 reka 的 `auto`：`ScrollAreaScrollbarAuto` 用 ResizeObserver 比较
+      viewport 的 `offsetHeight` 与 `scrollHeight`，**只有内容真的溢出时才挂载**自绘
+      条。之前的 `scroll` 型一旦滚过、指针又停在侧栏里，态机会停在 interacting
+      不再收起，看上去就是"内容没超高却一直挂着一条"；`hover` 更糟，指针在就常亮。
+      `always` 只在调用方显式要常驻时启用（此时 hideDelay 不参与）。
     -->
     <ScrollArea
       v-else
       class="scrollbar__area min-h-0 w-full flex-1"
-      :type="always ? 'always' : 'scroll'"
+      :type="always ? 'always' : 'auto'"
       :scroll-hide-delay="hideDelay"
       :viewport-class="cn('scrollbar__wrap', wrapClass)"
       :viewport-style="wrapStyle"

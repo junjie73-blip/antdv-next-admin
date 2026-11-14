@@ -1,0 +1,41 @@
+/*
+ * 应用侧的样式装配入口 —— 这是本应用唯一的 Tailwind root。
+ *
+ * 分工：
+ * - `@antdv/design` 出设计规范：层级顺序（`@layer theme, base, components, utilities`）、
+ *   Tailwind 本体与动画库、token（明暗两套 + 13 套 `[data-theme]` 预设）、公共 css 分部、
+ *   typography/nesting 插件、dark 变体。它**不再代管任何子包的内容登记**。
+ * - 下面每一条 `@import '<pkg>/style.css'` 是那个包自己的 `@source './';`：
+ *   工具类的扫描范围跟着功能模块走，新增一个 ui 子包时改的是它自己的文件，
+ *   外加在这里补一行 —— 漏补的症状是那个包的工具类静默不生成（构建照样绿）。
+ *   ai-flow / im / lowcode / report / workflow 五个业务域已收编进 common-ui，
+ *   由 `@antdv/common-ui/style.css` 一句 `@source './'` 统一登记，不再各占一行。
+ *
+ * 为什么必须是 CSS `@import` 而不是在 main.ts 里逐条 JS `import`：
+ * 只有 `@source` 的样式文件自己不构成 Tailwind root（实测 features=0、产物 13 字节、
+ * 零工具类）。`@import` 会被内联进本文件这一个 root，登记才真正参与扫描。
+ * 同理 `@antdv/design` 只引一次：重复 `@import 'tw-animate-css'` 这类它已经引过的东西
+ * 会把那份 CSS 输出两遍（实测 +1746 字节）。
+ *
+ * 顺序：design 先（它的 `@layer` 声明要在所有规则之前定好优先级），随后是装配层与图标
+ * （`layouts` / `icons`），再是 `ui-kit/*` 按包名字母序 —— 与重构前 design 里那份名单同序。
+ * 这些包都只有内容登记、没有规则，所以它们之间谁先谁后不影响层叠。
+ *
+ * 守门（判据用用例标题，行号会漂）：`@antdv/hooks` 的 boundary.test.ts
+ * 「每个带 .vue 的包都自己登记 @source、暴露 ./style.css，并被应用入口引到」
+ * 与「只有默认 ui 子包可以在 barrel 里自引 CSS，且引的必须是自己的样式入口」；
+ * `@antdv/design` 的 design.test.ts「入口不代管任何子包的内容登记：一条 @source 都不留」。
+ * 快速体检同口径：`node <skill-dir>/scripts/check-repo.mjs --only @source`。
+ */
+@import '@antdv/design';
+
+@import '@antdv/layouts/style.css';
+@import '@antdv/icons/style.css';
+@import '@antdv/common-ui/style.css';
+@import '@antdv/form-ui/style.css';
+@import '@antdv/layout-ui/style.css';
+@import '@antdv/menu-ui/style.css';
+@import '@antdv/popup-ui/style.css';
+@import '@antdv/shadcn-ui/style.css';
+@import '@antdv/table-ui/style.css';
+@import '@antdv/tabs-ui/style.css';

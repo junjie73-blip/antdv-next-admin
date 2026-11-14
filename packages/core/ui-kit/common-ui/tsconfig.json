@@ -1,7 +1,7 @@
 {
   "extends": "@antdv/tsconfig/web.json",
   "compilerOptions": {
-    "types": ["vitest/globals"],
+    "types": ["vite/client", "vitest/globals"],
     "noEmit": true
   },
   "include": [

@@ -27,7 +27,9 @@ app.use(pinia);
 
 ::: warning
 
-出口是两个，别走错包`@antdv/stores` 的 barrel 全量导出五个模块：`packages/stores/src/index.ts:1-5`（app / route / session / tabs / user）。`apps/web/src/stores/index.ts:1-2` 只 re-export auth / dict，所以 `~/stores` 里**拿不到**那四个 —— 应用代码统一 `import { useUserStore } from '@antdv/stores'`，私有 store 走 `~/stores`。:::
+出口是两个，别走错包`@antdv/stores` 的 barrel 全量导出五个模块：`packages/stores/src/index.ts:1-5`（app / route / session / tabs / user）。`apps/web/src/stores/index.ts:1-2` 只 re-export auth / dict，所以 `~/stores` 里**拿不到**那四个 —— 应用代码统一 `import { useUserStore } from '@antdv/stores'`，私有 store 走 `~/stores`。
+
+:::
 
 ## 约定
 
@@ -51,7 +53,9 @@ app.use(pinia);
 
 ::: warning
 
-`VITE_NAMESPACE` 是个死变量它只出现在 `apps/web/.env:1`、`apps/web/types/env.d.ts:28` 和这份文档里，**没有任何代码路径读它**。想按环境隔离 localStorage，目前只能靠 `VITE_APP_TITLE` 前缀（改 title 会让全部旧缓存失效，这是它的实际效果）。别指望设个 namespace 就能多标签隔离。:::
+`VITE_NAMESPACE` 是个死变量它只出现在 `apps/web/.env:1`、`apps/web/types/env.d.ts:28` 和这份文档里，**没有任何代码路径读它**。想按环境隔离 localStorage，目前只能靠 `VITE_APP_TITLE` 前缀（改 title 会让全部旧缓存失效，这是它的实际效果）。别指望设个 namespace 就能多标签隔离。
+
+:::
 
 ## app store 是偏好的门面，不是第二份状态
 
@@ -79,4 +83,6 @@ app.use(pinia);
 
 ::: tip
 
-想加一个新 store应用级状态照 `apps/web/src/stores/modules/dict.ts` 写，跨包共享的才进 `packages/stores/src/`：setup store、`defineStore('xxx')` 的第一参数用稳定 id、需要落盘就在 `watch` 里显式 `cache.setItem`，键名加进 `packages/enums/src/cache.ts` 的 `CacheKey`，并在登出流程（或 `onSessionReset` 登记）里加清理。别忘了同步 `packages/stores/src/index.ts` 或 `apps/web/src/stores/index.ts` 的导出。:::
+想加一个新 store应用级状态照 `apps/web/src/stores/modules/dict.ts` 写，跨包共享的才进 `packages/stores/src/`：setup store、`defineStore('xxx')` 的第一参数用稳定 id、需要落盘就在 `watch` 里显式 `cache.setItem`，键名加进 `packages/enums/src/cache.ts` 的 `CacheKey`，并在登出流程（或 `onSessionReset` 登记）里加清理。别忘了同步 `packages/stores/src/index.ts` 或 `apps/web/src/stores/index.ts` 的导出。
+
+:::

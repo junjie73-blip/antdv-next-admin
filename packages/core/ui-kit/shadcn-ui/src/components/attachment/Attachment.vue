@@ -3,7 +3,7 @@ import type { HTMLAttributes } from 'vue';
 
 import type { AttachmentVariants } from '.';
 
-import { cn } from '@antdv/shared/utils/cn';
+import { cn } from 'cn';
 
 import { attachmentVariants } from '.';
 

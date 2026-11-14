@@ -2,7 +2,7 @@
 import type { FormSchema } from '@antdv/form-ui';
 import type { BasicColumn } from '@antdv/table-ui';
 
-import { computed, ref } from 'vue';
+import { computed, nextTick, ref } from 'vue';
 
 import {
   Divider,
@@ -50,6 +50,7 @@ interface DictTypeRecord {
   typeCode: string;
   status: number;
   remark: string;
+  sort?: number;
   items: DictItemRecord[];
 }
 
@@ -68,18 +69,32 @@ const panelClassName = cn(
   cardClassName,
   'bg-card border-border rounded-lg border',
 );
+/**
+ * 选中态用「淡色底 + 圆角竖条」而不是加粗左边框：
+ * - `border-l-(--primary)` 里的 `--primary` 是 HSL 三元组（`258 89% 66%`），
+ *   直接当颜色用是非法值，浏览器退回默认边框色 → 截图里那根黑色竖条；
+ *   主题里真正能用的是 `--color-primary`（`hsl(var(--primary))`），对应
+ *   `bg-primary` / `border-l-primary` 这一族工具类。
+ * - 3px 边框会把选中行的文字往右推 3px，和上下行对不齐；竖条改成绝对定位
+ *   的独立元素，不占布局。
+ */
 const typeItemClassName = (active: boolean) =>
   cn(
-    'flex items-center justify-between',
+    'relative flex items-center justify-between',
     'cursor-pointer px-4 py-3',
     'border-border border-b',
     'transition-colors duration-200',
     'hover:bg-accent',
-    active && 'bg-primary/5 border-l-[3px] border-l-(--primary)',
+    active && 'bg-primary/10',
   );
-const typeItemNameClassName = cn(
-  'text-foreground truncate text-sm font-medium',
+const typeItemActiveBarClassName = cn(
+  'bg-primary absolute inset-y-2 left-0 w-[3px] rounded-r-full',
 );
+const typeItemNameClassName = (active: boolean) =>
+  cn(
+    'truncate text-sm font-medium',
+    active ? 'text-primary' : 'text-foreground',
+  );
 const typeItemCodeClassName = cn(
   'text-muted-foreground mt-0.5 truncate text-xs',
 );
@@ -230,27 +245,61 @@ const itemFormSchemas: FormSchema[] = [
 
 async function loadDictTypes() {
   try {
+    // request.ts 的 get() 已经剥过一层 `{ code, data, message }`，
+    // 这里拿到的就是 `{ list, total }`，不要再访问 `.data`
     const res = await getDictList({});
-    const data = res?.data ?? res;
-    dictTypes.value = data?.list || [];
+    dictTypes.value = res?.list ?? [];
   } catch {
     message.error('加载字典类型失败');
   }
 }
 
-async function loadDictItems(typeId: number) {
+/**
+ * 字典项只从这一个入口取数，并同步给导出用的 `dictItems` 快照。
+ *
+ * 原来 `mockItemApi()` 只是读 `dictItems.value`：右侧表格 `v-else` 首次挂载时
+ * `loadDictItems()` 还没回来，表格拿到空数组就再也不会自己刷新（切换类型、
+ * 增删改字典项也都没调 `itemTableMethods.reload()`）→ 截图里的「共 0 条」。
+ * 现在表格的 api 直接负责取数，`immediate` 首屏就能拿到当前选中类型的数据。
+ */
+async function fetchDictItems(typeId?: number): Promise<DictItemRecord[]> {
+  if (!typeId) {
+    dictItems.value = [];
+    return [];
+  }
   try {
     const res = await getDictItems(typeId);
-    const items = Array.isArray(res) ? res : (res?.data ?? res ?? []);
-    dictItems.value = items;
+    const raw = Array.isArray(res) ? res : ((res as any)?.data ?? []);
+    dictItems.value = Array.isArray(raw) ? raw : [];
   } catch {
+    dictItems.value = [];
     message.error('加载字典项失败');
   }
+  return dictItems.value;
 }
 
-function selectType(type: DictTypeRecord) {
+/**
+ * 字典项接口本身返回全量，表格又配了 :api（不做客户端切片），
+ * 所以这一层必须自己按 pageNum/pageSize 切，否则「10 条/页」会显示整组字典项。
+ */
+async function mockItemApi(params: Record<string, any> = {}) {
+  const all = await fetchDictItems(selectedType.value?.id);
+  const page = Number(params.pageNum ?? params.page ?? 1) || 1;
+  const pageSize = Number(params.pageSize ?? 10) || 10;
+  const start = (page - 1) * pageSize;
+  return { items: all.slice(start, start + pageSize), total: all.length };
+}
+
+async function reloadItems() {
+  await itemTableMethods.value?.reload();
+}
+
+async function selectType(type: DictTypeRecord) {
   selectedType.value = type;
-  loadDictItems(type.id);
+  // 首次选中：表格刚挂载，`:immediate` 会自己取数；这里再 reload 一次是幂等的，
+  // 主要覆盖「表格已挂载、只是换了类型」的情况。
+  await nextTick();
+  await reloadItems();
 }
 
 function handleAdd() {
@@ -315,14 +364,13 @@ async function handleSave() {
 
     modalMethods.closeModal();
     await loadDictTypes();
+    const selectedId = selectedType.value?.id;
     if (
-      selectedType.value &&
+      selectedId !== undefined &&
       isEditing.value &&
-      currentRecord.value?.id === selectedType.value.id
+      currentRecord.value?.id === selectedId
     ) {
-      const updated = dictTypes.value.find(
-        (t) => t.id === selectedType.value!.id,
-      );
+      const updated = dictTypes.value.find((t) => t.id === selectedId);
       if (updated) {
         selectedType.value = updated;
       }
@@ -369,19 +417,23 @@ async function handleSaveItem() {
     return;
   }
 
+  const typeId = selectedType.value?.id;
+  if (!typeId) {
+    message.warning('请先选择字典类型');
+    return;
+  }
+
   try {
     if (isEditingItem.value && currentItemRecord.value) {
       await updateDictItem(currentItemRecord.value.id, values);
       message.success(`已更新字典项：${values.dictLabel}`);
     } else {
-      await addDictItem({ ...values, dictTypeId: selectedType.value!.id });
+      await addDictItem({ ...values, dictTypeId: typeId });
       message.success(`已新增字典项：${values.dictLabel}`);
     }
 
     itemModalMethods.closeModal();
-    if (selectedType.value) {
-      loadDictItems(selectedType.value.id);
-    }
+    await reloadItems();
   } catch {
     message.error('保存失败');
   }
@@ -391,9 +443,7 @@ async function handleDeleteItem(item: DictItemRecord) {
   try {
     await deleteDictItem(item.id);
     message.success(`已删除字典项：${item.dictLabel}`);
-    if (selectedType.value) {
-      loadDictItems(selectedType.value.id);
-    }
+    await reloadItems();
   } catch {
     message.error('删除失败');
   }
@@ -448,10 +498,6 @@ const itemColumns: BasicColumn[] = [
   { title: '备注', dataIndex: 'remark', key: 'remark', ellipsis: true },
 ];
 
-async function mockItemApi() {
-  return { items: dictItems.value, total: dictItems.value.length };
-}
-
 loadDictTypes();
 </script>
 
@@ -485,10 +531,17 @@ loadDictTypes();
             v-for="item in dictTypes"
             :key="item.id"
             :class="typeItemClassName(selectedType?.id === item.id)"
+            :aria-selected="selectedType?.id === item.id"
             @click="selectType(item)"
           >
+            <span
+              v-if="selectedType?.id === item.id"
+              :class="typeItemActiveBarClassName"
+            ></span>
             <div class="min-w-0 flex-1">
-              <div :class="typeItemNameClassName">{{ item.typeName }}</div>
+              <div :class="typeItemNameClassName(selectedType?.id === item.id)">
+                {{ item.typeName }}
+              </div>
               <div :class="typeItemCodeClassName">{{ item.typeCode }}</div>
             </div>
             <div :class="typeItemActionsClassName">
@@ -600,7 +653,7 @@ loadDictTypes();
                 <Button
                   variant="link"
                   :class="btnClassName"
-                  @click="() => handleEditItem(record)"
+                  @click="() => handleEditItem(record as DictItemRecord)"
                 >
                   编辑
                 </Button>
@@ -608,7 +661,7 @@ loadDictTypes();
                 <Popconfirm
                   :title="`确定要删除字典项「${record.dictLabel}」吗？`"
                   danger
-                  @confirm="() => handleDeleteItem(record)"
+                  @confirm="() => handleDeleteItem(record as DictItemRecord)"
                 >
                   <Button
                     variant="link"

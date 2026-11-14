@@ -1,5 +1,12 @@
 # @antdv/vsh
 
+## 0.2.0
+
+### Patch Changes
+
+- @antdv/node-utils@0.2.0
+  - @antdv/tsconfig@0.2.0
+
 ## 0.1.0
 
 ### Patch Changes

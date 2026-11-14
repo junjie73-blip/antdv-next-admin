@@ -3,7 +3,7 @@ import type { SelectLabelProps } from 'reka-ui';
 
 import type { HTMLAttributes } from 'vue';
 
-import { cn } from '@antdv/shared/utils/cn';
+import { cn } from 'cn';
 import { SelectLabel } from 'reka-ui';
 
 const props = defineProps<

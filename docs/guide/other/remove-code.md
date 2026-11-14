@@ -14,7 +14,9 @@
 
 ::: warning
 
-`hidden` 不是删除 `hidden: true` 只表示"不进导航"，节点照样进授权集合（`menus.get.ts` 的注释专门在讲这件事）。菜单管理页那个「导航显示」开关也**不写库**：它只写 localStorage 的 `xy-menu-hidden-overrides` （`packages/stores/src/route.ts:26,38-46`），而 `apps/web/src/api/menu.ts` 里只有一个 `getMenus()`——没有任何菜单写接口。所以"删掉一条菜单"在本地就等价于改那份 mock 种子文件；接真后端时才是删表数据。:::
+`hidden` 不是删除 `hidden: true` 只表示"不进导航"，节点照样进授权集合（`menus.get.ts` 的注释专门在讲这件事）。菜单管理页那个「导航显示」开关也**不写库**：它只写 localStorage 的 `xy-menu-hidden-overrides` （`packages/stores/src/route.ts:26,38-46`），而 `apps/web/src/api/menu.ts` 里只有一个 `getMenus()`——没有任何菜单写接口。所以"删掉一条菜单"在本地就等价于改那份 mock 种子文件；接真后端时才是删表数据。
+
+:::
 
 ## 删除清单（按依赖顺序）
 
@@ -52,7 +54,9 @@
 
 ::: danger
 
-有一条静态契约专门盯着菜单与页面的对应关系 `apps/web/src/views/dashboard/__tests__/analysis-merge.spec.ts` 直接读 `apps/backend-mock/server/api/menus.get.ts` 的源码，把里面所有 `path: '/...'` 提成集合，再断言分析页快捷操作的跳转目标都在其中。它的注释写得很直白："菜单种子同时是路由表和权限来源"、"删页面必须连种子一起删"。这是全仓最会把"删一半"立刻变红的地方——好事。:::
+有一条静态契约专门盯着菜单与页面的对应关系 `apps/web/src/views/dashboard/__tests__/analysis-merge.spec.ts` 直接读 `apps/backend-mock/server/api/menus.get.ts` 的源码，把里面所有 `path: '/...'` 提成集合，再断言分析页快捷操作的跳转目标都在其中。它的注释写得很直白："菜单种子同时是路由表和权限来源"、"删页面必须连种子一起删"。这是全仓最会把"删一半"立刻变红的地方——好事。
+
+:::
 
 ## 案例 C：删一个 workspace 包
 
@@ -63,7 +67,7 @@
 | `@antdv/shared` | 81 | 除 `design` / `directives` / `router` 外几乎全在：`icons` / `hooks` / `preferences` / `types` 之外的六个 ui-kit / `layouts` / `request` / `stores` / `utils`（`cn()` 是全仓唯一的类名合并入口） | 基本等于重写应用 |
 | `@antdv/types` | 12 | `preferences` / `layout-ui` / `menu-ui` / `tabs-ui` / `layouts` / `stores` / `utils` + `apps/backend-mock`（`server/api/menus.get.ts:1` 等） | 类型面全域铺开 |
 | `@antdv/shadcn-ui` | 55 | `icons` / `common-ui` / `form-ui` / `layout-ui` / `menu-ui` / `popup-ui` / `table-ui` / `tabs-ui` / `layouts` 的实现底座 | 上面这批包一起塌，等于没有 UI 层 |
-| `@antdv/common-ui` | 63 | **不是"只被应用引用"**：`form-ui` / `layout-ui` / `menu-ui` / `table-ui` / `tabs-ui` / `layouts` 都 import 它；它自己依赖 `icons` / `shadcn-ui` / `shared`（loading 与 scrollbar 已并入本包） | 卡片、标签、步骤条、上传、穿梭框、骨架屏这类展示件一起没；`@antdv/design` 的 `index.css:39-48` 有十条 `@source`，删包要同步删对应那行 |
+| `@antdv/common-ui` | 63 | **不是"只被应用引用"**：`form-ui` / `layout-ui` / `menu-ui` / `table-ui` / `tabs-ui` / `layouts` 都 import 它；它自己依赖 `icons` / `shadcn-ui` / `shared`（loading 与 scrollbar 已并入本包） | 卡片、标签、步骤条、上传、穿梭框、骨架屏这类展示件一起没；本包有自己的 `src/index.css`（`@source './';`）与 `exports['./style.css']`，删包要同步删掉 `apps/web/src/styles/index.css` 里那条 `@import`（守门在 `@antdv/hooks` 的 `boundary.test.ts`） |
 | `@antdv/popup-ui` | 44 | `hooks` / `common-ui` / `table-ui` / `layouts` / `request`；应用侧的 `BasicModal` / `BasicDrawer` / `useModal` / `useDrawer` / `confirm` / `message` **全部来自这个包**（应用侧 `apps/web/src/components/` 已整目录迁空，`Basic*` 之外没有本地组件） | 弹窗、抽屉、命令式确认与全局提示一起断，见[弹窗与抽屉](/components/modal-drawer) |
 | `@antdv/table-ui` | 22 | `hooks`（`useCRUD` 的边界测试引它）；应用侧 `BasicTable` / `useTable` / `BasicColumn` 来自它 | 列表页全都没表格 |
 | `@antdv/form-ui` | 20 | `hooks` / `table-ui`（可编辑单元格）；应用侧 `BasicForm` / `useForm` / `FormSchema` 来自它 | 搜索表单与表单页一起断 |
@@ -75,7 +79,7 @@
 | `@antdv/icons` | 3 | 六个 ui-kit 包 + `common-ui` + `layouts` 大量 import `@antdv/icons/icon`。`internal/vite-config` 的 iconify 离线列表只供数据，不 import 这个包 | 图标选择器与 `IconifyIcon` / `SvgIcon` 一起没 |
 | `@antdv/directives` | 2 | 没有其他包 import 它；`apps/web/src/directives/index.ts` 注入判定函数；模板里 `v-permission` / `v-lazy` 共 7 处 | 可删，权限降级样式在 `@antdv/design` 的 `src/css/permission.css` |
 | `@antdv/router` | 1 | 没有其他包 import 它；守卫实现全在包里，`apps/web/src/router/guards/index.ts` 只做依赖注入 | 不是删一行依赖：403 裁剪、进度条、标题都要在应用里重写 |
-| `@antdv/design` | 2 | 没有任何包 import 它（只有 `main.ts` 引那一个 CSS 入口）；`shared` 的 css-vars 与指令的禁用态只是按它的口径写 | Tailwind 层顺序与十条 `@source` 一丢，覆盖组件库样式就要靠 `!important` |
+| `@antdv/design` | 2 | 没有任何包 import 它（只有 `apps/web/src/styles/index.css` 引那一个 CSS 入口，`main.ts:46` 再引装配入口）；`shared` 的 css-vars 与指令的禁用态只是按它的口径写 | Tailwind 层顺序、token 与五个公共 css 分部一丢，覆盖组件库样式就要靠 `!important`。注意它**不再代管任何子包的内容登记** —— 各包的 `@source` 随包走，由装配入口收进同一个 root |
 | `@antdv/stores` | 23 | `hooks` / `layouts`；应用侧从 `@antdv/stores` 引 store（见[状态管理](/guide/essentials/stores)） | 登录态、菜单裁剪、标签页、页面缓存登记一起没 |
 | `@antdv/request` | 4 | `common-ui`（markdown 附件下载）/ `stores` | HTTP / SSE / WebSocket 三层一起没 |
 | `@antdv/hooks` | 9 | `layouts`；`hooks` 自己也反向引 `popup-ui` / `table-ui` / `stores` | 应用侧薄封装断，`useCRUD` / `usePermission` / `useRouteLoading` 等一起没 |
@@ -92,7 +96,9 @@
 
 ::: warning
 
-"没人 import"和"可以删"是两件事 `pnpm check:dep`（knip）会报一批未使用依赖，但它的默认配置 ignore 了 `docs/**`，`ignoreDependencies` 里还写死了 `playwright`、`rimraf`、`tailwindcss` 等（见 `scripts/vsh/src/check-dep/index.ts`）。构建期才用到的插件、被 CDN 引入的包，在它眼里都是"未使用"。删之前自己 `grep` 一次源码与 `internal/vite-config`。:::
+"没人 import"和"可以删"是两件事 `pnpm check:dep`（knip）会报一批未使用依赖，但它的默认配置 ignore 了 `docs/**`，`ignoreDependencies` 里还写死了 `playwright`、`rimraf`、`tailwindcss` 等（见 `scripts/vsh/src/check-dep/index.ts`）。构建期才用到的插件、被 CDN 引入的包，在它眼里都是"未使用"。删之前自己 `grep` 一次源码与 `internal/vite-config`。
+
+:::
 
 ## 删完用什么兜底
 

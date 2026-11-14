@@ -16,7 +16,9 @@
 
 ::: warning
 
-别按包名找实现 `@antdv/directives` 包里**只有 permission 和 lazy** 两条（`packages/directives/src/index.ts:10-11` 就这两个 export）。`escape` / `safe-html` 的实现住在 `@antdv/shared/utils/xss`，`v-loading` 住在 `@antdv/common-ui`。`apps/web/src/directives/index.ts` 的定位是「把项目依赖注进工厂」：包内不 import pinia / store（`packages/directives/src/index.ts:4-7` 的设计约束），判定函数、订阅源都由应用侧提供。:::
+别按包名找实现 `@antdv/directives` 包里**只有 permission 和 lazy** 两条（`packages/directives/src/index.ts:10-11` 就这两个 export）。`escape` / `safe-html` 的实现住在 `@antdv/shared/utils/xss`，`v-loading` 住在 `@antdv/common-ui`。`apps/web/src/directives/index.ts` 的定位是「把项目依赖注进工厂」：包内不 import pinia / store（`packages/directives/src/index.ts:4-7` 的设计约束），判定函数、订阅源都由应用侧提供。
+
+:::
 
 ## v-permission：判定在包外，打标记在包内
 
@@ -46,7 +48,9 @@
 
 1. **`:role` 是参数（arg），`.role` 是修饰符**——判定只认 arg（`utils.ts:41`），写成 `.role` 会静默地按权限码解释。示例页把这条印在界面上（`apps/web/src/views/components/directive/index.vue:284-289`）。
 2. **空值 = 放行**：`undefined` / `null` / `''` / `[]` 一律通过（`utils.ts:90-97`）。`v-permission="[]"` 等于没写。
-3. **mode 优先级**：对象里的 `mode` > `.all` 修饰符 > 默认 `any`（`utils.ts:100-101`）；对象写了 `mode: 'all'` 时 `.all` 就不再说话。:::
+3. **mode 优先级**：对象里的 `mode` > `.all` 修饰符 > 默认 `any`（`utils.ts:100-101`）；对象写了 `mode: 'all'` 时 `.all` 就不再说话。
+
+:::
 
 ### 无权限时 DOM 上发生什么
 
@@ -54,7 +58,9 @@
 
 ::: tip
 
-路由层不读 roles `RouteMeta` 类型声明了 `roles?: string[]` / `permissions?: string[]`（`packages/core/base/typings/src/app-router.ts:9-10`），但 `apps/web/src/router/**` 与 `packages/router/src/**` 里**没有任何读取点**——路由准入实际靠菜单数据（「菜单即权限」，`packages/stores/src/route.ts:289-297` 只处理 `meta.requiresAuth`）。`v-permission` 管的只是元素这一层，三层的完整讲法见[权限与菜单访问](/guide/in-depth/access)。:::
+路由层不读 roles `RouteMeta` 类型声明了 `roles?: string[]` / `permissions?: string[]`（`packages/core/base/typings/src/app-router.ts:9-10`），但 `apps/web/src/router/**` 与 `packages/router/src/**` 里**没有任何读取点**——路由准入实际靠菜单数据（「菜单即权限」，`packages/stores/src/route.ts:289-297` 只处理 `meta.requiresAuth`）。`v-permission` 管的只是元素这一层，三层的完整讲法见[权限与菜单访问](/guide/in-depth/access)。
+
+:::
 
 ## v-loading：布尔值驱动，配置从属性读
 
@@ -66,7 +72,9 @@
 
 ::: warning
 
-属性只在创建那一次被读 `getPropsFromAttributes()` 只在**遮罩实例首次创建**时执行（`directive.ts:70-76`，已有实例直接返回）。挂载之后再改 `loading-tip` / `loading-theme` 属性值**不会生效**，想动态改文案要用指令参数 `binding.arg`（`directive.ts:96-98` 是 `updated` 里唯一会热更的配置项）。:::
+属性只在创建那一次被读 `getPropsFromAttributes()` 只在**遮罩实例首次创建**时执行（`directive.ts:70-76`，已有实例直接返回）。挂载之后再改 `loading-tip` / `loading-theme` 属性值**不会生效**，想动态改文案要用指令参数 `binding.arg`（`directive.ts:96-98` 是 `updated` 里唯一会热更的配置项）。
+
+:::
 
 ## v-lazy：默认实例 + 四层取值
 
@@ -118,7 +126,9 @@
 
 ::: tip
 
-用的是组件，库的另外两种形态没人用 `vue-draggable-plus` 同时导出 `v-draggable` 指令和 `useDraggable` 组合式（`dist/index.d.ts` 三个出口），但全仓库检索不到任何调用点——本页示例、表格的 `dragSort` 都不走这两条路（表格行拖拽是 `BasicTable` 内部直接绑 Sortable，见 `packages/core/ui-kit/table-ui/src/hooks/useDragSort.ts`，那部分归[表格](/components/table)页，这里不展开）。:::
+用的是组件，库的另外两种形态没人用 `vue-draggable-plus` 同时导出 `v-draggable` 指令和 `useDraggable` 组合式（`dist/index.d.ts` 三个出口），但全仓库检索不到任何调用点——本页示例、表格的 `dragSort` 都不走这两条路（表格行拖拽是 `BasicTable` 内部直接绑 Sortable，见 `packages/core/ui-kit/table-ui/src/hooks/useDragSort.ts`，那部分归[表格](/components/table)页，这里不展开）。
+
+:::
 
 ### props 就是 sortablejs 的 Options
 

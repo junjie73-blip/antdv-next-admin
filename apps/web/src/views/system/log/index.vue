@@ -6,13 +6,15 @@ import type { BasicColumn } from '@antdv/table-ui';
 import { ref } from 'vue';
 
 import { Divider, PageHeader, Popconfirm, Tag } from '@antdv/common-ui';
-import { BasicDrawer, message, useDrawer } from '@antdv/popup-ui';
+import { message } from '@antdv/popup-ui';
 import { Button } from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/utils/cn';
 import { BasicTable, useTable } from '@antdv/table-ui';
 import { Icon } from '@iconify/vue';
 import { deleteOperLog, getOperLogList } from '~/api/system';
 import { exportToExcel } from '~/utils/excel';
+
+import LogDetailDrawer from '../components/LogDetailDrawer.vue';
 
 defineOptions({ name: 'SystemLog' });
 
@@ -100,9 +102,30 @@ const operatorTypeLabelMap: Record<number, string> = {
 };
 
 // 操作日志
-const viewingRecord = ref<null | OperLogRecord>(null);
-const [drawerRegister, drawerMethods] = useDrawer();
 const [tableRegister, tableMethods] = useTable();
+const operDetailDrawer = ref<InstanceType<typeof LogDetailDrawer>>();
+const loginDetailDrawer = ref<InstanceType<typeof LogDetailDrawer>>();
+
+// 登录日志详情 schema（与操作日志详情统一走 LogDetailDrawer）
+const loginDetailSchemas: DescriptionItem[] = [
+  { field: 'id', label: '日志编号' },
+  { field: 'userName', label: '用户名' },
+  { field: 'ipaddr', label: 'IP地址' },
+  { field: 'loginLocation', label: '登录地点' },
+  { field: 'browser', label: '浏览器' },
+  { field: 'os', label: '操作系统' },
+  {
+    field: 'status',
+    label: '状态',
+    render: (value) => (
+      <Tag color={value === 0 ? 'green' : 'red'}>
+        {value === 0 ? '成功' : '失败'}
+      </Tag>
+    ),
+  },
+  { field: 'loginTime', label: '登录时间' },
+  { field: 'msg', label: '备注', span: 2 },
+];
 
 // 登录日志
 const [loginTableRegister, loginTableMethods] = useTable();
@@ -330,7 +353,7 @@ const detailSchemas: DescriptionItem[] = [
 // 操作日志 API
 async function mockApi(params: Record<string, any>) {
   const res = await getOperLogList(params);
-  const data = res?.data ?? res;
+  const data = (res as any)?.data ?? res;
   return { items: data?.list || [], total: data?.total || 0 };
 }
 
@@ -338,13 +361,16 @@ async function mockApi(params: Record<string, any>) {
 async function mockLoginApi(params: Record<string, any>) {
   const { getLoginLogList } = await import('~/api/system');
   const res = await getLoginLogList(params);
-  const data = res?.data ?? res;
+  const data = (res as any)?.data ?? res;
   return { items: data?.list || [], total: data?.total || 0 };
 }
 
 function handleView(record: OperLogRecord) {
-  viewingRecord.value = record;
-  drawerMethods.openDrawer();
+  operDetailDrawer.value?.open(record);
+}
+
+function handleLoginView(record: LoginLogRecord) {
+  loginDetailDrawer.value?.open(record);
 }
 
 async function handleDelete(record: OperLogRecord) {
@@ -600,7 +626,7 @@ const loginColumns: BasicColumn[] = [
               <Button
                 variant="link"
                 :class="btnClassName"
-                @click="() => handleView(record)"
+                @click="() => handleView(record as OperLogRecord)"
               >
                 <Icon icon="ant-design:eye-outlined" />
                 详情
@@ -609,7 +635,7 @@ const loginColumns: BasicColumn[] = [
               <Popconfirm
                 :title="`确定要删除日志 #${record.id} 吗？`"
                 danger
-                @confirm="() => handleDelete(record)"
+                @confirm="() => handleDelete(record as OperLogRecord)"
               >
                 <Button
                   variant="link"
@@ -633,7 +659,7 @@ const loginColumns: BasicColumn[] = [
           :immediate="true"
           :use-search-form="true"
           :form-config="{ schemas: loginSearchFormSchemas, labelWidth: 80 }"
-          :action-column="{ width: 0, title: '操作', fixed: 'right' }"
+          :action-column="{ width: 120, title: '操作', fixed: 'right' }"
           :pagination="{
             showSizeChanger: true,
             pageSizeOptions: ['10', '20', '50'],
@@ -646,15 +672,32 @@ const loginColumns: BasicColumn[] = [
               {{ record.status === 0 ? '成功' : '失败' }}
             </Tag>
           </template>
+
+          <template #action="{ record }">
+            <div :class="actionClassName">
+              <Button
+                variant="link"
+                :class="btnClassName"
+                @click="() => handleLoginView(record as LoginLogRecord)"
+              >
+                <Icon icon="ant-design:eye-outlined" />
+                详情
+              </Button>
+            </div>
+          </template>
         </BasicTable>
       </template>
 
       <!-- 错误日志 -->
       <template v-if="activeTab === 2">
         <div class="py-20 text-center">
+          <!--
+            Tailwind preflight 把 svg 设成 display:block，text-center 对块级元素无效，
+            mx-auto 才能让空状态图标真正居中（之前它贴在内容区最左边）。
+          -->
           <Icon
             icon="carbon:checkmark-outline"
-            class="mb-4 text-6xl text-muted-foreground/50"
+            class="mx-auto mb-4 text-6xl text-muted-foreground/50"
           />
           <div class="mb-2 text-lg font-semibold text-muted-foreground">
             暂无错误日志
@@ -666,112 +709,18 @@ const loginColumns: BasicColumn[] = [
       </template>
     </div>
 
-    <!-- 日志详情抽屉 -->
-    <BasicDrawer
+    <!-- 日志详情抽屉：操作日志与登录日志统一走 LogDetailDrawer -->
+    <LogDetailDrawer
+      ref="operDetailDrawer"
       title="操作日志详情"
+      :schema="detailSchemas"
       :width="640"
-      :show-footer="false"
-      @register="drawerRegister"
-    >
-      <div v-if="viewingRecord" class="relative pl-6">
-        <div class="absolute top-0 bottom-0 left-[7px] w-[2px] bg-border"></div>
-        <div class="space-y-6">
-          <div class="relative pb-6">
-            <div
-              class="absolute top-[2px] left-[-23px] z-[1] h-3 w-3 rounded-full border-2 border-success bg-card"
-            ></div>
-            <div class="mb-1 text-xs text-muted-foreground">操作时间</div>
-            <div class="text-sm">{{ viewingRecord.operTime }}</div>
-          </div>
-          <div class="relative pb-6">
-            <div
-              class="border-primary absolute top-[2px] left-[-23px] z-[1] h-3 w-3 rounded-full border-2 bg-card"
-            ></div>
-            <div class="mb-1 text-xs text-muted-foreground">操作模块</div>
-            <div class="text-sm">{{ viewingRecord.title }}</div>
-          </div>
-          <div class="relative pb-6">
-            <div
-              class="border-primary absolute top-[2px] left-[-23px] z-[1] h-3 w-3 rounded-full border-2 bg-card"
-            ></div>
-            <div class="mb-1 text-xs text-muted-foreground">操作类型</div>
-            <div class="text-sm">
-              <Tag
-                :color="operTypeColorMap[viewingRecord.operType] || 'default'"
-              >
-                {{ viewingRecord.operType }}
-              </Tag>
-            </div>
-          </div>
-          <div class="relative pb-6">
-            <div
-              class="border-primary absolute top-[2px] left-[-23px] z-[1] h-3 w-3 rounded-full border-2 bg-card"
-            ></div>
-            <div class="mb-1 text-xs text-muted-foreground">操作人员</div>
-            <div class="text-sm">
-              <span class="text-primary font-medium">{{
-                viewingRecord.operName
-              }}</span>
-            </div>
-          </div>
-          <div class="relative pb-6">
-            <div
-              class="border-primary absolute top-[2px] left-[-23px] z-[1] h-3 w-3 rounded-full border-2 bg-card"
-            ></div>
-            <div class="mb-1 text-xs text-muted-foreground">请求URL</div>
-            <div class="text-sm">
-              <code
-                class="bg-muted text-foreground rounded px-1.5 py-0.5 font-mono text-xs"
-                >{{ viewingRecord.operUrl }}</code>
-            </div>
-          </div>
-          <div class="relative pb-6">
-            <div
-              class="border-primary absolute top-[2px] left-[-23px] z-[1] h-3 w-3 rounded-full border-2 bg-card"
-            ></div>
-            <div class="mb-1 text-xs text-muted-foreground">IP地址</div>
-            <div class="text-sm">
-              <code
-                class="bg-muted text-foreground rounded px-1.5 py-0.5 font-mono text-xs"
-                >{{ viewingRecord.operIp }}</code>
-            </div>
-          </div>
-          <div class="relative pb-6">
-            <div
-              class="absolute top-[2px] left-[-23px] z-[1] h-3 w-3 rounded-full border-2 bg-card"
-              :class="
-                viewingRecord.status === 0
-                  ? 'border-success'
-                  : 'border-destructive'
-              "
-            ></div>
-            <div class="mb-1 text-xs text-muted-foreground">执行状态</div>
-            <div class="text-sm">
-              <Tag :color="statusColorMap[viewingRecord.status] || 'default'">
-                {{ statusLabelMap[viewingRecord.status] || '未知' }}
-              </Tag>
-            </div>
-          </div>
-          <div class="relative">
-            <div
-              class="border-primary absolute top-[2px] left-[-23px] z-[1] h-3 w-3 rounded-full border-2 bg-card"
-            ></div>
-            <div class="mb-1 text-xs text-muted-foreground">耗时</div>
-            <div class="text-sm">{{ viewingRecord.costTime }}ms</div>
-          </div>
-        </div>
-        <div
-          v-if="viewingRecord.errorMsg"
-          class="mt-4 rounded-md border-l-[3px] border-destructive bg-destructive/10 p-3"
-        >
-          <div class="mb-1 text-sm font-semibold text-destructive">
-            错误信息
-          </div>
-          <div class="text-sm text-muted-foreground">
-            {{ viewingRecord.errorMsg }}
-          </div>
-        </div>
-      </div>
-    </BasicDrawer>
+    />
+    <LogDetailDrawer
+      ref="loginDetailDrawer"
+      title="登录日志详情"
+      :schema="loginDetailSchemas"
+      :width="640"
+    />
   </div>
 </template>

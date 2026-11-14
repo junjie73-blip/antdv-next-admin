@@ -24,7 +24,9 @@ There is exactly one outlet, reading the **same preference fields** (`primaryCol
 
 ::: warning
 
-The four `--ant-*` bridges are gone. `--ant-color-primary`, `--ant-primary-color`, `--ant-border-radius` and friends used to be the bridge for the antd components on the page; once antd's DOM left, they became "a few unread declarations every theme change writes". They were removed with the allow-list (`css-vars.ts:17` records the rule: **only names with a live reader belong here**). The contract test `packages/core/preferences/__tests__/update-css-variables.test.ts:80-82` pins the other direction — the inline style must not carry these names. :::
+The four `--ant-*` bridges are gone. `--ant-color-primary`, `--ant-primary-color`, `--ant-border-radius` and friends used to be the bridge for the antd components on the page; once antd's DOM left, they became "a few unread declarations every theme change writes". They were removed with the allow-list (`css-vars.ts:17` records the rule: **only names with a live reader belong here**). The contract test `packages/core/preferences/__tests__/update-css-variables.test.ts:80-82` pins the other direction — the inline style must not carry these names.
+
+:::
 
 ## Writing the primary color with Tailwind
 
@@ -38,11 +40,15 @@ cn('bg-primary/10 text-primary ring-1 ring-primary/20');
 
 ::: danger
 
-Never write `*-ant-primary` again That family came from antdv-next's Tailwind compatibility layer (`@antdv-next/tailwind/compat.css`), which `@antdv/design` no longer imports — the failure is not "wrong colour", it is **the utility is never generated at all**, so the element ends up with no background and no border. No package depends on `@antdv-next/tailwind` any more (the catalog entry `^1.1.2` is still at `pnpm-workspace.yaml:24`, but there are zero importers), and tests pin it: `design.test.ts:399-405` asserts the token source never mentions `--ant-` or `-ant-[a-z]`, `:527` asserts the dependency list must not include `@antdv-next/tailwind`. :::
+Never write `*-ant-primary` again That family came from antdv-next's Tailwind compatibility layer (`@antdv-next/tailwind/compat.css`), which `@antdv/design` no longer imports — the failure is not "wrong colour", it is **the utility is never generated at all**, so the element ends up with no background and no border. No package depends on `@antdv-next/tailwind` any more (the catalog entry `^1.1.2` is still at `pnpm-workspace.yaml:24`, but there are zero importers), and tests pin it: `design.test.ts:399-405` asserts the token source never mentions `--ant-` or `-ant-[a-z]`, `:527` asserts the dependency list must not include `@antdv-next/tailwind`.
+
+:::
 
 ::: warning
 
-Don't hardcode blue Hardcoded values like `bg-blue-600`, `text-blue-500` and `#1677ff` look right in light mode and give themselves away when you switch the primary color or enter dark mode. New pages should take accent colours only from the primary tokens. (Pre-existing debt: some view files still contain `blue-*` / `#1677ff`, cleaned up progressively; the old `views/login/__tests__/login-styles.spec.ts` contract was removed once the login page moved onto `@antdv/shadcn-ui`.) :::
+Don't hardcode blue Hardcoded values like `bg-blue-600`, `text-blue-500` and `#1677ff` look right in light mode and give themselves away when you switch the primary color or enter dark mode. New pages should take accent colours only from the primary tokens. (Pre-existing debt: some view files still contain `blue-*` / `#1677ff`, cleaned up progressively; the old `views/login/__tests__/login-styles.spec.ts` contract was removed once the login page moved onto `@antdv/shadcn-ui`.)
+
+:::
 
 ## Every theme is a complete palette
 
@@ -60,7 +66,9 @@ The 13 `[data-theme]` presets (`violet / pink / rose / sky-blue / deep-blue / gr
 
 ::: warning
 
-Use the resolved value to ask "is it dark right now" `appStore.themeMode === 'dark'` is **always false** in `auto` mode, even when the system is already dark. Code that branches on light/dark (ECharts colors, the big-screen background) has to read `resolvedTheme`, not `themeMode`. :::
+Use the resolved value to ask "is it dark right now" `appStore.themeMode === 'dark'` is **always false** in `auto` mode, even when the system is already dark. Code that branches on light/dark (ECharts colors, the big-screen background) has to read `resolvedTheme`, not `themeMode`.
+
+:::
 
 The DOM-side class is added and removed by `applyPreferencesToDom()` (default `dark`, pass `darkClass` to override); Tailwind's `dark:` variant and the dark rules in `@antdv/design` both hang off this class.
 

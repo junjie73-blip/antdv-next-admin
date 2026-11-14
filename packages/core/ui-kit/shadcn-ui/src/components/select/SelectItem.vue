@@ -3,9 +3,9 @@ import type { SelectItemProps } from 'reka-ui';
 
 import type { HTMLAttributes } from 'vue';
 
-import { cn } from '@antdv/shared/utils/cn';
 import { Check } from '@lucide/vue';
 import { reactiveOmit } from '@vueuse/core';
+import { cn } from 'cn';
 import {
   SelectItem,
   SelectItemIndicator,

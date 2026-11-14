@@ -247,7 +247,7 @@ function modeButtonClass(active: boolean) {
     'rounded-sm px-3 py-1 text-xs transition-colors',
     active
       ? 'bg-primary text-primary-foreground'
-      : 'bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground',
+      : 'bg-muted hover:bg-accent hover:text-accent-foreground text-muted-foreground',
   );
 }
 
@@ -255,8 +255,8 @@ function presetButtonClass(preset: CronPreset) {
   return cn(
     'rounded-sm border px-3 py-2 text-sm transition-all',
     props.modelValue === preset.value
-      ? 'border-primary bg-primary/10 font-medium text-primary'
-      : 'border-border bg-card text-card-foreground hover:border-primary/50 hover:bg-primary/5',
+      ? 'bg-primary/10 border-primary text-primary font-medium'
+      : 'bg-card border-border hover:bg-primary/5 hover:border-primary/50 text-card-foreground',
   );
 }
 </script>

@@ -6,7 +6,9 @@
 
 1. **`RelativeTime` 组件不存在**：全仓库没有 `RelativeTime` 这个组件（应用侧 `apps/web/src/components/` 已整目录迁空，更不会有它），也没有它的 import。`/components/relative-time` 只是一个用了 `a-timeline` + **绝对时间**的页面（详见[相对时间](#相对时间-pages-components-relative-time)）。
 2. **`Description` 的 `setData()` 是空壳**，只 `console.warn`（`packages/core/ui-kit/common-ui/src/components/description/Description.vue:175-177`）。
-3. **`Loading` 的文案属性是 `tip`，不是 `description`**；`useLoading` 的 `target` 必须显式给（选择器 / 元素 / ref / getter），否则覆盖层静默不挂载，只留一句 `console.warn`（`packages/core/ui-kit/common-ui/src/components/loading/overlay.ts:101-105`）。:::
+3. **`Loading` 的文案属性是 `tip`，不是 `description`**；`useLoading` 的 `target` 必须显式给（选择器 / 元素 / ref / getter），否则覆盖层静默不挂载，只留一句 `console.warn`（`packages/core/ui-kit/common-ui/src/components/loading/overlay.ts:101-105`）。
+
+:::
 
 ## 这六页现在为什么都是二级菜单
 
@@ -75,7 +77,9 @@
 - **`type: 'dict'` 不再直接读字典 store**：公共组件包不允许引入 pinia 与 `~/...` 别名，所以这一分支改成了注入式 —— 宿主 `provide(DESCRIPTION_DICT_RESOLVER, fn)`（`description/context.ts:8-18`，组件侧 `Description.vue:20`、`:37`）；没注入时命中不了就显示原值（`:41`）、空值给 `-`（`:45`）。`dictType` 缺失时直接退回原文（`:132`），多值判定是「数组 或 字符串含逗号」（`:133`、`:46`）。示例页**没有一项用到 `dict`**，只在注释里提了一句（`index.vue:63`），没有可点的演示。
 - **`setData()` 是空的**：类型里声明了（`types.ts:172-182`），实现只 `console.warn('[Description] setData 不支持在只读模式下使用')`（`Description.vue:175-177`）。组件是只读的：改数据就换 `data`（示例页用一个 `computed` 数据源做脱敏开关，`index.vue:148-159`）。可用的实例方法只有 `getData()`（`:174`，`defineExpose` 在 `:179`）。
 
-另外 `types.ts:25` 定义的 `DescriptionBordered = 'bordered' | 'none' | boolean` 没有任何地方使用（全仓只有这一处声明；`DescriptionProps.bordered` 是 `boolean`，`types.ts:138`）—— 一个遗留类型，照此记录以免误用。:::
+另外 `types.ts:25` 定义的 `DescriptionBordered = 'bordered' | 'none' | boolean` 没有任何地方使用（全仓只有这一处声明；`DescriptionProps.bordered` 是 `boolean`，`types.ts:138`）—— 一个遗留类型，照此记录以免误用。
+
+:::
 
 ### 在线示例：`/components/description`
 
@@ -129,11 +133,15 @@ KPI 卡、看板上的数字滚动。核心是**用 `requestAnimationFrame` 驱�
 
 - `start()` 第一件事是 `if (isActive.value) return`（`:83`）：动画进行中再调它**什么都不做**。
 - 紧接着 `start()` 会把 `currentValue` 写回 `startVal` 并重置时间戳（`:84-85`）。
-- `useRafFn` 的 `resume()` **没有被暴露**（`:57` 解构出来的三个东西里，只有 `pause`/`resume`/`isActive`，对外只有 `:116-121` 那四个）。所以「暂停 → 从暂停处继续」这个能力不存在：`pause()` 之后能做的只有 `reset()` + `start()`（从头再来）。示例页的「🔄 重播动画」就是这个两步（`views/components/count-to/index.vue:151-157`）。:::
+- `useRafFn` 的 `resume()` **没有被暴露**（`:57` 解构出来的三个东西里，只有 `pause`/`resume`/`isActive`，对外只有 `:116-121` 那四个）。所以「暂停 → 从暂停处继续」这个能力不存在：`pause()` 之后能做的只有 `reset()` + `start()`（从头再来）。示例页的「🔄 重播动画」就是这个两步（`views/components/count-to/index.vue:151-157`）。
+
+:::
 
 ::: tip
 
-只有 endVal 会自动重播 `watch` 盯的是 `props.endVal`（`:100-108`），改 `startVal` 或 `duration` 不会重启动画 —— 「🎲 随机生成新数值」之所以能自动重播，是因为它只改 `dynamicEndVal`（`index.vue:143-146`、`:540-547`）。:::
+只有 endVal 会自动重播 `watch` 盯的是 `props.endVal`（`:100-108`），改 `startVal` 或 `duration` 不会重启动画 —— 「🎲 随机生成新数值」之所以能自动重播，是因为它只改 `dynamicEndVal`（`index.vue:143-146`、`:540-547`）。
+
+:::
 
 ### 在线示例：`/components/count-to`
 
@@ -160,7 +168,9 @@ KPI 卡、看板上的数字滚动。核心是**用 `requestAnimationFrame` 驱�
 - 第二张卡「自定义颜色和位置」是硬编码日期文本（`:111-135`）。
 - 第三张卡「表格中的相对时间」用 `new Date(record.time).toLocaleString('zh-CN')`（`:144-148`）—— 这是**本地化绝对时间**，不是相对时间。
 
-页面里没有 `dayjs` 的 `fromNow()`、没有 `relativeTime` 插件、也没有任何定时器。所以「谁驱动刷新」这个问题在这页没有答案：没有需要刷新的东西。想抄相对时间，请去用真正实现了它的地方（下表）。:::
+页面里没有 `dayjs` 的 `fromNow()`、没有 `relativeTime` 插件、也没有任何定时器。所以「谁驱动刷新」这个问题在这页没有答案：没有需要刷新的东西。想抄相对时间，请去用真正实现了它的地方（下表）。
+
+:::
 
 仓库里相对时间的真实出处：
 
@@ -214,7 +224,9 @@ KPI 卡、看板上的数字滚动。核心是**用 `requestAnimationFrame` 驱�
 
 ::: tip
 
-包内为什么能只用 shadcn 的标签 `IconPicker.vue` 一个 antdv-next 组件都没用：`Popover` / `Select` / `Input` / `Spinner` / `Empty` / `Tooltip` 全部从 `@antdv/shadcn-ui` **显式 import**（`:5-22`），滚动区从 `@antdv/common-ui` 显式 import（`:4`），图标本身用 `@iconify/vue` 的 `<Icon>`（`:24`）。组件解析器已经从 `internal/vite-config` 撤掉，所以包内不存在"靠宿主插件注入"的隐性依赖 —— 换宿主工程只要装上这几个 workspace 包就能跑。机制见[外部模块](/guide/essentials/external)。:::
+包内为什么能只用 shadcn 的标签 `IconPicker.vue` 一个 antdv-next 组件都没用：`Popover` / `Select` / `Input` / `Spinner` / `Empty` / `Tooltip` 全部从 `@antdv/shadcn-ui` **显式 import**（`:5-22`），滚动区从 `@antdv/common-ui` 显式 import（`:4`），图标本身用 `@iconify/vue` 的 `<Icon>`（`:24`）。组件解析器已经从 `internal/vite-config` 撤掉，所以包内不存在"靠宿主插件注入"的隐性依赖 —— 换宿主工程只要装上这几个 workspace 包就能跑。机制见[外部模块](/guide/essentials/external)。
+
+:::
 
 ### 在线示例：`/components/icon-picker`
 
@@ -245,7 +257,9 @@ KPI 卡、看板上的数字滚动。核心是**用 `requestAnimationFrame` 驱�
 
 ::: tip
 
-档位钩子 `.loading-small` / `.loading-large` 尺寸类名之外还挂了两个无语义的作用域类（`:48-49`）：宿主样式和 e2e 用它们认档位，因为 `size-*` 工具类会被 `cn()` 的 tailwind-merge 合并掉，直接断言类名不可靠。:::
+档位钩子 `.loading-small` / `.loading-large` 尺寸类名之外还挂了两个无语义的作用域类（`:48-49`）：宿主样式和 e2e 用它们认档位，因为 `size-*` 工具类会被 `cn()` 的 tailwind-merge 合并掉，直接断言类名不可靠。
+
+:::
 
 ### `useLoading` / `createLoading` / `v-loading`
 
@@ -278,17 +292,23 @@ const hookLoading = useLoading({
 });
 ```
 
-`target` 传 getter 是安全的：解析被推迟到真正要显示的那一刻（`components/loading/types.ts:89-108` 的注释），所以 setup 期引用还没挂载的模板 ref 不会抛错。:::
+`target` 传 getter 是安全的：解析被推迟到真正要显示的那一刻（`components/loading/types.ts:89-108` 的注释），所以 setup 期引用还没挂载的模板 ref 不会抛错。
+
+:::
 
 ::: warning 这个家族历史上修过的三个真 bug（现在都是修好的样子）
 
 1. **文案属性写成 `description`** —— `Loading` 只有 `tip`，示例页把这句话留在代码注释里：`<!-- tip 才是 Loading 组件的文案属性（没有 description 这个 prop） -->`（`views/components/loading/index.vue:1147`）。
 2. **`useLoading()` 拿不到目标** —— 见上一个 warning，`useTemplateRef` 必须显式传 key（`index.vue:344-348`）。
-3. **实例创建时传快照导致 `open()` 无效** —— `createApp(Loading, { loading: loading.value })` 交出去的是当刻的值，之后写 ref 不会有视觉变化；现在改成在 `render()` 里读 ref，Vue 才能建立依赖（`overlay.ts:120-133`，注释明确写着"这是本包抽离时修掉的原始 bug"）。同类的一次：`v-loading` 的实例挂在 `WeakMap` 上并复用（`directive.ts:45`、`:70-73`），所以**元素挂上之后再改 `loading-size` / `loading-theme` / `loading-background` 属性不会被重读**，只有 `binding.arg`（`v-loading:文本=`）在 `updated` 里会被同步进 tip（`:93-99`）。顺带一句：`directive.ts:17` 的注释写「优先级 属性 > 指令参数」，与代码相反 —— `:81` 是 `tip: binding.arg ?? attributeProps.tip`，**指令参数优先**。:::
+3. **实例创建时传快照导致 `open()` 无效** —— `createApp(Loading, { loading: loading.value })` 交出去的是当刻的值，之后写 ref 不会有视觉变化；现在改成在 `render()` 里读 ref，Vue 才能建立依赖（`overlay.ts:120-133`，注释明确写着"这是本包抽离时修掉的原始 bug"）。同类的一次：`v-loading` 的实例挂在 `WeakMap` 上并复用（`directive.ts:45`、`:70-73`），所以**元素挂上之后再改 `loading-size` / `loading-theme` / `loading-background` 属性不会被重读**，只有 `binding.arg`（`v-loading:文本=`）在 `updated` 里会被同步进 tip（`:93-99`）。顺带一句：`directive.ts:17` 的注释写「优先级 属性 > 指令参数」，与代码相反 —— `:81` 是 `tip: binding.arg ?? attributeProps.tip`，**指令参数优先**。
+
+:::
 
 ::: tip
 
-没有的东西 `@antdv/common-ui` **没有 `delay` 属性**，也没有节流/防抖。示例页「PageLoading 与延迟遮罩」那张卡用两个真实定时器手写这个逻辑（请求快于 300ms 就取消尚未亮起的遮罩），正文里也写明了"遮罩延迟这层由调用方决定"（`index.vue:371-402`、`:1163-1170`）。:::
+没有的东西 `@antdv/common-ui` **没有 `delay` 属性**，也没有节流/防抖。示例页「PageLoading 与延迟遮罩」那张卡用两个真实定时器手写这个逻辑（请求快于 300ms 就取消尚未亮起的遮罩），正文里也写明了"遮罩延迟这层由调用方决定"（`index.vue:371-402`、`:1163-1170`）。
+
+:::
 
 ### Scrollbar（滚动区域）
 
@@ -308,11 +328,15 @@ const hookLoading = useLoading({
 
 ::: warning
 
-`max-height` 别随便传：`props.maxHeight` 是当作**基准值**喂给 `useResponsiveMaxHeight` 的，缺省基准 495（`Scrollbar.vue:39-41`）；该 hook 的下限 `min` 默认 **712px**，指数 1.938，基准分辨率 1080（`packages/core/ui-kit/common-ui/src/components/scrollbar/useResponsiveMaxHeight.ts:44-48`），最后一行 `clamp` 在 `:52`。所以在 1080 高的窗口里传 `:max-height="400"`，`400` 经过 `clamp(400, 712, ∞)` 会变成 **712px** —— 比 712 更矮的效果是拿不到的。另外基准那行判的是 `isNumber`（`:40`），所以类型上允许的字符串写法（`types.ts:18`）会回落到 495 基准，写进内联样式的仍是 hook 算出来的 px。想要一个更小的固定高度，就像抽屉示例那样用类名：`root-class="h-60"`（`apps/web/src/views/components/modal-drawer/index.vue:655-668`，页面自己在 `:617-620` 写了这个原因）。:::
+`max-height` 别随便传：`props.maxHeight` 是当作**基准值**喂给 `useResponsiveMaxHeight` 的，缺省基准 495（`Scrollbar.vue:39-41`）；该 hook 的下限 `min` 默认 **712px**，指数 1.938，基准分辨率 1080（`packages/core/ui-kit/common-ui/src/components/scrollbar/useResponsiveMaxHeight.ts:44-48`），最后一行 `clamp` 在 `:52`。所以在 1080 高的窗口里传 `:max-height="400"`，`400` 经过 `clamp(400, 712, ∞)` 会变成 **712px** —— 比 712 更矮的效果是拿不到的。另外基准那行判的是 `isNumber`（`:40`），所以类型上允许的字符串写法（`types.ts:18`）会回落到 495 基准，写进内联样式的仍是 hook 算出来的 px。想要一个更小的固定高度，就像抽屉示例那样用类名：`root-class="h-60"`（`apps/web/src/views/components/modal-drawer/index.vue:655-668`，页面自己在 `:617-620` 写了这个原因）。
+
+:::
 
 ::: warning
 
-样式不依赖宿主 Tailwind。`Scrollbar.vue` 的 `<style>` 块刻意没用 `@apply`，而是把工具类展开成等价原生 CSS 并写进 `@layer components`（`:158`）；`:152-156` 的注释说明了原因：独立 SFC 的 style block 里没有 Tailwind 主题入口，构建期会报 `Cannot apply unknown utility class`，写进 components 层是为了让模板上的 `flex-1 / min-h-0` 这些 utilities 仍能覆盖。同一段样式里还有一条不变量注释在 `:170-180`：reka 会在 viewport 与 slot 之间插一层没有高度的 content div，还带上内联 `min-width: fit-content`，于是 `:181-184` 把高度与最小宽度钉回容器宽度（内联样式只能以 important 顶掉）。这也是它敢作为独立包被消费的前提。:::
+样式不依赖宿主 Tailwind。`Scrollbar.vue` 的 `<style>` 块刻意没用 `@apply`，而是把工具类展开成等价原生 CSS 并写进 `@layer components`（`:158`）；`:152-156` 的注释说明了原因：独立 SFC 的 style block 里没有 Tailwind 主题入口，构建期会报 `Cannot apply unknown utility class`，写进 components 层是为了让模板上的 `flex-1 / min-h-0` 这些 utilities 仍能覆盖。同一段样式里还有一条不变量注释在 `:170-180`：reka 会在 viewport 与 slot 之间插一层没有高度的 content div，还带上内联 `min-width: fit-content`，于是 `:181-184` 把高度与最小宽度钉回容器宽度（内联样式只能以 important 顶掉）。这也是它敢作为独立包被消费的前提。
+
+:::
 
 组件注册上，`Scrollbar` 一律**显式 import**：`apps/web/src/views/components/scroll/basic/index.vue:4`、`packages/core/ui-kit/menu-ui/src/BasicMenu.vue:8`、`packages/core/ui-kit/tabs-ui/src/TabsBar.vue:14`、`packages/core/ui-kit/table-ui/src/components/TreeTable.vue:15`、`packages/core/ui-kit/layout-ui/src/components/layout-content/index.vue:8` 等都是 `import { Scrollbar } from '@antdv/common-ui'`。`internal/vite-config/src/plugins/auto-import.ts:27-29` 的 `Components()` 没有配任何 `resolvers`，所以共享包组件进不了 `apps/web/types/components.d.ts`（那份声明 `:15-22` 只有应用自己 `src/components` 目录下的项），裸写 `<Scrollbar>` 是解析不出来的（见[外部模块](/guide/essentials/external)）。
 
@@ -353,7 +377,9 @@ const hookLoading = useLoading({
 const basicItems = Array.from({ length: 30 }, (_, i) => ({/* ... */}));
 ```
 
-按钮里执行的是 `basicItems.push(...)`（`:101-105`）。因为没有任何响应式代理，`v-for="item in basicItems"`（`:116`）不会重新渲染，所以点了之后**列表长度不变、也没有报错**。对照着看：同页的 Chat 小节把消息放在 `ref(...)` 里（`:31`），它的 Send 就正常。要修的话把 `basicItems` 包成 `ref` 即可，本文只记录现状。:::
+按钮里执行的是 `basicItems.push(...)`（`:101-105`）。因为没有任何响应式代理，`v-for="item in basicItems"`（`:116`）不会重新渲染，所以点了之后**列表长度不变、也没有报错**。对照着看：同页的 Chat 小节把消息放在 `ref(...)` 里（`:31`），它的 Send 就正常。要修的话把 `basicItems` 包成 `ref` 即可，本文只记录现状。
+
+:::
 
 ## 这几个原子分别住在哪个包
 

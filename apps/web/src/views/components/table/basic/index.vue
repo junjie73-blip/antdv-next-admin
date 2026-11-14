@@ -266,8 +266,14 @@ const paginationColumns: BasicColumn[] = [
   { title: 'Date', dataIndex: 'date', key: 'date', width: 130 },
 ];
 
-function paginationMockApi(params: { page?: number; pageSize?: number }) {
-  const { page = 1, pageSize = 3 } = params;
+function paginationMockApi(params: {
+  page?: number;
+  pageNum?: number;
+  pageSize?: number;
+}) {
+  // BasicTable 传的是 pageNum；`page` 只是兼容直接调用的别名
+  const page = Number(params.pageNum ?? params.page ?? 1) || 1;
+  const pageSize = Number(params.pageSize ?? 3) || 3;
   const start = (page - 1) * pageSize;
   const end = start + pageSize;
   return Promise.resolve({

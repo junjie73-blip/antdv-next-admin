@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { SidebarProps } from '.';
 
-import { cn } from '@antdv/shared/utils/cn';
+import { cn } from 'cn';
 
 import { Sheet, SheetContent } from '../sheet';
 import SheetDescription from '../sheet/SheetDescription.vue';

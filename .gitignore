@@ -57,3 +57,4 @@ docs/.vitepress/cache
 # persist 文件落在启动它的 cwd（apps/web/.mock-state.json），而不是 apps/backend-mock/。
 .mock-state.json
 mock/.runtime.json
+.workbuddy

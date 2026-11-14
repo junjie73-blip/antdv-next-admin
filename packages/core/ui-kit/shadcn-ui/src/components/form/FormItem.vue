@@ -3,7 +3,7 @@ import type { HTMLAttributes } from 'vue';
 
 import { provide } from 'vue';
 
-import { cn } from '@antdv/shared/utils/cn';
+import { cn } from 'cn';
 import { useId } from 'reka-ui';
 
 import { FORM_ITEM_INJECTION_KEY } from './injectionKeys';

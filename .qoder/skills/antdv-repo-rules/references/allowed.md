@@ -56,10 +56,10 @@
 
 | 要加什么 | 加在哪 | 必须同步 |
 | --- | --- | --- |
-| 一个 shadcn 风格的原子组件 | `packages/core/ui-kit/shadcn-ui/src/**`（优先 `pnpm shadcn add`） | 不写业务逻辑；`@source` 已覆盖本包 |
-| 一个业务组件 | `common-ui/src/components/<PascalName>/`（**一组件一目录 + `index.ts`**） | `structure.test.ts` 会查目录；从包出口 re-export；用到的工具类若来自新包→补 `@source` |
+| 一个 shadcn 风格的原子组件 | `packages/core/ui-kit/shadcn-ui/src/**`（优先 `pnpm shadcn add`） | 不写业务逻辑；本包 `src/index.css` 的 `@source './';` 已覆盖 |
+| 一个业务组件 | `common-ui/src/components/<PascalName>/`（**一组件一目录 + `index.ts`**） | `structure.test.ts` 会查目录；从包出口 re-export；用到的工具类若来自新包→给那个包建样式入口并在应用装配入口补 `@import` |
 | 一个表单字段 | `form-ui/src/fields/F<Name>.vue` + `fields` 注册表 | props 用泛型 `defineProps<Props>()`；补 `__tests__/fields.test.ts` |
-| 一个子包 | `packages/core/{base,ui-kit}/<name>`，`exports` 指向 `./src/**` | ① `package.json` 必须有 `build`（`pnpm check:builds`）② `design/src/index.css` 补 `@source` ③ 依赖写 `workspace:*` / `catalog:` ④ 加 `vitest.config.ts` 与 `__tests__` |
+| 一个子包 | `packages/core/{base,ui-kit}/<name>`，`exports` 指向 `./src/**` | ① `package.json` 必须有 `build`（`pnpm check:builds`）② 带 `.vue` 就建 `src/index.css`（只有 `@source './';`）+ `exports['./style.css'] = './src/index.css'`，并在 `apps/web/src/styles/index.css` 补一行 `@import '<包名>/style.css'` ③ 依赖写 `workspace:*` / `catalog:` ④ 加 `vitest.config.ts` 与 `__tests__` |
 | 一个页面 | `apps/web/src/views/<模块>/<页面>/{index.vue,actions.ts,columns.ts,schemas.ts,constants.ts,types.ts}` | 路由（`router/`）+ 菜单：mock 走 `apps/backend-mock/server/api/menus.get.ts`（最深三级，只有「组件示例→表单/表格」用到三级）+ `locales` 两份 key 同步 |
 | 一个接口 | `apps/web/src/api/*.ts` 里导出函数，组件只 import 函数 | mock 侧同名路由与 fixtures；路径口径照 `CODE_STANDARD.md` §5.2，**具体路径排在 `/:id` 前** |
 | 一个 store | `packages/stores/src/**`（跨页共享）或 `apps/web/src/stores/**`（宿主专属） | 持久化只点名需要的 key，不用 `pinia-plugin-persistedstate` 全量落盘 |

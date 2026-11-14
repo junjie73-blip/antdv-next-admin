@@ -5,7 +5,7 @@ import type { HTMLAttributes } from 'vue';
 
 import type { ItemVariants } from '.';
 
-import { cn } from '@antdv/shared/utils/cn';
+import { cn } from 'cn';
 import { Primitive } from 'reka-ui';
 
 import { itemVariants } from '.';

@@ -65,7 +65,9 @@ Three variables that look live but are not read anywhere
 
 - `VITE_NAMESPACE`: appears only in `.env` and `types/env.d.ts`, zero references in code. The cache prefix actually comes from `VITE_APP_TITLE`, so don't trust the name.
 - `VITE_APP_VERSION`: produced by a `define` in `plugins/metadata.ts:104`; no application code reads it.
-- `VITE_MINIO_PUBLIC_URL` and `VITE_SENTRY_DSN`: read in code (`bootstrap/env.ts`, `main.ts`) but absent from all three `.env` files, so they are `undefined` at runtime. Sentry only initializes inside the `import.meta.env.PROD` branch and a missing DSN means nothing is reported; without a MinIO URL, downloads keep going through the proxy prefix (`packages/core/base/shared/src/utils/download.ts`). :::
+- `VITE_MINIO_PUBLIC_URL` and `VITE_SENTRY_DSN`: read in code (`bootstrap/env.ts`, `main.ts`) but absent from all three `.env` files, so they are `undefined` at runtime. Sentry only initializes inside the `import.meta.env.PROD` branch and a missing DSN means nothing is reported; without a MinIO URL, downloads keep going through the proxy prefix (`packages/core/base/shared/src/utils/download.ts`).
+
+:::
 
 `vite-plugin-iconify-offline`, `@vitejs/plugin-legacy` and `vite-plugin-cdn-import` are listed in `apps/web/package.json` devDependencies but **never imported**. Offline icons come from `@tomjs/vite-plugin-iconify` (see [Icons](/en/guide/essentials/icons)). Search for an import before assuming a declared plugin is active.
 
@@ -98,7 +100,9 @@ Merge order is `common → application → overrides` (two `mergeConfig` calls a
 
 ::: warning
 
-`VITE_INJECT_APP_LOADING=false` does not skip the plugin The entry always contains `import { loadingFadeOut } from 'virtual:app-loading'`. Skipping the plugin entirely makes the virtual module unresolvable and the build fails with a 500; the switch therefore only controls injection, and when nothing was injected those functions find no container and do nothing (`plugins/index.ts:157-164`). :::
+`VITE_INJECT_APP_LOADING=false` does not skip the plugin The entry always contains `import { loadingFadeOut } from 'virtual:app-loading'`. Skipping the plugin entirely makes the virtual module unresolvable and the build fails with a 500; the switch therefore only controls injection, and when nothing was injected those functions find no container and do nothing (`plugins/index.ts:157-164`).
+
+:::
 
 ## User preferences
 

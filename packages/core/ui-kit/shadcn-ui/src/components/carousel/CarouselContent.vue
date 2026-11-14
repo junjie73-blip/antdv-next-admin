@@ -3,7 +3,7 @@ import type { ComponentPublicInstance } from 'vue';
 
 import type { WithClassAsProps } from './interface';
 
-import { cn } from '@antdv/shared/utils/cn';
+import { cn } from 'cn';
 
 import { useCarousel } from './useCarousel';
 

@@ -24,7 +24,9 @@
 
 ::: warning
 
-`pnpm add` does not write `catalog:` for you `pnpm-workspace.yaml` has **no** `useCatalog` key (its complete key list is `packages`, `allowBuilds`, `autoInstallPeers`, `catalog`, `catalogs`, `dedupePeerDependents`, `ignoredBuiltDependencies`, `minimumReleaseAge`, `onlyBuiltDependencies`, `overrides`, `publicHoistPattern`, `strictPeerDependencies`, `verifyDepsBeforeRun`). So `pnpm add some-lib` drops a literal range into `package.json`, and step 2 is a manual edit: add the line under `catalog:`, then change the package entry to `"catalog:"`. Three packages got away with literals — see the warning below. :::
+`pnpm add` does not write `catalog:` for you `pnpm-workspace.yaml` has **no** `useCatalog` key (its complete key list is `packages`, `allowBuilds`, `autoInstallPeers`, `catalog`, `catalogs`, `dedupePeerDependents`, `ignoredBuiltDependencies`, `minimumReleaseAge`, `onlyBuiltDependencies`, `overrides`, `publicHoistPattern`, `strictPeerDependencies`, `verifyDepsBeforeRun`). So `pnpm add some-lib` drops a literal range into `package.json`, and step 2 is a manual edit: add the line under `catalog:`, then change the package entry to `"catalog:"`. Three packages got away with literals — see the warning below.
+
+:::
 
 ### The shortest reproducible procedure
 
@@ -53,11 +55,15 @@ Internal packages always reference each other with `workspace:*` (e.g. `apps/web
 
 ::: tip
 
-What grouped catalogs are for — and the one this repo actually uses A named catalog holds a second version line for the same dependency: you define it under `catalogs.<name>` and it only takes effect where a package writes `"catalog:<name>"`. This repo declares exactly one, `catalogs.conflicts_vue_h3_5_43` (`pnpm-workspace.yaml:264-267`, `vue: ^3.5.43`), and `apps/web/package.json:95` writes precisely `"vue": "catalog:conflicts_vue_h3_5_43"` — so it is **live**: the app's own vue uses a caret range while the root catalog's exact `3.5.43` keeps governing every other package, and `overrides` pushes the third-party peer trees back onto the catalog. Three layers stacked still resolve to one vue instance (`resolve.dedupe` guards the runtime; see section 2). :::
+What grouped catalogs are for — and the one this repo actually uses A named catalog holds a second version line for the same dependency: you define it under `catalogs.<name>` and it only takes effect where a package writes `"catalog:<name>"`. This repo declares exactly one, `catalogs.conflicts_vue_h3_5_43` (`pnpm-workspace.yaml:264-267`, `vue: ^3.5.43`), and `apps/web/package.json:95` writes precisely `"vue": "catalog:conflicts_vue_h3_5_43"` — so it is **live**: the app's own vue uses a caret range while the root catalog's exact `3.5.43` keeps governing every other package, and `overrides` pushes the third-party peer trees back onto the catalog. Three layers stacked still resolve to one vue instance (`resolve.dedupe` guards the runtime; see section 2).
+
+:::
 
 ::: warning
 
-Do not write bare ranges in a sub-package The only dependency in the whole workspace that does not point at the root `catalog:` is `apps/web`'s `vue`, which goes through the named catalog. `clsx` and `pinia` were changed back to `"catalog:"` (`apps/web/package.json:67`, `:85`); the three historical literal ranges are gone. A new dependency should just write `"catalog:"` — reach for a named catalog only when a package genuinely must sit on a different version, and then define it and reference it in the same change. :::
+Do not write bare ranges in a sub-package The only dependency in the whole workspace that does not point at the root `catalog:` is `apps/web`'s `vue`, which goes through the named catalog. `clsx` and `pinia` were changed back to `"catalog:"` (`apps/web/package.json:67`, `:85`); the three historical literal ranges are gone. A new dependency should just write `"catalog:"` — reach for a named catalog only when a package genuinely must sit on a different version, and then define it and reference it in the same change.
+
+:::
 
 ## 2. What an external module costs in the browser bundle
 
@@ -65,7 +71,7 @@ Do not write bare ranges in a sub-package The only dependency in the whole works
 
 | Basket | Examples | Reaches the browser |
 | --- | --- | --- |
-| `dependencies` of `apps/web` (87 entries, starting at `:17`) | `echarts`, `xlsx`, `pdfjs-dist`, `@antdv/*` | Yes — then split by the chunk rules below |
+| `dependencies` of `apps/web` (87 entries, starting at `:17`) | `echarts`, `@e965/xlsx`, `pdfjs-dist`, `@antdv/*` | Yes — then split by the chunk rules below |
 | `devDependencies` of `apps/web` (61 entries, starting at `:106`) | `vite`, `unplugin-auto-import`, `unplugin-vue-components`, `@antdv/vite-config` | No — Node side only |
 | `internal/*` | `@antdv/vite-config`, `@antdv/node-utils`, the lint config packages | Build-time; the bundle only contains code they emit |
 
@@ -89,10 +95,12 @@ Grepping `manualChunks` across the repo returns zero hits. The policy lives in `
 
 ::: warning Four details worth knowing
 
-- Every rule is a plain `id.includes(...)` **substring** test, gated by "the id is inside `node_modules`" (`optimize.ts:8`), and order is priority. So the `vue` rule (`:9-14`) scoops up every third-party path containing `vue`: `@vueuse/*`, `@vue-office/*` and `vue-i18n` are captured before they can reach `vendor-utils` / `vendor-office` / `vendor-i18n`, which in practice only apply to the names without `vue` (`es-toolkit` / `dayjs` / `xlsx`, `@intlify/*`). Code from `packages/*` is never grouped by this table either — its module ids do not live under `node_modules`.
+- Every rule is a plain `id.includes(...)` **substring** test, gated by "the id is inside `node_modules`" (`optimize.ts:8`), and order is priority. So the `vue` rule (`:9-14`) scoops up every third-party path containing `vue`: `@vueuse/*`, `@vue-office/*` and `vue-i18n` are captured before they can reach `vendor-utils` / `vendor-office` / `vendor-i18n`, which in practice only apply to the names without `vue` (`es-toolkit` / `dayjs` / `xlsx`, `@intlify/*`). The `xlsx` rule is a substring test, so the move to `@e965/xlsx` (the old package has no fixable version on npm — see the dependency changelog) still lands in `vendor-utils`; `optimize.ts` needed no edit. Code from `packages/*` is never grouped by this table either — its module ids do not live under `node_modules`.
 - `debugName` (`:5-6`) exists for the bundle-size report: a function-valued `name` shows up as anonymous.
 - Rules outlive their packages: `vendor-office` is still there although no `@vue-office/*` package is imported anymore (section 6). The rule itself costs nothing — just stop assuming an office chunk exists.
-- The first row used to be `antdv-next` → `vendor-ui`; the whole rule went when the component library left. `@form-create/*` left in the same sweep, so `vendor-editor` (`:28-29`) now matches only `prosemirror` and `marked`. The fallback logic itself is unchanged: any third-party code that matches no named rule lands in `vendor` (`:30`). :::
+- The first row used to be `antdv-next` → `vendor-ui`; the whole rule went when the component library left. `@form-create/*` left in the same sweep, so `vendor-editor` (`:28-29`) now matches only `prosemirror` and `marked`. The fallback logic itself is unchanged: any third-party code that matches no named rule lands in `vendor` (`:30`).
+
+:::
 
 ### The two oddities in `optimizeDeps`
 
@@ -122,7 +130,9 @@ return {
 
 ::: warning
 
-Nothing reads it A full-repo grep for `APP_INFO` hits only the injection sites, comments and one test case name: `application.ts:14` (the option's own doc comment), `application.ts:93` (the injection), `package-json.ts:27`, `package-json.ts:42` (a comment), `apps/web/vite.config.ts:10` (a comment), `internal/vite-config/__tests__/package-json.test.ts:33` (a test case name). No application code consumes it, so the "about page shows version and build time" promised by `package-json.ts:42` is not wired up. In other words: the bundle carries a free dependency inventory today. :::
+Nothing reads it A full-repo grep for `APP_INFO` hits only the injection sites, comments and one test case name: `application.ts:14` (the option's own doc comment), `application.ts:93` (the injection), `package-json.ts:27`, `package-json.ts:42` (a comment), `apps/web/vite.config.ts:10` (a comment), `internal/vite-config/__tests__/package-json.test.ts:33` (a test case name). No application code consumes it, so the "about page shows version and build time" promised by `package-json.ts:42` is not wired up. In other words: the bundle carries a free dependency inventory today.
+
+:::
 
 ### The channel that is not wired: CDN externals
 
@@ -139,7 +149,9 @@ This section used to describe three: compile-time `import`, runtime `app.compone
 
 ::: tip One runtime registration is left, for a different reason
 
-`app.component('PdfViewer', VuePdfEmbed)` at `apps/web/src/main.ts:120` is today the only `app.component` call in the app. It does not register a UI atom but a large viewer that appears on a handful of pages; `vue-pdf-embed` is itself a pre-compiled package, so registering it under a global name removes the per-page import. The next line (`:121`) points `GlobalWorkerOptions.workerSrc` at the locally bundled `pdfjs-dist/build/pdf.worker.min.mjs?url` (`main.ts:13`), which is why that dependency gets its own `vendor-pdfjs` chunk (`optimize.ts:24`). :::
+`app.component('PdfViewer', VuePdfEmbed)` at `apps/web/src/main.ts:120` is today the only `app.component` call in the app. It does not register a UI atom but a large viewer that appears on a handful of pages; `vue-pdf-embed` is itself a pre-compiled package, so registering it under a global name removes the per-page import. The next line (`:121`) points `GlobalWorkerOptions.workerSrc` at the locally bundled `pdfjs-dist/build/pdf.worker.min.mjs?url` (`main.ts:13`), which is why that dependency gets its own `vendor-pdfjs` chunk (`optimize.ts:24`).
+
+:::
 
 ### Compile time: there is no resolver any more, components come from imports
 
@@ -181,7 +193,9 @@ Why many entries instead of one barrel: importing only `cn` should not pull the 
 
 ::: tip
 
-the wildcard entry belongs to `shared` only The `exports` of `@antdv/request`, `@antdv/utils` and `@antdv/common-ui` are **explicitly listed** whitelists with no `"./*"`. Adding a `src/foo.ts` to `packages/request` therefore does not automatically give you `@antdv/request/foo` — the `exports` map has to change too. Only `shared`'s directory modules enjoy the wildcard. :::
+the wildcard entry belongs to `shared` only The `exports` of `@antdv/request`, `@antdv/utils` and `@antdv/common-ui` are **explicitly listed** whitelists with no `"./*"`. Adding a `src/foo.ts` to `packages/request` therefore does not automatically give you `@antdv/request/foo` — the `exports` map has to change too. Only `shared`'s directory modules enjoy the wildcard.
+
+:::
 
 ### Two publication shapes; the deciding question is whether it survives without Vite
 
@@ -202,7 +216,9 @@ the wildcard entry belongs to `shared` only The `exports` of `@antdv/request`, `
 
 ::: warning
 
-There is no npm route right now `packages/*`, `internal/*`, `apps/*`, `docs` and `scripts/*` are **all** `"private": true` (checked file by file, e.g. `packages/core/base/shared/package.json:5`). `changeset publish` skips private packages, and `pnpm publint` (`vsh publint`) bails out at `scripts/vsh/src/publint/index.ts:166-168` with `if (pkgJson.private) return null;` — so this packaging check currently covers 0 packages. Practically, "give a package to another project" today means carrying the package directory (with its `dist`) out, or making it non-private first; `exports` and `files` are what makes either route work. :::
+There is no npm route right now `packages/*`, `internal/*`, `apps/*`, `docs` and `scripts/*` are **all** `"private": true` (checked file by file, e.g. `packages/core/base/shared/package.json:5`). `changeset publish` skips private packages, and `pnpm publint` (`vsh publint`) bails out at `scripts/vsh/src/publint/index.ts:166-168` with `if (pkgJson.private) return null;` — so this packaging check currently covers 0 packages. Practically, "give a package to another project" today means carrying the package directory (with its `dist`) out, or making it non-private first; `exports` and `files` are what makes either route work.
+
+:::
 
 Whether an edit to `packages/*/src` shows up in the application depends on which publication shape the package has (table above): the six dist-published packages (`shared` / `types` / `hooks` / `preferences` / `directives` / `router`) are read from `dist` and need a rebuild, while the fifteen source-published ones hot-update immediately. `turbo.json:16-19` orders rebuilds with `build.dependsOn: ["^build"]`, and `dev` / `type-check` / `test:unit` / `test:e2e` carry the same `^build` (`:20-34`) — commands in [Quick start](/en/guide/introduction/quick-start).
 
@@ -222,7 +238,9 @@ The `<micro-app>` tag is not treated as an unregistered component: the compiler 
 
 ::: warning
 
-No micro-frontend SDK is installed `@micro-zoe/micro-app`, `wujie` and `qiankun` appear in zero `package.json` files. `<micro-app>` is a tag an SDK would define at runtime via `customElements.define()`; `SubAppView.vue:73` checks `!!window.microApp` for readiness and `:76` computes `useIframe = isExternalUrl || !isMicroAppReady`. With the current dependency set that expression is **always true**, so every path renders `<iframe>` (`:272-283`) and the `<micro-app>` branch (`:286-305`) is only there for a future SDK. The iframe `sandbox` omits `allow-same-origin` by default and opens it only for registry entries that declare `sameOrigin` (`:82-89`), and an enabled override shows a "same-origin preview" tag in the corner (`:316-322`). :::
+No micro-frontend SDK is installed `@micro-zoe/micro-app`, `wujie` and `qiankun` appear in zero `package.json` files. `<micro-app>` is a tag an SDK would define at runtime via `customElements.define()`; `SubAppView.vue:73` checks `!!window.microApp` for readiness and `:76` computes `useIframe = isExternalUrl || !isMicroAppReady`. With the current dependency set that expression is **always true**, so every path renders `<iframe>` (`:272-283`) and the `<micro-app>` branch (`:286-305`) is only there for a future SDK. The iframe `sandbox` omits `allow-same-origin` by default and opens it only for registry entries that declare `sameOrigin` (`:82-89`), and an enabled override shows a "same-origin preview" tag in the corner (`:316-322`).
+
+:::
 
 ### Upstream synchronization
 
@@ -230,7 +248,9 @@ No micro-frontend SDK is installed `@micro-zoe/micro-app`, `wujie` and `qiankun`
 
 ::: warning
 
-`pnpm sync-upstream` is broken The root `package.json` entry is `"sync-upstream": " sync-upstream"` — it only names a command of the same spelling. That command is neither in `node_modules/.bin` nor in `pnpm-lock.yaml` (both greps return nothing), so it cannot run as written. Do not expect it to pull upstream code. :::
+`pnpm sync-upstream` is broken The root `package.json` entry is `"sync-upstream": " sync-upstream"` — it only names a command of the same spelling. That command is neither in `node_modules/.bin` nor in `pnpm-lock.yaml` (both greps return nothing), so it cannot run as written. Do not expect it to pull upstream code.
+
+:::
 
 ## 6. External modules nobody uses anymore
 
@@ -248,7 +268,9 @@ This section is an inventory only — nothing is changed. Criteria: the package 
 
 ::: warning
 
-Don't mistake `vite-plugin-iconify-offline` for the plugin in use The offline icon plugin actually imported is **`@tomjs/vite-plugin-iconify`** (`internal/vite-config/src/plugins/auto-import.ts:7`, used at `:30-32`), declared separately at `apps/web/package.json:115`. The better-matching name `vite-plugin-iconify-offline` (`:157`) is a different thing — zero hits. Likewise `@tiptap/*` has moved out of the app into `packages/core/ui-kit/common-ui/package.json:38-46`, and all nine of those entries **do** have imports (`src/components/markdown-editor/**`), so they are not in this table. :::
+Don't mistake `vite-plugin-iconify-offline` for the plugin in use The offline icon plugin actually imported is **`@tomjs/vite-plugin-iconify`** (`internal/vite-config/src/plugins/auto-import.ts:7`, used at `:30-32`), declared separately at `apps/web/package.json:115`. The better-matching name `vite-plugin-iconify-offline` (`:157`) is a different thing — zero hits. Likewise `@tiptap/*` has moved out of the app into `packages/core/ui-kit/common-ui/package.json:38-46`, and all nine of those entries **do** have imports (`src/components/markdown-editor/**`), so they are not in this table.
+
+:::
 
 ### How the tooling catches them
 
@@ -261,7 +283,9 @@ Don't mistake `vite-plugin-iconify-offline` for the plugin in use The offline ic
 
 ::: warning
 
-"Reported unused" is not "safe to remove" The inlined knip config carries an `ignoreDependencies` list (`scripts/vsh/src/check-dep/index.ts:17-29`: `playwright`, `rimraf`, `tailwindcss`, `@iconify/json`, plus the in-repo config packages `@antdv/{commitlint,eslint,oxfmt,oxlint,stylelint}-config` and `@antdv/{design,vite-config}`, which are only referenced at build time), `ignore` excludes `dist/**`, `docs/**`, `node_modules/**` and `public/**` (`:15`), and `ignoreWorkspaces` drops `internal/lint-configs/*` and `scripts/*` (`:30`). Conversely, a dependency pulled in only as someone else's peer is never visible as a first-party import. Every row therefore has to be settled by asking "who imports it, and whose peer needs it". The upgrade-side equivalent of this warning is in [Updating the project](/en/guide/other/project-update). :::
+"Reported unused" is not "safe to remove" The inlined knip config carries an `ignoreDependencies` list (`scripts/vsh/src/check-dep/index.ts:17-29`: `playwright`, `rimraf`, `tailwindcss`, `@iconify/json`, plus the in-repo config packages `@antdv/{commitlint,eslint,oxfmt,oxlint,stylelint}-config` and `@antdv/{design,vite-config}`, which are only referenced at build time), `ignore` excludes `dist/**`, `docs/**`, `node_modules/**` and `public/**` (`:15`), and `ignoreWorkspaces` drops `internal/lint-configs/*` and `scripts/*` (`:30`). Conversely, a dependency pulled in only as someone else's peer is never visible as a first-party import. Every row therefore has to be settled by asking "who imports it, and whose peer needs it". The upgrade-side equivalent of this warning is in [Updating the project](/en/guide/other/project-update).
+
+:::
 
 ## Related pages
 

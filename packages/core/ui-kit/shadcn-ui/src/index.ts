@@ -1,3 +1,14 @@
+/**
+ * 默认 ui 子包允许在 barrel 里自引自己的样式入口 —— 这是本轮 CSS 重构明确开的口子，
+ * 守门在 `@antdv/hooks` 的 boundary.test.ts「只有默认 ui 子包可以在 barrel 里自引 CSS」。
+ *
+ * 但这条自引**不替代**应用侧的 `@import '@antdv/shadcn-ui/style.css'`：
+ * 只有 `@source` 的文件自己不构成 Tailwind root（实测 features=0、产物 13 字节、零工具类），
+ * 从 JS 模块图进来等于没登记。真正让本包模板里的工具类生成的是
+ * `apps/web/src/styles/index.css` 里那一刀 `@import`。
+ */
+import './index.css';
+
 export * from './components/accordion';
 export * from './components/alert';
 export * from './components/alert-dialog';

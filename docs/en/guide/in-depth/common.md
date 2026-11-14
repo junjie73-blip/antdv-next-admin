@@ -27,16 +27,15 @@ const [register, tableRef] = useTable({ api: fetchUsers, useSearchForm: true });
 </template>
 ```
 
-::: warning
-
-The second return value is not uniform — do not code from vue-vben-admin muscle memory
+::: warning The second return value is not uniform — do not code from vue-vben-admin muscle memory
 
 | Hook | Returns | Usage |
 | --- | --- | --- |
 | `useTable(props?)` | `[register, Ref<null \| TableActionType>]` | The second value is an **instance ref**: `tableRef.value?.reload()`, null-check it |
 | `useForm(props?)` | `[register, FormActionType]` | The second value is a **methods object**: `methods.setFieldsValue(values)` |
 | `useModal()` / `useDrawer()` | `[register, methods]` | Internally `waitForInstance()`: up to 10 retries of (nextTick + 50ms), then throws instead of failing silently |
-| ::: |
+
+:::
 
 Initial props passed to the hook are merged via `instance.setProps(props)` at register time, so `useTable({ api })` and a template `:api` binding are two entrances to the same thing — the hook version lands first.
 

@@ -4,7 +4,7 @@ import type { HTMLAttributes } from 'vue';
 import type { InputGroupButtonVariants } from '.';
 import type { ButtonVariants } from '../button';
 
-import { cn } from '@antdv/shared/utils/cn';
+import { cn } from 'cn';
 
 import { inputGroupButtonVariants } from '.';
 import { Button } from '../button';

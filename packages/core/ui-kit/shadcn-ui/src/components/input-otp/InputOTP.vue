@@ -4,8 +4,8 @@ import type { OTPInputEmits, OTPInputProps } from 'vue-input-otp';
 
 import { OTPInput } from 'vue-input-otp';
 
-import { cn } from '@antdv/shared/utils/cn';
 import { reactiveOmit } from '@vueuse/core';
+import { cn } from 'cn';
 import { useForwardPropsEmits } from 'reka-ui';
 
 const props = defineProps<

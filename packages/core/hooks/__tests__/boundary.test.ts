@@ -48,6 +48,7 @@ function relative(file: string): string {
 type Manifest = {
   dependencies?: Record<string, string>;
   devDependencies?: Record<string, string>;
+  exports?: Record<string, string>;
   name?: string;
   peerDependencies?: Record<string, string>;
 };
@@ -62,8 +63,11 @@ const CSS_SPECIFIER =
 /** 盘符、根路径、UNC、file: —— 换一台机器就失效，一律禁止（单反斜杠开头是测试里的正则字面量，不是路径） */
 const ABSOLUTE_SPECIFIER = /^(?:[a-z]:[\\/]|\/|\\\\|file:)/iu;
 
-/** 全仓唯一被允许用相对路径伸到别的包里的地方，理由写在那个文件的头注释里 */
-const DESIGN_ENTRY_CSS = 'packages/core/base/design/src/index.css';
+/**
+ * 应用侧的样式装配入口：唯一的 Tailwind root，逐条 `@import` 各包的 `style.css`。
+ * 内容登记不再集中在 `@antdv/design`，所以守门要一路查到"应用真的引了"为止。
+ */
+const APP_STYLE_ENTRY = 'apps/web/src/styles/index.css';
 
 const manifestCache = new Map<string, Manifest | undefined>();
 
@@ -181,8 +185,10 @@ describe('子包不依赖 antdv-next', () => {
  * 相对路径伸进别人的 src 会让边界消失（谁都能改你内部文件）；未声明的 `@antdv/*`
  * 只是靠 node_modules 里的软链侥幸能跑，`pnpm prune` 一清就崩，exports 里改名也没人接得住。
  *
- * 例外只有 `@antdv/design` 的 `@source`：Tailwind v4 的内容登记只认文件系统路径，而构建根在
- * `apps/web`，`packages/` 全在自动检测之外。所以这里用「白名单 + 存在性 + 完整性」代替禁令，
+ * Tailwind v4 的内容登记只认文件系统路径，而构建根在 `apps/web`，`packages/` 全在自动检测之外，
+ * 所以每个带模板的包都要显式 `@source`。登记跟着包走：包自己的 `src/index.css` 只写 `@source './';`，
+ * 经 exports 的 `./style.css` 暴露，由应用侧的样式装配入口逐条 `@import` 收进同一个 root。
+ * 这里守三件事：CSS 里的相对路径不伸进别包、每个带 .vue 的包都登记并暴露了自己、应用真的引到了每一个。
  * 漏登记的失败形态从「组件渲染出来了但没样式」变成一条测试。
  */
 describe('跨包只走包名导入', () => {
@@ -252,11 +258,15 @@ describe('跨包只走包名导入', () => {
     expect(offenders.toSorted()).toStrictEqual([]);
   });
 
-  it('@source 名单只属于 design，且覆盖所有带 .vue 的包', () => {
-    const designEntry = path.join(REPO_ROOT, DESIGN_ENTRY_CSS);
-
-    const elsewhere = SOURCE_FILES.filter(
-      (file) => file.endsWith('.css') && file !== designEntry,
+  it('cSS 里的相对路径不伸进别的包：@source 只登记自己', () => {
+    /**
+     * 旧口径是「@source 名单只属于 design」—— 那时 design 用相对路径伸进 15 个包，
+     * 是全仓唯一的例外。现在登记跟着包走（每个包 `src/index.css` 里一句 `@source './';`），
+     * 例外取消：**任何**包的 CSS 都只许指自己目录里的东西，跨包一律走包名
+     * （应用侧 `@import '@antdv/x/style.css'`）。design 自己现在一条 @source 都没有。
+     */
+    const offenders = SOURCE_FILES.filter((file) =>
+      file.endsWith('.css'),
     ).flatMap((file) =>
       specifiersOf(file, CSS_SPECIFIER)
         .filter(
@@ -265,23 +275,10 @@ describe('跨包只走包名导入', () => {
         )
         .map((specifier) => `${relative(file)} -> ${specifier}`),
     );
-    expect(elsewhere.toSorted()).toStrictEqual([]);
+    expect(offenders.toSorted()).toStrictEqual([]);
+  });
 
-    // 指到别的包的那些 @source 才是要登记的；./css、./token 是本包自己的分部
-    const targets = specifiersOf(designEntry, CSS_SPECIFIER)
-      .filter(
-        (specifier) =>
-          specifier.startsWith('.') && escapesPackage(designEntry, specifier),
-      )
-      .map((specifier) => path.resolve(path.dirname(designEntry), specifier))
-      .toSorted();
-    for (const target of targets)
-      expect(existsSync(target), `${relative(target)} 不存在`).toBe(true);
-
-    const registered = targets
-      .map((target) => manifestOf(target)?.name)
-      .filter((name): name is string => name !== undefined);
-
+  it('每个带 .vue 的包都自己登记 @source、暴露 ./style.css，并被应用入口引到', () => {
     const withVue = new Set(
       SOURCE_FILES.filter(
         (file) => file.endsWith('.vue') && isPackageSource(file),
@@ -289,7 +286,85 @@ describe('跨包只走包名导入', () => {
         .map((file) => manifestOf(file)?.name)
         .filter((name): name is string => name !== undefined),
     );
+    expect(withVue.size).toBeGreaterThan(0);
 
-    expect(registered.toSorted()).toStrictEqual([...withVue].toSorted());
+    for (const name of withVue) {
+      const root = WORKSPACE_PACKAGES.get(name);
+      expect(root, `${name} 应该有包根目录`).toBeDefined();
+      if (root === undefined) continue;
+
+      // 1. 包自己的样式入口存在，且登记的就是自己的 src（不是别的目录、也不是空文件）
+      const entry = path.join(root, 'src/index.css');
+      expect(existsSync(entry), `${name} 缺 src/index.css`).toBe(true);
+      const registered = specifiersOf(
+        entry,
+        /@source\s+['"]([^'"]+)['"]/gu,
+      ).map((specifier) => path.resolve(path.dirname(entry), specifier));
+      expect(registered, `${name} 的 @source 应该只登记 ./`).toStrictEqual([
+        path.join(root, 'src'),
+      ]);
+
+      // 2. exports 里真的有 ./style.css，且指回这个文件（漏写 = 应用侧 resolve 失败）
+      const manifest = readManifestAt(path.join(root, 'package.json'));
+      expect(
+        manifest?.exports?.['./style.css'],
+        `${name} 缺 ./style.css 出口`,
+      ).toBe('./src/index.css');
+    }
+
+    // 3. 应用侧的装配入口把每一个都引到了：漏一条就是那个包的工具类静默不生成
+    const appEntry = path.join(REPO_ROOT, APP_STYLE_ENTRY);
+    expect(existsSync(appEntry), `应用样式入口 ${APP_STYLE_ENTRY} 不存在`).toBe(
+      true,
+    );
+    const imported = specifiersOf(appEntry, CSS_SPECIFIER);
+    for (const name of withVue) {
+      expect(imported, `${name}/style.css 没被应用入口引到`).toContain(
+        `${name}/style.css`,
+      );
+    }
+
+    // 4. 入口必须真的挂在应用入口 TS 上，否则名单再全也只是一个没人读的死文件
+    const main = readFileSync(
+      path.join(REPO_ROOT, 'apps/web/src/main.ts'),
+      'utf8',
+    );
+    expect(main).toContain("import './styles/index.css';");
+  });
+
+  /**
+   * 默认 ui 子包（`@antdv/shadcn-ui`）额外获准在 barrel 里自引自己的 CSS。
+   * 口子只开给它一个：自引对 `@source` 是惰性的（只有 @source 的文件不构成 Tailwind root），
+   * 每个包都跟着自引只会往页面里塞一堆空样式，登记还是得靠应用侧装配。
+   * 所以这里守两件事：谁可以自引、引的是不是自己的样式入口。
+   */
+  it('只有默认 ui 子包可以在 barrel 里自引 CSS，且引的必须是自己的样式入口', () => {
+    const DEFAULT_UI_PACKAGE = '@antdv/shadcn-ui';
+    const offenders: string[] = [];
+
+    for (const [name, root] of WORKSPACE_PACKAGES) {
+      const barrel = path.join(root, 'src/index.ts');
+      if (!existsSync(barrel)) continue;
+      const selfCss = specifiersOf(barrel, IMPORT_SPECIFIER).filter(
+        (specifier) => specifier.startsWith('.') && specifier.endsWith('.css'),
+      );
+      if (selfCss.length === 0) continue;
+      if (name !== DEFAULT_UI_PACKAGE) {
+        offenders.push(`${name} 的 barrel 自引了 CSS -> ${selfCss.join(', ')}`);
+        continue;
+      }
+      for (const specifier of selfCss) {
+        if (specifier !== './index.css')
+          offenders.push(`${name} 自引的不是自己的样式入口 -> ${specifier}`);
+      }
+    }
+
+    expect(offenders.toSorted()).toStrictEqual([]);
+
+    // 自引不替代装配：默认包的 style.css 仍然必须被应用入口引到
+    const appEntry = path.join(REPO_ROOT, APP_STYLE_ENTRY);
+    expect(specifiersOf(appEntry, CSS_SPECIFIER)).toContain(
+      `${DEFAULT_UI_PACKAGE}/style.css`,
+    );
   });
 });

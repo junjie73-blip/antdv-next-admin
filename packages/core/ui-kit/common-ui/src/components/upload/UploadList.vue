@@ -40,7 +40,7 @@ const itemClass = computed(() =>
   cn(
     'group flex items-center gap-2 rounded-sm px-2 py-1 transition-colors',
     isCard.value
-      ? 'flex-col items-stretch border border-border p-0'
+      ? 'border-border flex-col items-stretch border p-0'
       : 'hover:bg-accent',
   ),
 );

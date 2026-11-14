@@ -645,9 +645,15 @@ const columns: BasicColumn[] = [
           @change="handleUploadChange"
         >
           <p class="mb-2 text-2xl">
+            <!--
+              拖拽区根节点是 text-center，但 preflight 让 svg 变成 display:block，
+              text-center 居中不了；mx-auto 才让云图标与下方文案同一条中轴线。
+              颜色改走主色 token，避免写死蓝色在深色/换肤下发灰。
+            -->
             <Icon
               icon="carbon:cloud-upload"
-              style="font-size: 48px; color: #1677ff"
+              class="text-primary mx-auto"
+              style="font-size: 48px"
             />
           </p>
           <p class="text-sm">点击或拖拽文件到此区域上传</p>

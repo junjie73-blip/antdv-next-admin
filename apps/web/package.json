@@ -1,6 +1,6 @@
 {
   "name": "@antdv/web",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -41,6 +41,7 @@
     "@codemirror/lang-sql": "catalog:",
     "@codemirror/lang-vue": "catalog:",
     "@codemirror/theme-one-dark": "catalog:",
+    "@e965/xlsx": "catalog:",
     "@iconify-json/carbon": "catalog:",
     "@iconify/vue": "catalog:",
     "@sentry/vue": "catalog:",
@@ -100,8 +101,7 @@
     "vue-i18n": "catalog:",
     "vue-pdf-embed": "catalog:",
     "vue-router": "catalog:",
-    "vue-virtual-scroller": "catalog:",
-    "xlsx": "catalog:"
+    "vue-virtual-scroller": "catalog:"
   },
   "devDependencies": {
     "@antdv/tsconfig": "workspace:*",
@@ -155,7 +155,6 @@
     "vite-plugin-env-parse": "catalog:",
     "vite-plugin-html": "catalog:",
     "vite-plugin-iconify-offline": "catalog:",
-    "vite-plugin-imagemin": "catalog:",
     "vite-plugin-inspect": "catalog:",
     "vite-plugin-performance": "catalog:",
     "vite-plugin-pwa": "catalog:",

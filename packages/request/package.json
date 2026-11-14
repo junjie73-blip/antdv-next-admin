@@ -1,6 +1,6 @@
 {
   "name": "@antdv/request",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "实时通信层：HTTP（csrf / 令牌刷新 / 401 收尾 / 缓存与去重 / 超时 / qs 参数序列化 / useRequest）+ SSE + WebSocket + vue-query 客户端（`./vue-query`，重试策略与 executor 对齐）。凭证存储与登录页路径由应用 configureRequest() 注入，包不碰 pinia 也不读 import.meta.env",
   "private": true,
   "type": "module",

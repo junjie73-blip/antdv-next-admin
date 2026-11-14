@@ -15,7 +15,7 @@ import {
   watch,
 } from 'vue';
 
-import { cn } from '@antdv/shared/utils/cn';
+import { cn } from 'cn';
 
 import {
   compareDocumentOrder,

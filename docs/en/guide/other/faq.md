@@ -80,4 +80,6 @@ These are not pitfalls, they are **the current state**. Know them before touchin
 
 ::: tip
 
-Cleaning up Ranked by what the "dead code" costs, the best value is: for i18n the shell and the menu titles are already wired, what is missing is the business-page copy (either add `useI18n` there or accept that Chinese is this UI's language); delete the `auth` store outright (the only thing holding it in is the `export *` at `apps/web/src/stores/index.ts:1`); pick one for `routeMode` / `VITE_NAMESPACE` — either implement them or remove them from `.env` and `types/env.d.ts`. Keep this FAQ in sync afterwards, and for the deletion order and its blast radius see [Removing code](/en/guide/other/remove-code). :::
+Cleaning up Ranked by what the "dead code" costs, the best value is: for i18n the shell and the menu titles are already wired, what is missing is the business-page copy (either add `useI18n` there or accept that Chinese is this UI's language); delete the `auth` store outright (the only thing holding it in is the `export *` at `apps/web/src/stores/index.ts:1`); pick one for `routeMode` / `VITE_NAMESPACE` — either implement them or remove them from `.env` and `types/env.d.ts`. Keep this FAQ in sync afterwards, and for the deletion order and its blast radius see [Removing code](/en/guide/other/remove-code).
+
+:::

@@ -1,0 +1,8 @@
+{
+  "extends": "@antdv/tsconfig/base.json",
+  "compilerOptions": {
+    "types": [],
+    "noEmit": true
+  },
+  "include": ["src/**/*.ts", "__tests__/**/*.ts", "vitest.config.ts"]
+}

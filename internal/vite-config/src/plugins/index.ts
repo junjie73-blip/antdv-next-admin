@@ -13,7 +13,6 @@ import { createCompressPlugin } from './compress';
 import { cspUpgradeInsecureRequests } from './csp';
 import { viteDayjsPlugin } from './dayjs';
 import { viteExtraAppConfigPlugin } from './extra-app-config';
-import { createImageminPlugin } from './imagemin';
 import { viteMetadataPlugin } from './metadata';
 import { viteNitroMockPlugin } from './nitro-mock';
 import { vitePrintPlugin } from './print';
@@ -82,8 +81,24 @@ export async function createPlugins(
       }),
 
       // 静态资源处理
+      //
+      // 这里原来还挂着一枚 `createImageminPlugin()`（`vite-plugin-imagemin@0.6.1`），本轮摘掉：
+      // 1. **它今天一件压缩都没做**。`gifsicle` / `optipng-bin` / `mozjpeg` / `pngquant-bin` /
+      //    `jpegtran-bin` / `cwebp-bin` 全在 `pnpm-workspace.yaml` 的 `ignoredBuiltDependencies` 里，
+      //    安装期不跑那个"下载压缩包再解出原生二进制"的脚本，实测 `node_modules/.pnpm/gifsicle@5.2.0/
+      //    node_modules/gifsicle/vendor/` 里只有一份没解开的 `source/gifsicle-1.92.tar.gz`，
+      //    没有可执行文件 —— 插件拿到的是一堆解不开的 tar 包，压缩结果为零，收益是 0。
+      // 2. **它的代价是一条真实的供应链风险链**：`bin-build>decompress@4.2.1` 带 2 条 critical
+      //    （归档解出符号链/硬链写到目标目录之外，正好发生在安装期解那些 tar 的路上）、
+      //    `bin-wrapper>download>got@7/8`、`gifsicle>logalot>…>trim-newlines@1`、
+      //    `vite-plugin-imagemin>esbuild@0.14.54` 等一起进图，共 **12 条 advisory（含 2 critical）**，
+      //    而 `vite-plugin-imagemin` 0.6.1 是最后一版、上游早已停更，没有任何"兼容的稳定版"可升。
+      // 3. 被压缩的对象实测只有 `apps/web/src/assets/images` 的 252KB / 40 张占位图与
+      //    `public/pwa-icons` 那几张图标，删掉插件不改变产物内容（本来就没压）。
+      //
+      // 要找回这个能力请另装 `vite-plugin-image-optimizer`（sharp + svgo，预编译二进制走 npm 包本身，
+      // 不再有安装期下载）；那是"新增能力"，不属于本轮的依赖收敛，故不在此处埋半套配置。
       createSvgIconsPlugin(),
-      createImageminPlugin(),
       viteDayjsPlugin(),
 
       // 基础 HTML 处理插件

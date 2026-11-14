@@ -1,5 +1,16 @@
 # @antdv/stores
 
+## 0.2.0
+
+### Patch Changes
+
+- @antdv/request@0.2.0
+  - @antdv/shared@0.2.0
+  - @antdv/types@0.2.0
+  - @antdv/preferences@0.2.0
+  - @antdv/enums@0.2.0
+  - @antdv/utils@0.2.0
+
 ## 0.1.0
 
 ### Patch Changes

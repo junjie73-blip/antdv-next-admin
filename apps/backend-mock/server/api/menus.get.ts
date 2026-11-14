@@ -17,12 +17,20 @@ import { defineMockRoute } from '../utils/runtime';
  *
  * ## 关于 `hidden`
  *
- * 导航只展示四类：仪表盘、系统管理（用户/角色/菜单）、组件示例、微前端。
- * 其余节点标 `hidden: true` 而不是删掉 —— 因为这份菜单同时是**权限来源**
+ * 系统管理下的页面**全部可见**（用户管理/角色/菜单/部门/岗位/通知/在线/文件/
+ * 总览/监控/日志/配置/组织图…），不再靠 hidden 精简导航 —— 接口返回多少，导航
+ * 就展示多少。原「系统工具」「系统监控」两个一级分组已并入「系统管理」，避免
+ * 同一类系统页面散在三个分组里。
+ *
+ * `hidden: true` 现在只剩两类用途：
+ * 1. 「组件示例」里**收敛掉的冗余示例**：页面保留、路由保留、总览卡片墙保留，
+ *    只是不占侧栏位置（侧栏只留表单/表格/弹窗抽屉/上传/图标选择器等重要示例）；
+ * 2. 「个人中心」「组件文档」这类有**专属入口**的页面：头像下拉抽屉 / 顶栏文档
+ *    中心下拉，导航里再挂一份就是重复入口。
+ *
+ * 之所以是标 hidden 而不是删节点：这份菜单同时是**权限来源**
  * （`stores/modules/route.ts` 把树上的 name/path 摊成 allowedNames/allowedPaths），
- * 删了就等于关掉页面：部门管理、数据字典这些页面还在，直达链接、标签页标题、
- * keep-alive 都靠这条记录，只是不再出现在导航里。
- * 个人中心同样标 hidden，入口换成顶栏头像下拉 → `AccountDrawer`（抽屉内切页）。
+ * 删了就等于关掉页面 —— 直达链接、标签页标题、keep-alive 全靠这条记录。
  */
 const list: BackendMenu[] = [
   {
@@ -32,17 +40,29 @@ const list: BackendMenu[] = [
     path: '/dashboard',
     children: [
       {
-        menuName: '分析面板',
+        menuName: '分析页',
         name: 'Analysis',
         icon: 'carbon:data-vis-4',
         path: '/dashboard/analysis',
         keepAlive: true,
       },
       {
-        menuName: '实时监控大屏',
+        menuName: '监控页',
         name: 'ScreenMonitor',
         icon: 'carbon:chart-line-data',
         path: '/screen/monitor',
+      },
+      {
+        menuName: '任务中心',
+        name: 'DashboardTasks',
+        icon: 'carbon:task',
+        path: '/dashboard/tasks',
+      },
+      {
+        menuName: '工单',
+        name: 'DashboardTickets',
+        icon: 'carbon:ticket',
+        path: '/dashboard/tickets',
       },
     ],
   },
@@ -79,7 +99,6 @@ const list: BackendMenu[] = [
         icon: 'carbon:tree',
         path: '/system/dept',
         keepAlive: true,
-        hidden: true,
       },
       {
         menuName: '岗位管理',
@@ -87,7 +106,6 @@ const list: BackendMenu[] = [
         icon: 'carbon:category',
         path: '/system/post',
         keepAlive: true,
-        hidden: true,
       },
       {
         menuName: '通知管理',
@@ -95,31 +113,47 @@ const list: BackendMenu[] = [
         icon: 'carbon:notification',
         path: '/system/notice',
         keepAlive: true,
-        hidden: true,
       },
       {
         menuName: '在线用户',
         name: 'SystemOnline',
         icon: 'carbon:activity',
         path: '/system/online',
-        hidden: true,
       },
       {
         menuName: '文件管理',
         name: 'SystemFile',
         icon: 'carbon:folder',
         path: '/system/file',
-        hidden: true,
       },
-    ],
-  },
-  {
-    menuName: '系统工具',
-    name: 'Tool',
-    icon: 'carbon:tools',
-    path: '',
-    hidden: true,
-    children: [
+      // 本轮补齐的系统管理能力：「系统总览」是唯一新增的可见入口，
+      // 其余仍按既有约定标 hidden —— 导航精简这条不变量不能破，
+      // 但每个页面都要在树里留一条记录，直达链接、标签页标题与权限才有着落。
+      {
+        menuName: '系统总览',
+        name: 'SystemOverview',
+        icon: 'carbon:dashboard',
+        path: '/system/overview',
+        keepAlive: true,
+      },
+      {
+        menuName: '系统配置',
+        name: 'SystemConfig',
+        icon: 'carbon:settings-adjust',
+        path: '/system/config',
+      },
+      {
+        menuName: '组织架构图',
+        name: 'SystemOrgChart',
+        icon: 'carbon:network-4',
+        path: '/system/org-chart',
+      },
+      {
+        menuName: '记录详情',
+        name: 'SystemRecordDetail',
+        icon: 'carbon:document',
+        path: '/system/record-detail',
+      },
       {
         menuName: '数据字典',
         name: 'ToolDict',
@@ -128,19 +162,25 @@ const list: BackendMenu[] = [
         keepAlive: true,
       },
       {
+        // 「系统设置」的键值型 CRUD 已并入「系统配置」的「参数设置」面板
+        // （components/SettingsPanel.vue），这里只保留 hidden 节点：既从导航中
+        // 抽掉冗余入口，又保住 /system/settings 的权限记录，让旧直达链接经
+        // settings/index.vue 的 redirect 平稳落到 /system/config。
         menuName: '系统设置',
         name: 'ToolSettings',
         icon: 'carbon:settings-adjust',
         path: '/system/settings',
+        hidden: true,
       },
     ],
   },
   {
+    // 监控与日志类页面从「系统管理」抽离到顶层「系统监控」：
+    // 登录日志已并入系统日志的「登录日志」标签页，不再单独成页。
     menuName: '系统监控',
-    name: 'Monitor',
-    icon: 'carbon:screen',
+    name: 'SystemMonitorGroup',
+    icon: 'carbon:monitor',
     path: '',
-    hidden: true,
     children: [
       {
         menuName: '系统日志',
@@ -150,10 +190,22 @@ const list: BackendMenu[] = [
         keepAlive: true,
       },
       {
-        menuName: '登录日志',
-        name: 'MonitorLoginLog',
-        icon: 'carbon:login',
-        path: '/system/login-log',
+        menuName: '客户端日志',
+        name: 'SystemClientLog',
+        icon: 'carbon:terminal',
+        path: '/system/client-log',
+      },
+      {
+        menuName: '验证码日志',
+        name: 'SystemCaptchaLog',
+        icon: 'carbon:scan',
+        path: '/system/captcha-log',
+      },
+      {
+        menuName: '服务监控',
+        name: 'SystemMonitor',
+        icon: 'carbon:screen',
+        path: '/system/monitor',
       },
     ],
   },
@@ -266,30 +318,35 @@ const list: BackendMenu[] = [
         name: 'DemoDescription',
         icon: 'carbon:category',
         path: '/components/description',
+        hidden: true,
       },
       {
         menuName: '数字滚动',
         name: 'DemoTableCountTo',
         icon: 'carbon:list-numbered',
         path: '/components/count-to',
+        hidden: true,
       },
       {
         menuName: '相对时间',
         name: 'DemoTableRelativeTime',
         icon: 'carbon:time',
         path: '/components/relative-time',
+        hidden: true,
       },
       {
         menuName: '图片裁剪',
         name: 'DemoTableImageCrop',
         icon: 'carbon:crop',
         path: '/components/image-crop',
+        hidden: true,
       },
       {
         menuName: '编辑器',
         name: 'DemoEditor',
         icon: 'carbon:edit',
         path: '/components/editor',
+        hidden: true,
       },
       {
         menuName: '文件上传',
@@ -302,18 +359,21 @@ const list: BackendMenu[] = [
         name: 'DemoCron',
         icon: 'carbon:task-settings',
         path: '/components/cron',
+        hidden: true,
       },
       {
         menuName: '图表',
         name: 'DemoChart',
         icon: 'carbon:data-vis-4',
         path: '/components/chart',
+        hidden: true,
       },
       {
         menuName: '加载与骨架',
         name: 'DemoLoading',
         icon: 'carbon:pending',
         path: '/components/loading',
+        hidden: true,
       },
       {
         menuName: '图标选择器',
@@ -326,36 +386,42 @@ const list: BackendMenu[] = [
         name: 'DemoScrollBasic',
         icon: 'carbon:page-scroll',
         path: '/components/scroll/basic',
+        hidden: true,
       },
       {
         menuName: '自定义指令',
         name: 'DemoComponentsDirective',
         icon: 'carbon:terminal',
         path: '/components/directive',
+        hidden: true,
       },
       {
         menuName: '拖拽布局',
         name: 'DemoDragLayout',
         icon: 'carbon:grid',
         path: '/components/drag-layout',
+        hidden: true,
       },
       {
         menuName: '轻提示与通知',
         name: 'DemoFeedback',
         icon: 'carbon:warning-alt',
         path: '/components/feedback',
+        hidden: true,
       },
       {
         menuName: '边框光带',
         name: 'DemoBorderBeam',
         icon: 'carbon:border-full',
         path: '/components/border-beam',
+        hidden: true,
       },
       {
         menuName: '通用列表',
         name: 'DemoListy',
         icon: 'carbon:list-bulleted',
         path: '/components/listy',
+        hidden: true,
       },
     ],
   },
@@ -364,7 +430,6 @@ const list: BackendMenu[] = [
     name: 'Security',
     icon: 'carbon:security',
     path: '',
-    hidden: true,
     children: [
       {
         menuName: '安全看板',
@@ -391,6 +456,221 @@ const list: BackendMenu[] = [
         name: 'MicroAppManage',
         icon: 'carbon:network-4',
         path: '/system/micro-app',
+      },
+    ],
+  },
+  {
+    // 参照实现（wuhu-vue-admin）的「项目管理」分组：纯前端演示页，
+    // 每个模块用占位页承接，路径与导航保持一致即可，不做后端数据。
+    menuName: '项目管理',
+    name: 'Project',
+    icon: 'carbon:collaborate',
+    path: '',
+    children: [
+      {
+        menuName: '我的项目',
+        name: 'ProjectMine',
+        icon: 'carbon:user',
+        path: '/project/my',
+      },
+      {
+        menuName: '我的任务',
+        name: 'ProjectTasks',
+        icon: 'carbon:task',
+        path: '/project/tasks',
+      },
+      {
+        menuName: '项目列表',
+        name: 'ProjectList',
+        icon: 'carbon:list',
+        path: '/project/list',
+      },
+      {
+        menuName: '任务管理',
+        name: 'ProjectTaskManage',
+        icon: 'carbon:edit',
+        path: '/project/task-manage',
+      },
+      {
+        menuName: '里程碑',
+        name: 'ProjectMilestone',
+        icon: 'carbon:milestone',
+        path: '/project/milestone',
+      },
+      {
+        menuName: '项目成员',
+        name: 'ProjectMembers',
+        icon: 'carbon:group',
+        path: '/project/members',
+      },
+    ],
+  },
+  {
+    // 模板中心：参考实现的「模板/设计器」入口聚合，Chat 接 shadcn-vue 的 AI 对话组件，
+    // 其余复用既有真实页（低代码 / 报表 / 图表 / 即时通讯 / 报表中心）并补占位页。
+    menuName: '模板中心',
+    name: 'Template',
+    icon: 'carbon:template',
+    path: '',
+    children: [
+      {
+        menuName: 'Chat',
+        name: 'TemplateChat',
+        icon: 'carbon:chat',
+        path: '/template/chat',
+      },
+      {
+        menuName: '日历',
+        name: 'TemplateCalendar',
+        icon: 'carbon:calendar',
+        path: '/template/calendar',
+      },
+      {
+        menuName: '文档预览',
+        name: 'TemplateDoc',
+        icon: 'carbon:document',
+        path: '/template/doc',
+      },
+      {
+        menuName: '文章列表',
+        name: 'TemplateArticle',
+        icon: 'carbon:blog',
+        path: '/template/article',
+      },
+      {
+        menuName: '瀑布流',
+        name: 'TemplateMasonry',
+        icon: 'carbon:grid',
+        path: '/template/masonry',
+      },
+      {
+        menuName: '定价',
+        name: 'TemplatePricing',
+        icon: 'carbon:currency',
+        path: '/template/pricing',
+      },
+      {
+        menuName: '低代码设计器',
+        name: 'EnterpriseLowcode',
+        icon: 'carbon:template',
+        path: '/enterprise/lowcode',
+      },
+      {
+        menuName: '报表设计器',
+        name: 'EnterpriseReport',
+        icon: 'carbon:chart-line',
+        path: '/enterprise/report',
+      },
+      {
+        menuName: '图表设计器',
+        name: 'TemplateChart',
+        icon: 'carbon:data-vis-4',
+        path: '/template/chart',
+      },
+      {
+        menuName: '即时通讯',
+        name: 'EnterpriseIm',
+        icon: 'carbon:chat',
+        path: '/enterprise/im',
+      },
+      {
+        menuName: '报表中心',
+        name: 'EnterpriseReportGallery',
+        icon: 'carbon:chart-line-data',
+        path: '/enterprise/report/gallery',
+      },
+    ],
+  },
+  {
+    // 审批流：参考实现的审批分组，流程监控复用企业工作流监控台。
+    menuName: '审批流',
+    name: 'Approval',
+    icon: 'carbon:task-approved',
+    path: '',
+    children: [
+      {
+        menuName: '我的审批',
+        name: 'ApprovalMine',
+        icon: 'carbon:checkmark',
+        path: '/approval/mine',
+      },
+      {
+        menuName: '流程分组',
+        name: 'ApprovalGroup',
+        icon: 'carbon:category',
+        path: '/approval/group',
+      },
+      {
+        menuName: '流程监控',
+        name: 'ApprovalMonitor',
+        icon: 'carbon:activity',
+        path: '/approval/monitor',
+      },
+    ],
+  },
+  {
+    // AI 开发：参考实现的 AI 分组，Chat 复用同一套 shadcn-vue 对话组件，
+    // 工作流挂在三级子菜单下，与参考实现的「工作流」可展开层级一致。
+    menuName: 'AI 开发',
+    name: 'AiDev',
+    icon: 'carbon:machine-learning',
+    path: '',
+    children: [
+      {
+        menuName: '模型列表',
+        name: 'AiModelList',
+        icon: 'carbon:model',
+        path: '/ai/model-list',
+      },
+      {
+        menuName: '模型供应商',
+        name: 'AiProvider',
+        icon: 'carbon:api',
+        path: '/ai/provider',
+      },
+      {
+        menuName: 'Agent',
+        name: 'EnterpriseAiResources',
+        icon: 'carbon:machine-learning',
+        path: '/enterprise/ai',
+      },
+      {
+        menuName: 'Chat',
+        name: 'AiChat',
+        icon: 'carbon:chat',
+        path: '/ai/chat',
+      },
+      {
+        menuName: '知识库',
+        name: 'AiKnowledge',
+        icon: 'carbon:book',
+        path: '/ai/knowledge',
+      },
+      {
+        menuName: '工作流',
+        name: 'EnterpriseWorkflow',
+        icon: 'carbon:flow',
+        path: '/enterprise/workflow',
+        children: [
+          {
+            menuName: '流程列表',
+            name: 'EnterpriseWorkflowList',
+            icon: 'carbon:list',
+            path: '/enterprise/workflow/list',
+          },
+          {
+            menuName: '流程监控',
+            name: 'AiWorkflowMonitor',
+            icon: 'carbon:activity',
+            path: '/enterprise/workflow/monitor',
+          },
+        ],
+      },
+      {
+        menuName: 'AI 工作流编排',
+        name: 'EnterpriseAiFlow',
+        icon: 'carbon:machine-learning',
+        path: '/enterprise/ai-flow',
       },
     ],
   },

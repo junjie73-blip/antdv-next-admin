@@ -3,7 +3,7 @@ import type { HTMLAttributes } from 'vue';
 
 import { onBeforeUnmount, onMounted, useTemplateRef } from 'vue';
 
-import { cn } from '@antdv/shared/utils/cn';
+import { cn } from 'cn';
 
 import { useMessageScrollerContext } from './useMessageScroller';
 

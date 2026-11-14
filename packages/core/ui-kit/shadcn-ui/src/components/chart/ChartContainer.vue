@@ -5,7 +5,7 @@ import type { ChartConfig } from '.';
 
 import { computed, toRefs } from 'vue';
 
-import { cn } from '@antdv/shared/utils/cn';
+import { cn } from 'cn';
 import { useId } from 'reka-ui';
 
 import { provideChartContext } from '.';

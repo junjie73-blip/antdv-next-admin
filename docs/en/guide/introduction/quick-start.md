@@ -15,7 +15,9 @@ corepack prepare pnpm@10.12.4 --activate
 
 ::: warning
 
-Don't use npm / yarn The root `preinstall` script blocks non-pnpm installs outright. Beyond that, workspace dependencies, catalog versions, and the symlinks under `internal/*` all rely on pnpm's semantics — mix package managers and you end up with a bogus `node_modules`. :::
+Don't use npm / yarn The root `preinstall` script blocks non-pnpm installs outright. Beyond that, workspace dependencies, catalog versions, and the symlinks under `internal/*` all rely on pnpm's semantics — mix package managers and you end up with a bogus `node_modules`.
+
+:::
 
 ## 2. Install and start
 
@@ -74,7 +76,9 @@ Why the dist packages don't just alias to src
 - Vite's `optimizeDeps` and type resolution often disagree with the build result when aliased to source;
 - `turbo dev` already uses `dependsOn: ["^build"]` to guarantee dependency packages are up to date before it starts; the only cost is a slower first build.
 
-`apps/web/.env.development` keeps a `VITE_DEV_POLLING` switch. Tested on a mapped drive (this repo sits on `J:` locally) it **does not bring HMR back**, so it stays commented out — don't count on it. :::
+`apps/web/.env.development` keeps a `VITE_DEV_POLLING` switch. Tested on a mapped drive (this repo sits on `J:` locally) it **does not bring HMR back**, so it stays commented out — don't count on it.
+
+:::
 
 ## 4. Directory at a glance
 

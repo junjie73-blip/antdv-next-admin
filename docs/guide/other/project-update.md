@@ -14,7 +14,9 @@
 
 ::: warning
 
-具名 catalog 只有一条，而且被 overrides 顶住了 `catalogs.conflicts_vue_h3_5_43`（`pnpm-workspace.yaml:264-266`，`vue: ^3.5.43`）确实被 `apps/web` 引用，不是死配置；但 `overrides.vue: 'catalog:'`（`:292-297`）会把它按回默认 catalog 里的**精确** `3.5.43`（`:229`）。也就是说这条具名通道现在解析不出任何不同的版本，留着它只是历史痕迹 —— 真要升 Vue，改 `catalog:` 的 `:229` 那一行就够了。:::
+具名 catalog 只有一条，而且被 overrides 顶住了 `catalogs.conflicts_vue_h3_5_43`（`pnpm-workspace.yaml:264-266`，`vue: ^3.5.43`）确实被 `apps/web` 引用，不是死配置；但 `overrides.vue: 'catalog:'`（`:292-297`）会把它按回默认 catalog 里的**精确** `3.5.43`（`:229`）。也就是说这条具名通道现在解析不出任何不同的版本，留着它只是历史痕迹 —— 真要升 Vue，改 `catalog:` 的 `:229` 那一行就够了。
+
+:::
 
 ## 安装期真正生效的开关
 
@@ -48,11 +50,15 @@ pnpm release                      # pnpm build && changeset publish
 
 ::: warning
 
-`fixed` 讲的是"下一次发版一起抬到同一个号"，落点取组内**当前最高版本**再叠加本轮最大 bump 级别。2026-10-23 第一次真跑 `pnpm version` 之前就吃过这个亏：各包是改造期手工写死出厂的，摊在 `0.0.0` / `0.1.0` / `0.4.0` / `0.5.0` / `5.8.0` 五个号上，其中 `scripts/*`（`@antdv/turbo-run`、`@antdv/vsh`）还带着上游 `vue-vben-admin` 的 `5.8.0` —— 照原样跑会把整套推到 `5.9.0`。做法是先把全部成员归零到 `0.0.0` 再跑，于是首个统一版本落在 `0.1.0`。**所以新建包请一律从 `0.0.0` 出厂**：组里最高的那个号替整套决定落点。:::
+`fixed` 讲的是"下一次发版一起抬到同一个号"，落点取组内**当前最高版本**再叠加本轮最大 bump 级别。2026-10-23 第一次真跑 `pnpm version` 之前就吃过这个亏：各包是改造期手工写死出厂的，摊在 `0.0.0` / `0.1.0` / `0.4.0` / `0.5.0` / `5.8.0` 五个号上，其中 `scripts/*`（`@antdv/turbo-run`、`@antdv/vsh`）还带着上游 `vue-vben-admin` 的 `5.8.0` —— 照原样跑会把整套推到 `5.9.0`。做法是先把全部成员归零到 `0.0.0` 再跑，于是首个统一版本落在 `0.1.0`。**所以新建包请一律从 `0.0.0` 出厂**：组里最高的那个号替整套决定落点。
+
+:::
 
 ::: danger
 
-别把 `pnpm release` 当成"发 npm" `packages/*`、`apps/*`、`docs` 与根包的 package.json **全部是 `"private": true`**（唯一的 `publishConfig` 在 `packages/core/ui-kit/shadcn-ui/package.json:31`，它只是把 `src` 的 exports 原样重复一遍，那个包同样是 private）。changesets 在这里只产出各包的 CHANGELOG 与 git tag，不会往 registry 推任何东西。发布历史也确实薄：`.github/workflows/` 里只有 `docs.yml` 一个文件，没有 job 跑 changesets；0.1.0 之前仓库只有 `v0.0.3` 和一个误操作留下的 `vnull`。**升级与发版目前是一次纯本地动作**，`version` 之后自己提交，再 `pnpm exec changeset tag` 打 tag，推送时记得 `git push --follow-tags`（`git push` 默认不带 tag）。:::
+别把 `pnpm release` 当成"发 npm" `packages/*`、`apps/*`、`docs` 与根包的 package.json **全部是 `"private": true`**（唯一的 `publishConfig` 在 `packages/core/ui-kit/shadcn-ui/package.json:31`，它只是把 `src` 的 exports 原样重复一遍，那个包同样是 private）。changesets 在这里只产出各包的 CHANGELOG 与 git tag，不会往 registry 推任何东西。发布历史也确实薄：`.github/workflows/` 里只有 `docs.yml` 一个文件，没有 job 跑 changesets；0.1.0 之前仓库只有 `v0.0.3` 和一个误操作留下的 `vnull`。**升级与发版目前是一次纯本地动作**，`version` 之后自己提交，再 `pnpm exec changeset tag` 打 tag，推送时记得 `git push --follow-tags`（`git push` 默认不带 tag）。
+
+:::
 
 ## 一次组件栈升级怎么跑
 
@@ -60,7 +66,7 @@ pnpm release                      # pnpm build && changeset publish
 
 消费面收得很窄，升级时按这份名单去找受影响的地方就够了：`reka-ui` 只被 `packages/core/ui-kit/{common-ui,form-ui,shadcn-ui}` 三个包引用；`vue-sonner` 被 `common-ui`、`popup-ui`、`shadcn-ui`、`table-ui` 四个引用；`@iconify-json/*` 主要住在 `@antdv/icons`（`packages/core/base/icons/package.json:29-33`），`apps/web` 另外直依赖 carbon（`apps/web/package.json:44`）与四个只在 dev 侧用到的集合（`:110-113`）。表单/表格/弹窗/标签页/菜单/布局的实现是 TanStack + shadcn-vue，轻提示走 `@antdv/popup-ui`（vue-sonner 的封装）。
 
-这条边界由两个守卫钉住，所以升级组件栈不会让它们变红，但只要有人把组件库引回来就当场变红：`packages/core/hooks/__tests__/boundary.test.ts` 第一节「子包不依赖 antdv-next」（`:136-186`，含"源码里没有组件库 import"和"清单的 dependencies / peerDependencies 里没有组件库"两条）与第二节「跨包只走包名导入」（`:188` 起，守的是另一类边界 —— 相对路径不许伸进别的包，唯一例外是 `@antdv/design` 的 `@source`（Tailwind 只认文件系统路径），名单还必须覆盖所有带 `.vue` 的包；跨包 `@antdv/*` 要写进 `dependencies`/`peerDependencies`；`src` 里不通过自己的包名绕 barrel）；应用侧是 `apps/web/src/views/__tests__/gallery-api-usage.spec.ts:144`，它的正则 `:121-123` 同时拦 `antdv-next` / `@antdv-next/*` / `@form-create/*` 的 import **和** `<a-xxx>` 标签写法。结论：升 reka-ui / TanStack 的改动集中在 `packages/core/ui-kit/**`，应用侧只是被动跟随。
+这条边界由两个守卫钉住，所以升级组件栈不会让它们变红，但只要有人把组件库引回来就当场变红：`packages/core/hooks/__tests__/boundary.test.ts` 第一节「子包不依赖 antdv-next」（`:136-186`，含"源码里没有组件库 import"和"清单的 dependencies / peerDependencies 里没有组件库"两条）与第二节「跨包只走包名导入」（`:188` 起，守的是另一类边界 —— 相对路径不许伸进别的包，**没有例外**：内容登记随包走后，旧口径里 `@antdv/design` 那份伸进 15 个包的 `@source` 名单已废止，各包只在自己的 `src/index.css` 里写 `@source './';`，由 `apps/web/src/styles/index.css` 逐条 `@import '<pkg>/style.css'` 装配；跨包 `@antdv/*` 要写进 `dependencies`/`peerDependencies`；`src` 里不通过自己的包名绕 barrel；barrel 自引 CSS 的口子只开给默认 ui 子包 `@antdv/shadcn-ui`）；应用侧是 `apps/web/src/views/__tests__/gallery-api-usage.spec.ts:144`，它的正则 `:121-123` 同时拦 `antdv-next` / `@antdv-next/*` / `@form-create/*` 的 import **和** `<a-xxx>` 标签写法。结论：升 reka-ui / TanStack 的改动集中在 `packages/core/ui-kit/**`，应用侧只是被动跟随。
 
 ```bash
 # 1. 改 pnpm-workspace.yaml 里 catalog 的那一行
@@ -93,6 +99,8 @@ cd apps/web && pnpm exec playwright test --project=chromium --reporter=line
 
 ::: tip
 
-Vue 是被精确钉死的运行时 默认 catalog 里 `vue: 3.5.43`（`pnpm-workspace.yaml:229`）没有范围号；catalog 里另有 11 个精确版本（`reka-ui` `:189`、`vue-sonner` `:238`、`@vueuse/core`、`vee-validate`、`@lucide/vue`、`embla-carousel-vue`、`pdfjs-dist`、`zod` 等），但只有 `vue` 同时出现在 `overrides`（`:292-297`）里，等于强制整棵树只有一份实例。原因是范围号会让部分第三方 peer 树停在 3.5.42，于是 `@vue/runtime-core` 出现两份类型，跨包传 Directive 直接打架。升 Vue 之前先决定 `overrides` 要不要跟着动。:::
+Vue 是被精确钉死的运行时 默认 catalog 里 `vue: 3.5.43`（`pnpm-workspace.yaml:229`）没有范围号；catalog 里另有 11 个精确版本（`reka-ui` `:189`、`vue-sonner` `:238`、`@vueuse/core`、`vee-validate`、`@lucide/vue`、`embla-carousel-vue`、`pdfjs-dist`、`zod` 等），但只有 `vue` 同时出现在 `overrides`（`:292-297`）里，等于强制整棵树只有一份实例。原因是范围号会让部分第三方 peer 树停在 3.5.42，于是 `@vue/runtime-core` 出现两份类型，跨包传 Directive 直接打架。升 Vue 之前先决定 `overrides` 要不要跟着动。
+
+:::
 
 要把不需要的东西拆掉，看[移除代码](/guide/other/remove-code)；工程侧的其它约定见 [开发规范与环境变量](/guide/essentials/development)、[目录说明](/guide/project/dir)。

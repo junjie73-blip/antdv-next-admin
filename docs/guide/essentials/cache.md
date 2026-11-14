@@ -80,7 +80,9 @@ configureSharedEnv({
 2. 生产环境缺这个变量**不会**触发 `env.ts:59-68` 那个"必须配置密钥"的抛错，那条分支在缓存路径上是死代码。
 3. SM4 密钥 = `padKey(VITE_APP_TITLE)`（截断/补齐到 32 字符，`encrypt.ts:18,93-98`）。也就是说 **改 title 同时改了键名和密钥**，跨项目抄同一个 title 等于共用一把密钥。
 
-派生密钥那一套（SHA-256 + 设备指纹，`encrypt.ts:40-75`）只服务于异步版 `encryptValue` / `decryptValue`，而这两个函数**全仓没有调用方**。:::
+派生密钥那一套（SHA-256 + 设备指纹，`encrypt.ts:40-75`）只服务于异步版 `encryptValue` / `decryptValue`，而这两个函数**全仓没有调用方**。
+
+:::
 
 Token 的值另有机制，且不受 `shouldEncrypt` 影响：`encryptToken()` 用 `jose` 的 `EncryptJWT` （`alg: 'dir'` + `A256GCM`，`tokenCrypto.ts:86-90`），密钥由 PBKDF2（10 万次迭代）从**设备指纹**派生（`tokenCrypto.ts:21-69`），指纹因子含 `navigator.userAgent`、`navigator.language`、`screen.width/height`、时区偏移（`:22-28`）。它在 dev 也加密，所以本地 localStorage 里的 token 是 JWE 串。
 
@@ -100,7 +102,9 @@ Token 的值另有机制，且不受 `shouldEncrypt` 影响：`encryptToken()` �
 - **`logout()` 不清 `refresh_token`**：`user.ts:164-169` 只删 `auth_token` 与 `user_info`，而 `request-runtime.ts:24` 写过的 `refresh_token` 会留在盘上（`cache.clear()` 那种全清才带得走）。
 - **登录流程从不写 `refresh_token`**：`user.ts` 的登录响应体里只有 `user.token`（`:96-104`），全程没有调用 `setRefresh`。于是第一次 `doRefreshToken()` 撞上 `tokens.refresh()` 返回空 → `缺少 refresh token`（`fetcher.ts:96-97`）。
 
-两个曾经的缺陷已经修掉、别再照旧文档找：`initToken()` 现在在 `main.ts:153` 被 await 调用，刷新后 `token.value` 是 `decryptToken` **之后**的明文，不是 JWE 串（回归用例 `packages/stores/__tests__/user-session.test.ts:166-212`）；刷新令牌改走 `request-runtime.ts:24` 的 `setRefresh`（`cache.setItem`，明文、无 TTL），不再拿 `setToken` 的第二个形参当过期时间用。另外 `clearDict()` 全仓仍无调用方，登出不会清字典缓存，靠的是那条 1 小时 `loadedAt` 自然过期（`apps/web/src/stores/modules/dict.ts:39,133`）。:::
+两个曾经的缺陷已经修掉、别再照旧文档找：`initToken()` 现在在 `main.ts:153` 被 await 调用，刷新后 `token.value` 是 `decryptToken` **之后**的明文，不是 JWE 串（回归用例 `packages/stores/__tests__/user-session.test.ts:166-212`）；刷新令牌改走 `request-runtime.ts:24` 的 `setRefresh`（`cache.setItem`，明文、无 TTL），不再拿 `setToken` 的第二个形参当过期时间用。另外 `clearDict()` 全仓仍无调用方，登出不会清字典缓存，靠的是那条 1 小时 `loadedAt` 自然过期（`apps/web/src/stores/modules/dict.ts:39,133`）。
+
+:::
 
 ## 浏览器存储的真实使用情况
 
@@ -123,7 +127,9 @@ Token 的值另有机制，且不受 `shouldEncrypt` 影响：`encryptToken()` �
 
 ::: tip
 
-加一份持久化状态之前先决定键放哪：跟应用生命周期走的就照 `dict.ts` —— `CacheKey` 加一项（顺手真的引用它）、在 `watch` 里 `cache.setItem`、并把它加进 `user.ts` 的 `logout()` 清理列表。只是界面外观的偏好不要自己开 key，走 `packages/core/preferences`（见 [状态管理](/guide/essentials/stores)）。裸 `localStorage` 只留给"跟缓存语义无关"的数据（菜单可见性覆盖、分片续传进度），并自己带上过期判定。:::
+加一份持久化状态之前先决定键放哪：跟应用生命周期走的就照 `dict.ts` —— `CacheKey` 加一项（顺手真的引用它）、在 `watch` 里 `cache.setItem`、并把它加进 `user.ts` 的 `logout()` 清理列表。只是界面外观的偏好不要自己开 key，走 `packages/core/preferences`（见 [状态管理](/guide/essentials/stores)）。裸 `localStorage` 只留给"跟缓存语义无关"的数据（菜单可见性覆盖、分片续传进度），并自己带上过期判定。
+
+:::
 
 ## 相关页面
 

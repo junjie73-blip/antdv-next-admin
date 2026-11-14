@@ -21,7 +21,9 @@ views / stores ──► api/*.ts ──► api/request.ts(get/post/put/del)
 
 ::: warning
 
-注入必须赶在第一发请求之前，而且只能在应用入口调 `configureRequestRuntime()`。没注入就跑请求会直接抛错（`getRequestRuntime()`，`runtime.ts:48-56`），不会静默用空凭证发请求。这个文件会把 `~/stores` 拖进模块图，`test/setup.ts` 不许碰它（`table-runtime.ts`、`layouts-host.ts` 同理）：setup 比用例里的 `vi.mock` 先执行，被它 import 过的模块之后替换不掉。`apps/web/src/plugins/__tests__/` 里那几个用例因此都不 mock 模块，而是"注入完再读包那边的 runtime"；`ui-runtime.ts` 是唯一被 setup 调用的那个，因为它只注入文案、不碰 store。:::
+注入必须赶在第一发请求之前，而且只能在应用入口调 `configureRequestRuntime()`。没注入就跑请求会直接抛错（`getRequestRuntime()`，`runtime.ts:48-56`），不会静默用空凭证发请求。这个文件会把 `~/stores` 拖进模块图，`test/setup.ts` 不许碰它（`table-runtime.ts`、`layouts-host.ts` 同理）：setup 比用例里的 `vi.mock` 先执行，被它 import 过的模块之后替换不掉。`apps/web/src/plugins/__tests__/` 里那几个用例因此都不 mock 模块，而是"注入完再读包那边的 runtime"；`ui-runtime.ts` 是唯一被 setup 调用的那个，因为它只注入文案、不碰 store。
+
+:::
 
 ## 数据请求客户端：`@antdv/request/vue-query`
 
@@ -101,7 +103,9 @@ export function updateUser(id: number, data: Record<string, unknown>) {
 
 ::: danger
 
-`get`/`del` 的第二个实参**就是查询串本身** `request.ts:22-26` 把 `params` 直接交给 `buildUrl`。如果你写成 `get(url, { params })`，发出去的是 `?params=[object Object]`，筛选和分页条件整批丢失——表现是"搜索框输什么都一样、翻到第二页还是第一页的数据"。`post`/`put` 才有第三个参数用于查询串。:::
+`get`/`del` 的第二个实参**就是查询串本身** `request.ts:22-26` 把 `params` 直接交给 `buildUrl`。如果你写成 `get(url, { params })`，发出去的是 `?params=[object Object]`，筛选和分页条件整批丢失——表现是"搜索框输什么都一样、翻到第二页还是第一页的数据"。`post`/`put` 才有第三个参数用于查询串。
+
+:::
 
 封装函数返回的是 `res.data`，也就是**整个信封**（`request.ts:29`），所以调用方拿到的 `R<T>` 还要自己取 `.data`；这一层刻意不做二次解包，方便二进制与空 data 的场景。
 
@@ -118,4 +122,6 @@ export function updateUser(id: number, data: Record<string, unknown>) {
 
 ::: warning
 
-不要绕过共享 client 应用侧的 `api/*.ts` 只经 `~/api/request`（它把 `~/composables` 转出的 `http` 再包一层信封类型）；`packages/stores` 根本不引用应用路径，直接 import `@antdv/request` 的 `http`（例如 `packages/stores/src/route.ts:8`、`packages/stores/src/user.ts:6`）。这条目前是**约定而不是 lint 规则**——ESLint 只锁 import 边界（`internal/lint-configs/eslint-config/src/custom-config.ts:31-113`），不禁止裸 `fetch`。绕过之后 CSRF、401 刷新、统一提示全部失效，而且很难在 code review 里发现。:::
+不要绕过共享 client 应用侧的 `api/*.ts` 只经 `~/api/request`（它把 `~/composables` 转出的 `http` 再包一层信封类型）；`packages/stores` 根本不引用应用路径，直接 import `@antdv/request` 的 `http`（例如 `packages/stores/src/route.ts:8`、`packages/stores/src/user.ts:6`）。这条目前是**约定而不是 lint 规则**——ESLint 只锁 import 边界（`internal/lint-configs/eslint-config/src/custom-config.ts:31-113`），不禁止裸 `fetch`。绕过之后 CSRF、401 刷新、统一提示全部失效，而且很难在 code review 里发现。
+
+:::

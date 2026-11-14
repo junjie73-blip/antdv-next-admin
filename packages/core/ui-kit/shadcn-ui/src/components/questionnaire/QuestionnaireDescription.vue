@@ -5,7 +5,7 @@ import type { ComponentPublicInstance, HTMLAttributes } from 'vue';
 
 import { onBeforeUnmount, onMounted, ref, useId } from 'vue';
 
-import { cn } from '@antdv/shared/utils/cn';
+import { cn } from 'cn';
 import { Primitive } from 'reka-ui';
 
 import { injectQuestionnaireItemContext } from './useQuestionnaire';

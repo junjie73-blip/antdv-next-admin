@@ -5,8 +5,8 @@ import type { HTMLAttributes } from 'vue';
 
 import type { BadgeVariants } from '.';
 
-import { cn } from '@antdv/shared/utils/cn';
 import { reactiveOmit } from '@vueuse/core';
+import { cn } from 'cn';
 import { Primitive } from 'reka-ui';
 
 import { badgeVariants } from '.';

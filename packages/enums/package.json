@@ -1,6 +1,6 @@
 {
   "name": "@antdv/enums",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "跨层枚举：缓存 Key、字典 TypeCode 等只含字面量的取值集合，不依赖 vue / pinia / 应用配置",
   "private": true,
   "type": "module",

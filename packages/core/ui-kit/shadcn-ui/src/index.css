@@ -1,0 +1,18 @@
+/*
+ * 本包的内容登记：工具类的扫描范围跟着包走，不再由 `@antdv/design` 代管。
+ *
+ * 由应用侧的样式装配入口 `@import '@antdv/shadcn-ui/style.css'` 收进同一个
+ * Tailwind root。只被 JS `import` 是无效的：实测这种「只有 @source」的文件
+ * 自己不构成 root（features=0、产物 13 字节、零工具类），等于没登记。
+ *
+ * 本包是默认 ui 子包，**允许**在 `src/index.ts` 里直接 `import './index.css'`
+ * （boundary.test.ts 只给这一个包开了自引的口子）。但那条口子不替代应用侧的
+ * `@import`：自引走的是 JS 模块图，落到上面那种"不是 root"的惰性形态，
+ * 工具类照样不生成。所以应用入口仍然必须引它，自引只是可选的附加。
+ *
+ * 另有 `src/assets/index.css`（内容只有 `@reference "@antdv/design"`）：
+ * 那是 shadcn CLI 的构建期入口，由 `components.json` 的 `css` 字段消费，与本文件无关。
+ *
+ * 只许登记自己（`./`），不许伸进别的包 —— 守门在 `@antdv/hooks` 的 boundary.test.ts。
+ */
+@source './';

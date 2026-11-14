@@ -3,9 +3,9 @@ import type { TagsInputItemDeleteProps } from 'reka-ui';
 
 import type { HTMLAttributes } from 'vue';
 
-import { cn } from '@antdv/shared/utils/cn';
 import { X } from '@lucide/vue';
 import { reactiveOmit } from '@vueuse/core';
+import { cn } from 'cn';
 import { TagsInputItemDelete, useForwardProps } from 'reka-ui';
 
 const props = defineProps<

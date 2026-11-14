@@ -3,7 +3,7 @@ import type { HTMLAttributes } from 'vue';
 
 import type { EmptyMediaVariants } from '.';
 
-import { cn } from '@antdv/shared/utils/cn';
+import { cn } from 'cn';
 
 import { emptyMediaVariants } from '.';
 

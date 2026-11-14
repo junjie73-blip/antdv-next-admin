@@ -5,9 +5,9 @@ import type { HTMLAttributes } from 'vue';
 
 import type { ButtonVariants } from '../button';
 
-import { cn } from '@antdv/shared/utils/cn';
 import { ChevronRightIcon } from '@lucide/vue';
 import { reactiveOmit } from '@vueuse/core';
+import { cn } from 'cn';
 import { PaginationNext, useForwardProps } from 'reka-ui';
 
 import { buttonVariants } from '../button';

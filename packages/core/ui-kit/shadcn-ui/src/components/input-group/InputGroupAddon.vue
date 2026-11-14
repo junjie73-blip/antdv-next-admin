@@ -3,7 +3,7 @@ import type { HTMLAttributes } from 'vue';
 
 import type { InputGroupVariants } from '.';
 
-import { cn } from '@antdv/shared/utils/cn';
+import { cn } from 'cn';
 
 import { inputGroupAddonVariants } from '.';
 
@@ -24,7 +24,9 @@ function handleInputGroupAddonClick(e: MouseEvent) {
     return;
   }
   if (currentTarget && currentTarget?.parentElement) {
-    currentTarget.parentElement?.querySelector('input')?.focus();
+    currentTarget.parentElement
+      ?.querySelector<HTMLElement>('input, textarea')
+      ?.focus();
   }
 }
 </script>
