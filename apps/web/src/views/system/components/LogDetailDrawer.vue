@@ -45,7 +45,7 @@ defineExpose({ open });
       :data="record"
       :schema="schema"
       :column="column"
-      bordered
+      :label-width="96"
     />
   </BasicDrawer>
 </template>

@@ -1,4 +1,4 @@
-import { ROLE_DB } from '../../../utils/db/role';
+import { ROLE_DB, syncRoleMenuLinks } from '../../../utils/db/role';
 import { bizError, success } from '../../../utils/response';
 import { defineMockRoute } from '../../../utils/runtime';
 
@@ -20,7 +20,11 @@ export default defineMockRoute({
       }),
       ...(data.sort !== undefined && { sort: Number(data.sort) }),
       ...(data.status !== undefined && { status: Number(data.status) }),
+      ...(Array.isArray(data.menuIds) && { menuIds: data.menuIds.map(Number) }),
     };
+
+    // 角色↔菜单关联表同步（软删除维护）；不影响业务行 menuIds 双写契约
+    syncRoleMenuLinks(id, ROLE_DB[idx]!.menuIds);
 
     return success(ROLE_DB[idx], '更新角色成功');
   },

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
+import { deterministicRatio } from '~/utils/deterministic';
 
 import { Card, CountTo } from '@antdv/common-ui';
 import { Button } from '@antdv/shadcn-ui';
@@ -143,7 +144,7 @@ const dynamicTipClassName = cn('mt-4 text-sm text-gray-400');
  */
 function updateDynamicValue() {
   // 生成随机数值：1000 ~ 9999
-  dynamicEndVal.value = Math.floor(Math.random() * 9000) + 1000;
+  dynamicEndVal.value = Math.floor(deterministicRatio() * 9000) + 1000;
 }
 
 /**
@@ -522,7 +523,7 @@ function resetDynamicCounter() {
             </span>
             <span :class="index % 2 === 0 ? 'text-green-500' : 'text-red-500'">
               {{ index % 2 === 0 ? '+' : '-'
-              }}{{ Math.floor(Math.random() * 20 + 5) }}%
+              }}{{ Math.floor(deterministicRatio() * 20 + 5) }}%
             </span>
             <span :class="trendTextClassName">较上月</span>
           </div>

@@ -2,7 +2,7 @@
 import type { FormSchema } from '@antdv/form-ui';
 import type { BasicColumn } from '@antdv/table-ui';
 
-import { computed, ref, useTemplateRef } from 'vue';
+import { computed, onMounted, ref, useTemplateRef } from 'vue';
 
 import {
   Alert,
@@ -26,9 +26,15 @@ import {
 import { Button, Input } from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/utils/cn';
 import { BasicTable, useTable } from '@antdv/table-ui';
-import { faker } from '@faker-js/faker/locale/zh_CN';
 import { Icon } from '@iconify/vue';
-import { addPost, deletePost, getPostList, updatePost } from '~/api/system';
+import {
+  addPost,
+  deletePost,
+  getDeptTree,
+  getPostList,
+  getUserList,
+  updatePost,
+} from '~/api/system';
 import { useDictStore } from '~/stores';
 
 defineOptions({ name: 'SystemPost' });
@@ -95,39 +101,37 @@ interface DeptTreeNode {
   children?: DeptTreeNode[];
 }
 
-const deptTreeData: DeptTreeNode[] = [
-  {
-    id: 1,
-    name: '总公司',
-    children: [
-      { id: 2, name: '技术部' },
-      { id: 3, name: '产品部' },
-      { id: 4, name: '市场部' },
-      { id: 5, name: '运营部' },
-      { id: 6, name: '财务部' },
-      { id: 7, name: '人事部' },
-      { id: 8, name: '行政部' },
-    ],
-  },
-];
+/** 部门树来自真实部门接口；异步回填后由函数式 componentProps 自动刷新 */
+const deptTreeData = ref<DeptTreeNode[]>([]);
 
-// 用户池 — 用于分配用户功能
-faker.seed(2024);
+// 用户池 — 用于分配用户功能，数据来自真实用户列表接口
 const userPool = ref<UserRecord[]>([]);
 
-// 初始化用户池
-for (let i = 1; i <= 30; i++) {
-  userPool.value.push({
-    id: i,
-    username: `user_${String(i).padStart(3, '0')}`,
-    nickname: faker.person.fullName(),
-    avatar: undefined,
-    deptName:
-      ['技术部', '产品部', '市场部', '运营部'][
-        faker.number.int({ min: 0, max: 3 })
-      ] || '未分配',
-  });
-}
+onMounted(async () => {
+  try {
+    const [deptRes, userRes] = await Promise.all([
+      getDeptTree(),
+      getUserList({ pageNum: 1, pageSize: 200 }),
+    ]);
+    const depts = (Array.isArray(deptRes) ? deptRes : ((deptRes as { data?: unknown })?.data ?? [])) as DeptTreeNode[];
+    deptTreeData.value = depts;
+    const data = (userRes as { data?: unknown })?.data ?? userRes;
+    const rows = ((data as { list?: unknown })?.list ?? []) as Array<
+      Record<string, unknown>
+    >;
+    userPool.value = rows.map((row) => ({
+      id: Number(row.id),
+      username: String(row.username ?? ''),
+      nickname: String(row.nickname ?? row.username ?? ''),
+      avatar: typeof row.avatar === 'string' ? row.avatar : undefined,
+      deptName: String(row.deptName ?? ''),
+    }));
+  } catch (cause) {
+    const detail = cause instanceof Error ? cause.message : '未知错误';
+    console.error('[post] 基础数据加载失败', cause);
+    message.error(`部门/用户数据加载失败：${detail}，请刷新页面重试`);
+  }
+});
 
 // ========== 状态管理 ==========
 const isEditing = ref(false);
@@ -159,13 +163,13 @@ const searchFormSchemas: FormSchema[] = [
     label: '所属部门',
     component: 'TreeSelect',
     colProps: { span: 6 },
-    componentProps: {
-      treeData: deptTreeData,
+    componentProps: () => ({
+      treeData: deptTreeData.value,
       fieldNames: { children: 'children', label: 'name', value: 'id' },
       placeholder: '选择部门',
       allowClear: true,
       treeDefaultExpandAll: true,
-    },
+    }),
   },
   {
     field: 'status',
@@ -204,12 +208,12 @@ const modalFormSchemas: FormSchema[] = [
     component: 'TreeSelect',
     required: true,
     colProps: { span: 24 },
-    componentProps: {
-      treeData: deptTreeData,
+    componentProps: () => ({
+      treeData: deptTreeData.value,
       fieldNames: { children: 'children', label: 'name', value: 'id' },
       placeholder: '请选择所属部门',
       treeDefaultExpandAll: true,
-    },
+    }),
   },
   {
     field: 'sortOrder',
@@ -245,11 +249,17 @@ const modalFormSchemas: FormSchema[] = [
 ];
 
 // ========== API 适配层 ==========
-async function mockApi(params: Record<string, any>) {
-  const res = await getPostList(params);
-  // 兼容 mock 直接返回完整响应或已解包的数据
-  const data = res?.data ?? res;
-  return { items: data?.list || [], total: data?.total || 0 };
+async function postListApi(params: Record<string, any>) {
+  try {
+    const res = await getPostList(params);
+    const data = (res as { data?: unknown })?.data ?? res;
+    const payload = data as { list?: unknown[]; total?: number } | undefined;
+    return { items: payload?.list ?? [], total: payload?.total ?? 0 };
+  } catch (cause) {
+    const detail = cause instanceof Error ? cause.message : '未知错误';
+    message.error(`岗位列表加载失败：${detail}`);
+    return { items: [], total: 0 };
+  }
 }
 
 // ========== 分配用户相关计算属性与方法 ==========
@@ -464,7 +474,7 @@ const columns: BasicColumn[] = [
       <BasicTable
         ref="tableRef"
         :columns="columns"
-        :api="mockApi"
+        :api="postListApi"
         :immediate="true"
         :use-search-form="true"
         :form-config="{ schemas: searchFormSchemas, labelWidth: 80 }"

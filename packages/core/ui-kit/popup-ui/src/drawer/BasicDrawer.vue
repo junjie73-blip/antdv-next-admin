@@ -427,7 +427,18 @@ const cancelBtn = computed(() =>
             <slot></slot>
           </div>
         </ScrollArea>
-        <div v-else :class="merged.useWrapper ? 'p-4' : ''">
+        <!--
+          调用方自带滚动（bodyScroll=false）时这层不再接管滚动，但必须接住高度：
+          drawer-body 是 flex 列，若这里是无约束的普通 div，插槽里 `h-full` 的内容列
+          参照不到高度会按内容撑开（实测偏好抽屉撑到 2547px），ScrollArea/Scrollbar
+          的 flex-1 随之失效、没有可滚溢出，最终被 drawer-body 的 overflow-hidden 裁掉 ——
+          表现就是"中间滚不动、底部内容够不着、footer 和内容糊在一起"。
+          补上 flex 高度链，让插槽的 h-full 落到 drawer-body 的确定高度上。
+        -->
+        <div
+          v-else
+          :class="cn('flex min-h-0 flex-1 flex-col', merged.useWrapper && 'p-4')"
+        >
           <slot></slot>
         </div>
       </div>

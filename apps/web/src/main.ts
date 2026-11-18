@@ -25,7 +25,6 @@ import {
   vPermission,
 } from './directives';
 import i18n from './locales';
-import { installBrowserMockIfEnabled } from './mock/activate';
 import { configureLayoutsHost } from './plugins/layouts-host';
 import { configureRequestRuntime } from './plugins/request-runtime';
 import { configureTableRuntime } from './plugins/table-runtime';
@@ -124,7 +123,7 @@ app.directive('loading', vLoading);
 app.component('PdfViewer', VuePdfEmbed);
 GlobalWorkerOptions.workerSrc = PdfWorker;
 
-/** 挂载。前面的异步准备工作（mock、会话）都做完才能进来，见 `bootstrap` */
+/** 挂载。前面的异步准备工作（会话还原）做完才能进来，见 `bootstrap` */
 function mountApp() {
   app.mount('#app');
   /**
@@ -135,25 +134,20 @@ function mountApp() {
 }
 
 /**
- * 启动序列。三件事的顺序是硬约束：
+ * 启动序列。两件事的顺序是硬约束：
  *
- * 1. 装浏览器内 mock —— 开关是 `VITE_MOCK`（走 `isEnvEnabled` 判定，见 `src/mock/activate.ts`），
- *    关着时拦截器模块连下载都不会发生；晚一步守卫就已经在打真实网络了。
- *    chunk 没拉下来（弱网、发版换 hash）也要继续往下走，宁可退回真实后端也别整页白屏。
- * 2. 还原会话 —— `setToken` 落盘的是 JWE 密文，而 store 建好时只能同步读缓存，
+ * 1. 还原会话 —— `setToken` 落盘的是 JWE 密文，而 store 建好时只能同步读缓存，
  *    所以刷新后 `token` 里是一串密文：`isLoggedIn` 为真，请求头却是 `Bearer <密文>`，
- *    后端认不出人，表现成"每次刷新都要重登"，在按 token 分账号的 mock 上还会
- *    回落到默认账号（换成权限更小的账号，刷一次页面拿到的是别人的菜单）。
- * 3. 装路由 + 挂载。
+ *    后端认不出人，表现成"每次刷新都要重登"。
+ * 2. 装路由 + 挂载。
  *
- * 1、2 必须**早于** `setupRouter`：`app.use(router)` 一执行，vue-router 的 install
+ * 1 必须**早于** `setupRouter`：`app.use(router)` 一执行，vue-router 的 install
  * 就立刻发起首次导航（内部 `push(routerHistory.location)`），守卫在那一刻就去取
  * `/menus` —— 等到 `app.mount` 之后再解密已经晚了。
+ *
+ * 浏览器内请求拦截层已下线，所有 `/api` 一律走真实后端服务。
  */
 async function bootstrap() {
-  await installBrowserMockIfEnabled().catch((error: unknown) =>
-    console.error('[mock] 浏览器内 mock 装载失败', error),
-  );
   await useUserStore()
     .initToken()
     .catch((error: unknown) =>

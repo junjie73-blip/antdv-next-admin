@@ -138,6 +138,13 @@ export interface DescriptionProps {
   bordered?: boolean;
 
   /**
+   * label 统一宽度（数字按 px 处理，也可用 '6rem' 这类字符串）。
+   * 详情抽屉里设为固定值可让长短不一的 label 右对齐、content 左对齐；
+   * 不传则保持 label 宽度随内容撑开的默认行为。
+   */
+  labelWidth?: number | string;
+
+  /**
    * 是否显示冒号
    * @default true
    */

@@ -117,8 +117,8 @@ async function load() {
     const res = await getDeptTree();
     const rows = unwrapApi<unknown>(res);
     tree.value = (Array.isArray(rows) ? rows : []) as DeptNode[];
-  } catch (error) {
-    error.value = error instanceof Error ? error.message : '部门树接口暂不可用';
+  } catch (cause) {
+    error.value = cause instanceof Error ? cause.message : '部门树接口暂不可用';
   } finally {
     loading.value = false;
   }

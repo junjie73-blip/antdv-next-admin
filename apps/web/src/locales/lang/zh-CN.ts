@@ -172,8 +172,6 @@ export default {
     MonitorLog: '系统日志',
     MonitorLoginLog: '登录日志',
     ScreenMonitor: '实时监控大屏',
-    Security: '安全能力',
-    SecurityDashboard: '安全看板',
     SystemDept: '部门管理',
     SystemFile: '文件管理',
     SystemManage: '系统管理',

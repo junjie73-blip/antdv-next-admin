@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
+import { deterministicRatio } from '~/utils/deterministic';
 
 import { Alert, Card, Divider, Scrollbar, Space, Tag } from '@antdv/common-ui';
 import {
@@ -47,7 +48,7 @@ const propsLog = ref<string[]>([]);
 
 function handleOpenFormModal() {
   const payload = {
-    id: Math.floor(1000 + Math.random() * 9000),
+    id: Math.floor(1000 + deterministicRatio() * 9000),
     name: '张三',
     email: 'zhangsan@example.com',
     department: '研发部',

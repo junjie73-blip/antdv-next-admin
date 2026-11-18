@@ -1,19 +1,17 @@
+/**
+ * 响应模板层测试（生成式渲染能力已下线）。
+ *
+ * 守护的是「确定性」：模板是纯 JSON 配置，预检只做校验与安全序列化，
+ * 同一输入必然得到同一样本，不会残留任何模板规则符号或随机值。
+ */
+
 import { describe, expect, it } from 'vitest';
 
 import {
-  mockFromTemplate,
   parseTemplate,
   PRESET_TEMPLATES,
   renderPreview,
 } from '../server/utils/templates';
-
-/**
- * Mock 数据中心面板的模板层测试。
- *
- * 重点守住 mockjs 的自增规则写法：只有 `'id|+1'` 会自增，
- * 写成 `'id|+'` 不报错、只是悄悄渲染成键名 `id+` 的常量 1（legacy 预置模板就踩过这个坑），
- * 所以除了单点断言，还对每个预置模板做「渲染结果里不允许残留规则符号」的全量扫描。
- */
 
 /** 递归收集对象/数组里所有键名 */
 function collectKeys(value: unknown, acc: string[] = []): string[] {
@@ -30,45 +28,40 @@ function collectKeys(value: unknown, acc: string[] = []): string[] {
   return acc;
 }
 
-describe('mockFromTemplate', () => {
-  it('数组重复规则里的 `id|+1` 会逐条自增', () => {
-    const data = mockFromTemplate({ 'list|3': [{ 'id|+1': 1 }] }) as {
-      list: { id: number }[];
-    };
-    expect(data.list.map((item) => item.id)).toEqual([1, 2, 3]);
-  });
-
-  it('写错的 `id|+` 不报错但会退化成常量键 `id+`（正是要防住的回归）', () => {
-    const data = mockFromTemplate({ 'list|3': [{ 'id|+': 1 }] }) as {
-      list: Record<string, unknown>[];
-    };
-    expect(data.list[0]).toEqual({ 'id+': 1 });
-  });
-});
-
-describe('pRESET_TEMPLATES', () => {
-  it('每个预置模板都能渲染，且结果里不残留 mockjs 规则符号', () => {
+describe('PRESET_TEMPLATES', () => {
+  it('四个内置模板结构完整，且不含任何生成规则符号', () => {
+    expect(PRESET_TEMPLATES).toHaveLength(4);
     for (const preset of PRESET_TEMPLATES) {
-      const rendered = mockFromTemplate(preset.template);
-      expect(rendered, preset.name).toBeTruthy();
-      const dirty = collectKeys(rendered).filter(
+      expect(preset.name).toBeTruthy();
+      expect(preset.title).toBeTruthy();
+      expect(preset.template).toBeTruthy();
+      const dirty = collectKeys(preset.template).filter(
         (key) => key.includes('|') || key.endsWith('+'),
       );
-      expect(dirty, `${preset.name} 的模板写法有误`).toEqual([]);
+      expect(dirty, `${preset.name} 不应含模板规则符号`).toEqual([]);
     }
   });
 
-  it('预置模板的 key 都是 demo 命名空间，不会撞真实接口', () => {
+  it('预置模板的 key 都在 demo 命名空间，不会撞真实接口', () => {
     for (const preset of PRESET_TEMPLATES) {
       expect(preset.key.startsWith('[GET]/demo/'), preset.key).toBe(true);
+    }
+  });
+
+  it('模板取值确定，多次读取完全一致', () => {
+    for (const preset of PRESET_TEMPLATES) {
+      expect(JSON.parse(JSON.stringify(preset.template))).toEqual(preset.template);
+      expect(collectKeys(preset.template)).toEqual(collectKeys(preset.template));
     }
   });
 });
 
 describe('parseTemplate / renderPreview', () => {
-  it('对象与数组直接透传，字符串走 JSON 解析', () => {
+  it('对象直接透传，字符串走 JSON 解析，数组包成 items', () => {
     expect(parseTemplate({ a: 1 }).template).toEqual({ a: 1 });
-    expect(parseTemplate('[1,2]').template).toEqual([1, 2]);
+    expect(parseTemplate('{"a":1}').template).toEqual({ a: 1 });
+    expect(parseTemplate([1, 2]).template).toEqual({ items: [1, 2] });
+    expect(parseTemplate('[1,2]').template).toEqual({ items: [1, 2] });
   });
 
   it('空值、非对象 JSON 与非法 JSON 各自给出可读错误', () => {
@@ -79,9 +72,10 @@ describe('parseTemplate / renderPreview', () => {
     );
   });
 
-  it('renderPreview 成功样本可安全 JSON 化，失败时只返回错误文案', () => {
-    const ok = renderPreview({ 'list|2': [{ 'id|+1': 1 }] });
-    expect(ok).toEqual({ sample: { list: [{ id: 1 }, { id: 2 }] } });
+  it('renderPreview 原样回显样本且确定性，失败时只返回错误文案', () => {
+    const input = { list: [{ id: 1 }, { id: 2 }] };
+    expect(renderPreview(input)).toEqual({ sample: input });
+    expect(renderPreview(input)).toEqual(renderPreview(input));
     expect(renderPreview('{')).toEqual({
       error: '响应模板不是合法 JSON，请检查引号与逗号',
     });

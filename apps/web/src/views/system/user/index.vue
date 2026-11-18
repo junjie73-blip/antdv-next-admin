@@ -3,6 +3,7 @@ import type { FormSchema } from '@antdv/form-ui';
 import type { BasicColumn } from '@antdv/table-ui';
 
 import { computed, onMounted, ref } from 'vue';
+import { useRouter } from 'vue-router';
 
 import {
   Card,
@@ -31,6 +32,8 @@ import {
 } from '~/api/system';
 import { useDictStore } from '~/stores';
 defineOptions({ name: 'SystemUser' });
+
+const router = useRouter();
 
 interface UserRecord {
   id: number;
@@ -121,8 +124,10 @@ onMounted(async () => {
       label: item.label,
       value: item.value,
     }));
-  } catch (error) {
-    console.error('获取基础数据失败', error);
+  } catch (cause) {
+    const detail = cause instanceof Error ? cause.message : '未知错误';
+    console.error('获取基础数据失败', cause);
+    message.error(`部门/角色选项加载失败：${detail}，请刷新页面重试`);
   }
 });
 
@@ -137,16 +142,22 @@ const [tableRegister, tableMethods] = useTable();
 const [formRegister, formMethods] = useForm();
 
 // API 适配层 — 将 API 返回的 { list, total } 转换为 BasicTable 需要的 { items, total }
-async function mockApi(params: Record<string, any>) {
+async function listApi(params: Record<string, any>) {
   // 合并选中的部门ID作为筛选条件
   const requestParams = {
     ...params,
     ...(selectedDeptId.value !== null && { deptId: selectedDeptId.value }),
   };
-  const res = await getUserList(requestParams);
-  // 兼容 mock 直接返回完整响应或已解包的数据
-  const data = res?.data ?? res;
-  return { items: data?.list || [], total: data?.total || 0 };
+  try {
+    const res = await getUserList(requestParams);
+    const data = (res as { data?: unknown })?.data ?? res;
+    const payload = data as { list?: unknown[]; total?: number } | undefined;
+    return { items: payload?.list ?? [], total: payload?.total ?? 0 };
+  } catch (cause) {
+    const detail = cause instanceof Error ? cause.message : '未知错误';
+    message.error(`用户列表加载失败：${detail}`);
+    return { items: [], total: 0 };
+  }
 }
 
 const searchFormSchemas: FormSchema[] = [
@@ -164,11 +175,11 @@ const searchFormSchemas: FormSchema[] = [
     field: 'status',
     label: '状态',
     component: 'Select',
-    componentProps: {
+    componentProps: () => ({
       placeholder: '选择状态',
       allowClear: true,
       options: statusOptions.value,
-    },
+    }),
     colProps: { span: 6 },
   },
 ];
@@ -210,21 +221,21 @@ const modalFormSchemas: FormSchema[] = [
     field: 'deptId',
     label: '部门',
     component: 'TreeSelect',
-    componentProps: {
+    componentProps: () => ({
       treeData: mockDeptTree.value,
       fieldNames: { children: 'children', label: 'name', value: 'id' },
       placeholder: '请选择部门',
       treeDefaultExpandAll: true,
-    },
+    }),
   },
   {
     field: 'roleId',
     label: '角色',
     component: 'Select',
-    componentProps: {
+    componentProps: () => ({
       options: roleOptions.value,
       placeholder: '请选择角色',
-    },
+    }),
   },
   {
     field: 'sortOrder',
@@ -286,8 +297,12 @@ function handleAdd() {
   modalMethods.openModal();
 }
 
+/** 跳通用记录详情页（module + id 由后端下发分组定义） */
 function handleDetail(record: UserRecord) {
-  message.info(`查看用户详情：${record.nickname}`);
+  router.push({
+    path: '/system/record-detail',
+    query: { module: 'user', id: String(record.id) },
+  });
 }
 
 function handleEdit(record: UserRecord) {
@@ -511,7 +526,7 @@ const columns: BasicColumn[] = [
         </template>
         <BasicTable
           :columns="columns"
-          :api="mockApi"
+          :api="listApi"
           :immediate="true"
           :use-search-form="true"
           :form-config="{ schemas: searchFormSchemas, labelWidth: 80 }"

@@ -60,8 +60,8 @@ async function load() {
   try {
     const res = await getRecordDetail(moduleKey.value, recordId.value);
     detail.value = unwrapApi<null | RecordDetailData>(res) ?? null;
-  } catch (error) {
-    error.value = error instanceof Error ? error.message : '详情接口暂不可用';
+  } catch (cause) {
+    error.value = cause instanceof Error ? cause.message : '详情接口暂不可用';
   } finally {
     loading.value = false;
   }

@@ -11,8 +11,7 @@
     "test:unit": "pnpm vitest run",
     "test:e2e": "pnpm playwright test",
     "test:e2e:install": "pnpm playwright install chromium firefox webkit",
-    "type-check": "vue-tsc --noEmit -p tsconfig.app.json && vue-tsc --noEmit -p tsconfig.vitest.json",
-    "verify:prod-mock": "node scripts/verify-prod-mock.mjs"
+    "type-check": "vue-tsc --noEmit -p tsconfig.app.json && vue-tsc --noEmit -p tsconfig.vitest.json"
   },
   "dependencies": {
     "@antdv/common-ui": "workspace:*",
@@ -106,7 +105,6 @@
   "devDependencies": {
     "@antdv/tsconfig": "workspace:*",
     "@antdv/vite-config": "workspace:*",
-    "@faker-js/faker": "catalog:",
     "@iconify-json/ant-design": "catalog:",
     "@iconify-json/fa6-regular": "catalog:",
     "@iconify-json/lucide": "catalog:",

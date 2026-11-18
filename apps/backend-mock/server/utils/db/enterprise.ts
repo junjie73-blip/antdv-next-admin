@@ -1,13 +1,15 @@
 /**
  * 企业能力演示数据集：工作流 / AI 资源 / 报表。
  *
- * 与 `login-log.ts` 那种「每次启动用 Math.random 现造」的旧演示数据不同，这里全部是
+ * 这里全部是
  * 固定种子常量：页面刷新、重启 mock 服务、跑单测，看到的是同一批记录，方便把
  * 「筛选 / 排序 / 分页 / 统计」写成可断言的纯函数。
  *
  * 数据只留在 backend-mock 子包，web 侧一律经 `~/api/enterprise` 取，
  * 页面里不再内嵌假数据 —— 这样换成真实后端时只换 handler，不动页面。
  */
+
+import { defineCollection } from './sqlite';
 
 export type WorkflowStatus = 'disabled' | 'draft' | 'published';
 export type InstanceStatus =
@@ -1047,13 +1049,18 @@ export function selectResources(
 }
 
 /**
- * 流程定义的进程内可变副本。
+ * 流程定义的可变副本（SQLite 迁移 P2 · workflow）。
  *
- * 列表 / 新建 / 编辑 / 启停 / 删除共用这一份，改完刷新列表能看到结果；
+ * 列表 / 新建 / 编辑 / 启停 / 删除共用这一份：handler 对 `items` 做的
+ * `findIndex` / `unshift` / `splice` / 索引赋值都由 `defineCollection` 的
+ * 透明代理承接，SQLite 下自动落库、重启不丢，handler 一行不用改；
  * 常量 `WORKFLOW_DEFINITIONS` 保持只读，供单测当作基准数据用。
  */
 export const WORKFLOW_STORE: { items: WorkflowDefinition[] } = {
-  items: [...WORKFLOW_DEFINITIONS],
+  items: defineCollection<WorkflowDefinition>({
+    seed: () => WORKFLOW_DEFINITIONS.map((item) => ({ ...item })),
+    table: 'tb_workflow',
+  }),
 };
 
 /** 生成一条新流程定义：缺字段一律走安全默认值，不信任请求体 */

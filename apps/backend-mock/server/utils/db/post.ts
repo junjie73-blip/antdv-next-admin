@@ -2,10 +2,10 @@
  * 岗位内存库（legacy mock/post.fake.ts 的数据层）
  */
 
-import { faker } from '@faker-js/faker/locale/zh_CN';
+import { builtin } from '../builtin-data';
+import { defineCollection, isSqliteEnabled, nextBizId } from './sqlite';
 import dayjs from 'dayjs';
 
-faker.seed(2024);
 
 export interface PostRecord {
   code: string;
@@ -173,20 +173,20 @@ function generatePostData(): PostRecord[] {
     deptId: tpl.deptId,
     deptName: DEPT_MAP[tpl.deptId] || '',
     sortOrder: index + 1,
-    status: faker.datatype.boolean(0.9) ? 1 : 0,
+    status: builtin.datatype.boolean(0.9) ? 1 : 0,
     remark: tpl.remark,
     createdAt: baseDate
-      .add(faker.number.int({ min: 0, max: 180 }), 'day')
+      .add(builtin.number.int({ min: 0, max: 180 }), 'day')
       .format('YYYY-MM-DD HH:mm:ss'),
-    userCount: faker.number.int({ min: 0, max: 8 }),
+    userCount: builtin.number.int({ min: 0, max: 8 }),
     userIds: [],
   }));
 }
 
-export const POST_DB = generatePostData();
+export const POST_DB = defineCollection({ seed: generatePostData, table: 'tb_post' });
 let autoIncrementId = 22;
 
 /** 新增岗位自增 id */
 export function nextPostId(): number {
-  return autoIncrementId++;
+  return isSqliteEnabled() ? nextBizId('tb_post') : autoIncrementId++;
 }

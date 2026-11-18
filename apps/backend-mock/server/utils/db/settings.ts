@@ -2,10 +2,10 @@
  * 系统设置内存库（legacy mock/settings.fake.ts 的数据层）
  */
 
-import { faker } from '@faker-js/faker/locale/zh_CN';
+import { BUILTIN_NOW, builtin } from '../builtin-data';
+import { defineCollection, isSqliteEnabled, nextBizId } from './sqlite';
 import dayjs from 'dayjs';
 
-faker.seed(200);
 
 export type SettingType = 'boolean' | 'json' | 'number' | 'text';
 
@@ -22,7 +22,7 @@ export interface SettingItem {
   value: boolean | number | string;
 }
 
-export const SETTINGS_DB: SettingItem[] = [];
+export const SETTINGS_DB: SettingItem[] = defineCollection<SettingItem>({ seed: () => [], table: 'tb_settings' });
 let autoIncrementId = 16;
 
 function initSettingsDB() {
@@ -33,7 +33,7 @@ function initSettingsDB() {
     {
       key: 'site_name',
       name: '站点名称',
-      value: 'Antdv Next Admin',
+      value: 'Antdv Admin',
       type: 'text' as SettingType,
       description: '系统前台显示的站点名称',
     },
@@ -47,14 +47,14 @@ function initSettingsDB() {
     {
       key: 'site_copyright',
       name: '版权信息',
-      value: '© 2024 Antdv Next Admin. All rights reserved.',
+      value: '© 2026 Antdv Admin. All rights reserved.',
       type: 'text' as SettingType,
       description: '页面底部版权信息',
     },
     {
       key: 'site_icp',
       name: 'ICP备案号',
-      value: '京ICP备XXXXXXXX号',
+      value: '',
       type: 'text' as SettingType,
       description: '网站备案号码',
     },
@@ -167,11 +167,11 @@ function initSettingsDB() {
     SETTINGS_DB.push({
       id: index + 1,
       ...setting,
-      enabled: faker.datatype.boolean(0.9),
+      enabled: builtin.datatype.boolean(0.9),
       createdAt: baseDate
-        .add(faker.number.int({ min: 0, max: 180 }), 'day')
+        .add(builtin.number.int({ min: 0, max: 180 }), 'day')
         .format('YYYY-MM-DD HH:mm:ss'),
-      updatedAt: dayjs().format('YYYY-MM-DD HH:mm:ss'),
+      updatedAt: BUILTIN_NOW,
     });
   });
 }
@@ -179,5 +179,5 @@ initSettingsDB();
 
 /** 新增配置自增 id */
 export function nextSettingId(): number {
-  return autoIncrementId++;
+  return isSqliteEnabled() ? nextBizId('tb_settings') : autoIncrementId++;
 }

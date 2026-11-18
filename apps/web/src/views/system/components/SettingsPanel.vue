@@ -266,7 +266,7 @@ const modalFormSchemas: FormSchema[] = [
   },
 ];
 
-async function mockApi(params: Record<string, any>) {
+async function listApi(params: Record<string, any>) {
   const res = await getSettingsList(params);
   const data = res?.data ?? res;
   return { items: data?.list || [], total: data?.total || 0 };
@@ -403,7 +403,7 @@ const columns: BasicColumn[] = [
   <Card title="参数设置" :class="cardClassName">
     <BasicTable
       :columns="columns"
-      :api="mockApi"
+      :api="listApi"
       :immediate="true"
       :use-search-form="true"
       :form-config="{ schemas: searchFormSchemas, labelWidth: 80 }"
@@ -512,7 +512,7 @@ const columns: BasicColumn[] = [
         :data="viewingRecord"
         :schema="detailSchemas"
         :column="1"
-        bordered
+        :label-width="96"
       />
     </BasicDrawer>
   </Card>

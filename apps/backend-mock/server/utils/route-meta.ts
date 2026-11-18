@@ -53,8 +53,8 @@ export function shouldInjectFailure(
 }
 
 /**
- * 面板生成接口的展示路径。legacy 会真的写出 mock/generated/<id>.fake.ts 供插件热加载，
- * Nitro 改为把定义持久化进 store（见 server/middleware/generated.ts），字段保留只为面板展示兼容。
+ * 自定义接口的展示路径（历史命名规则）。
+ * 生成式响应能力已下线，该字段仅为保持既有接口返回结构兼容。
  */
 export function generatedFileOf(id: string): string {
   return `mock/generated/${id}.fake.ts`;

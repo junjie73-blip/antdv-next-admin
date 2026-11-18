@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Ref } from 'vue';
+import { deterministicRatio } from '~/utils/deterministic';
 
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
 import { RouterLink } from 'vue-router';
@@ -294,13 +295,13 @@ function initMainTrend() {
 
   const days = Array.from({ length: 30 }, (_, i) => `${i + 1}日`);
   const pv = Array.from({ length: 30 }, () =>
-    Math.floor(Math.random() * 5000 + 3000),
+    Math.floor(deterministicRatio() * 5000 + 3000),
   );
   const uv = Array.from({ length: 30 }, () =>
-    Math.floor(Math.random() * 2000 + 800),
+    Math.floor(deterministicRatio() * 2000 + 800),
   );
   const apiCalls = Array.from({ length: 30 }, () =>
-    Math.floor(Math.random() * 80_000 + 40_000),
+    Math.floor(deterministicRatio() * 80_000 + 40_000),
   );
 
   instance.setOption(
@@ -588,11 +589,11 @@ function initActivityHeatmap() {
   );
   const errorRates = hours.map((_, i) => {
     const baseError =
-      i >= 9 && i <= 18 ? 0.8 + Math.random() * 1.5 : 0.1 + Math.random() * 0.4;
-    const spike = Math.random() > 0.9 ? 3 + Math.random() * 2 : 0;
+      i >= 9 && i <= 18 ? 0.8 + deterministicRatio() * 1.5 : 0.1 + deterministicRatio() * 0.4;
+    const spike = deterministicRatio() > 0.9 ? 3 + deterministicRatio() * 2 : 0;
     return Number((baseError + spike).toFixed(2));
   });
-  const errors4xx = hours.map(() => Number((Math.random() * 0.8).toFixed(2)));
+  const errors4xx = hours.map(() => Number((deterministicRatio() * 0.8).toFixed(2)));
   const errors5xx = hours.map((v, i) => {
     const val = errorRates[i]! - errors4xx[i]!;
     return Number(Math.max(0, val).toFixed(2));
@@ -754,7 +755,7 @@ function initModuleRank() {
     const sorted = modules
       .map((name, i) => ({
         name,
-        value: current[i]! + Math.round(Math.random() * 30 - 15),
+        value: current[i]! + Math.round(deterministicRatio() * 30 - 15),
       }))
       .sort((a, b) => b.value - a.value);
 

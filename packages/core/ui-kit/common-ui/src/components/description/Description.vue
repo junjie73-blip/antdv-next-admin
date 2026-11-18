@@ -33,6 +33,25 @@ const props = withDefaults(defineProps<DescriptionProps>(), {
 const slots = useSlots();
 
 /**
+ * 详情抽屉的 label/content 对齐：给了 labelWidth 就统一 label 宽度并右对齐，
+ * content 靠 DescriptionsItem 自带的 flex-1 左对齐。单项的 labelStyle 仍然优先。
+ */
+const normalizedLabelWidth = computed(() => {
+  const w = props.labelWidth;
+  if (w === undefined || w === null) return undefined;
+  return typeof w === 'number' ? `${w}px` : w;
+});
+function mergedLabelStyle(item: DescriptionItem): Record<string, string> | undefined {
+  if (!normalizedLabelWidth.value && !item.labelStyle) return undefined;
+  return {
+    ...(normalizedLabelWidth.value
+      ? { width: normalizedLabelWidth.value, textAlign: 'right' }
+      : {}),
+    ...item.labelStyle,
+  };
+}
+
+/**
  * 空值占位符与尺寸档位都兜底到 `ConfigProvider`：换语言时占位符跟着词条走，
  * 全局调档位时不用逐个页面补 `size`。显式 prop 仍然优先。
  */
@@ -215,7 +234,7 @@ defineExpose(instance);
         :span="item.span || 1"
       >
         <template #label>
-          <span :style="item.labelStyle">
+          <span :style="mergedLabelStyle(item)">
             <component :is="labelNode(item)" />
             <template v-if="colon">:</template>
           </span>

@@ -11,7 +11,9 @@ export default defineMockRoute({
     const page = Number(query.pageNum ?? query.page) || 1;
     const pageSize = Number(query.pageSize) || 10;
 
-    let filtered = [...ONLINE_DB];
+    // 在线用户列表只呈现当前有效会话：status=1 的历史/离线记录由登录日志记录，
+    // 不应混进"在线用户"口径（否则在线人数虚高、列表里出现"离线"标签）。
+    let filtered = ONLINE_DB.filter((u) => u.status === 0);
 
     if (keyword) {
       const kw = String(keyword).toLowerCase();

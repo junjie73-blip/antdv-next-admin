@@ -179,7 +179,7 @@ const list: BackendMenu[] = [
     // 登录日志已并入系统日志的「登录日志」标签页，不再单独成页。
     menuName: '系统监控',
     name: 'SystemMonitorGroup',
-    icon: 'carbon:monitor',
+    icon: 'carbon:analytics',
     path: '',
     children: [
       {
@@ -426,20 +426,6 @@ const list: BackendMenu[] = [
     ],
   },
   {
-    menuName: '安全能力',
-    name: 'Security',
-    icon: 'carbon:security',
-    path: '',
-    children: [
-      {
-        menuName: '安全看板',
-        name: 'SecurityDashboard',
-        icon: 'carbon:document-security',
-        path: '/security/dashboard',
-      },
-    ],
-  },
-  {
     menuName: '微前端',
     name: 'MicroApp',
     icon: 'carbon:cube',
@@ -502,82 +488,6 @@ const list: BackendMenu[] = [
         name: 'ProjectMembers',
         icon: 'carbon:group',
         path: '/project/members',
-      },
-    ],
-  },
-  {
-    // 模板中心：参考实现的「模板/设计器」入口聚合，Chat 接 shadcn-vue 的 AI 对话组件，
-    // 其余复用既有真实页（低代码 / 报表 / 图表 / 即时通讯 / 报表中心）并补占位页。
-    menuName: '模板中心',
-    name: 'Template',
-    icon: 'carbon:template',
-    path: '',
-    children: [
-      {
-        menuName: 'Chat',
-        name: 'TemplateChat',
-        icon: 'carbon:chat',
-        path: '/template/chat',
-      },
-      {
-        menuName: '日历',
-        name: 'TemplateCalendar',
-        icon: 'carbon:calendar',
-        path: '/template/calendar',
-      },
-      {
-        menuName: '文档预览',
-        name: 'TemplateDoc',
-        icon: 'carbon:document',
-        path: '/template/doc',
-      },
-      {
-        menuName: '文章列表',
-        name: 'TemplateArticle',
-        icon: 'carbon:blog',
-        path: '/template/article',
-      },
-      {
-        menuName: '瀑布流',
-        name: 'TemplateMasonry',
-        icon: 'carbon:grid',
-        path: '/template/masonry',
-      },
-      {
-        menuName: '定价',
-        name: 'TemplatePricing',
-        icon: 'carbon:currency',
-        path: '/template/pricing',
-      },
-      {
-        menuName: '低代码设计器',
-        name: 'EnterpriseLowcode',
-        icon: 'carbon:template',
-        path: '/enterprise/lowcode',
-      },
-      {
-        menuName: '报表设计器',
-        name: 'EnterpriseReport',
-        icon: 'carbon:chart-line',
-        path: '/enterprise/report',
-      },
-      {
-        menuName: '图表设计器',
-        name: 'TemplateChart',
-        icon: 'carbon:data-vis-4',
-        path: '/template/chart',
-      },
-      {
-        menuName: '即时通讯',
-        name: 'EnterpriseIm',
-        icon: 'carbon:chat',
-        path: '/enterprise/im',
-      },
-      {
-        menuName: '报表中心',
-        name: 'EnterpriseReportGallery',
-        icon: 'carbon:chart-line-data',
-        path: '/enterprise/report/gallery',
       },
     ],
   },

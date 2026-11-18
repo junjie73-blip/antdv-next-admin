@@ -146,7 +146,7 @@ interface CaptchaLogListData {
   total: number;
 }
 
-async function mockApi(params: Record<string, any>) {
+async function listApi(params: Record<string, any>) {
   const res = await getCaptchaLogList(params);
   const data = unwrapApi<CaptchaLogListData | null>(res);
   stats.value = data?.stats ?? { failed: 0, passed: 0, total: 0 };
@@ -242,7 +242,7 @@ const columns: BasicColumn[] = [
       <BasicTable
         :key="reloadKey"
         :columns="columns"
-        :api="mockApi"
+        :api="listApi"
         :immediate="true"
         :use-search-form="true"
         :form-config="{ schemas: searchFormSchemas, labelWidth: 90 }"

@@ -48,6 +48,7 @@ dev-list
 .turbo
 apps/backend-mock/.nitro
 apps/backend-mock/.output
+apps/backend-mock/.data
 
 # VitePress 本地缓存（dist 已被上面的 `dist` 规则覆盖）
 docs/.vitepress/cache

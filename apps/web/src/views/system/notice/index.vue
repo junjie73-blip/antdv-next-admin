@@ -184,7 +184,7 @@ async function loadAllData() {
  * BasicTable 的分页字段是 `pageNum` / `pageSize`（DEFAULT_FETCH_SETTING）。
  * 之前这里解构的是 `page`，永远是默认值 1 —— 点第 2 页拿到的仍是第一页。
  */
-async function mockApi(params: Record<string, any>) {
+async function listApi(params: Record<string, any>) {
   const page = Number(params.pageNum ?? params.page ?? 1) || 1;
   const pageSize = Number(params.pageSize ?? 10) || 10;
   const data = [...filteredData.value];
@@ -489,7 +489,7 @@ const columns: BasicColumn[] = [
 
       <BasicTable
         :columns="columns"
-        :api="mockApi"
+        :api="listApi"
         :immediate="true"
         :use-search-form="false"
         :action-column="{ width: 240, title: '操作', fixed: 'right' }"

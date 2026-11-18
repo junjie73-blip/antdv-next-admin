@@ -1,4 +1,7 @@
-import { faker } from '@faker-js/faker/locale/zh_CN';
+/**
+ * 新增用户：真实写入用户表；头像按用户 id 生成确定性地址，
+ * 不再用随机头像库。时间取请求真实时间（业务写入），其余字段来自入参。
+ */
 import dayjs from 'dayjs';
 
 import {
@@ -14,22 +17,24 @@ export default defineMockRoute({
   handler({ data }) {
     const dept = DEPT_LIST.find((d) => d.id === data.deptId);
     const role = ROLE_OPTIONS.find((r) => r.value === data.roleId);
+    const id = nextUserId();
+    const now = dayjs().format('YYYY-MM-DD HH:mm:ss');
 
     const newUser = {
-      id: nextUserId(),
+      id,
       username: String(data.username || ''),
       nickname: String(data.nickname || ''),
       email: String(data.email || ''),
       phone: String(data.phone || ''),
       gender: 1,
-      avatar: faker.image.avatar(),
+      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=user_${id}`,
       status: (data.status as 0 | 1) ?? 1,
       deptId: Number(data.deptId || 0),
       deptName: dept?.name || '',
       roles: role ? [role.label] : [],
       remark: String(data.remark || ''),
-      createdAt: dayjs().format('YYYY-MM-DD HH:mm:ss'),
-      updatedAt: dayjs().format('YYYY-MM-DD HH:mm:ss'),
+      createdAt: now,
+      updatedAt: now,
     };
 
     USER_DB.push(newUser);

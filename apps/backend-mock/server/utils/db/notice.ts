@@ -2,10 +2,10 @@
  * 通知内存库（legacy mock/notice.fake.ts 的数据层）
  */
 
-import { faker } from '@faker-js/faker/locale/zh_CN';
+import { BUILTIN_NOW, builtin } from '../builtin-data';
+import { defineCollection } from './sqlite';
 import dayjs from 'dayjs';
 
-faker.seed(600);
 
 const SENDERS = [
   '系统管理员',
@@ -32,11 +32,11 @@ export interface Notice {
   type: 1 | 2 | 3;
 }
 
-export const NOTICE_DB: Notice[] = [];
+export const NOTICE_DB: Notice[] = defineCollection<Notice>({ seed: () => [], table: 'tb_notice' });
 
 function initNoticeDB() {
   if (NOTICE_DB.length > 0) return;
-  const baseDate = dayjs().subtract(7, 'day');
+  const baseDate = dayjs(BUILTIN_NOW).subtract(7, 'day');
   const notices = [
     {
       title: '系统升级维护通知',
@@ -123,17 +123,17 @@ function initNoticeDB() {
   ];
   for (let i = 0; i < notices.length; i++) {
     const notice = notices[i]!;
-    const isRead = faker.datatype.boolean(0.6);
+    const isRead = builtin.datatype.boolean(0.6);
     NOTICE_DB.push({
       id: i + 1,
       ...notice,
       status: isRead ? 1 : 0,
-      sender: faker.helpers.arrayElement(SENDERS),
+      sender: builtin.helpers.arrayElement(SENDERS),
       sendTime: baseDate
-        .add(faker.number.int({ min: 0, max: 168 }), 'hour')
+        .add(builtin.number.int({ min: 0, max: 168 }), 'hour')
         .format('YYYY-MM-DD HH:mm:ss'),
       readTime: isRead
-        ? dayjs(faker.date.recent({ days: 3 })).format('YYYY-MM-DD HH:mm:ss')
+        ? dayjs(builtin.date.recent({ days: 3 })).format('YYYY-MM-DD HH:mm:ss')
         : undefined,
     });
   }

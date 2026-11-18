@@ -2,10 +2,10 @@
  * 操作日志内存库（legacy mock/log.fake.ts 的数据层）
  */
 
-import { faker } from '@faker-js/faker/locale/zh_CN';
+import { BUILTIN_NOW, builtin } from '../builtin-data';
+import { defineCollection } from './sqlite';
 import dayjs from 'dayjs';
 
-faker.seed(400);
 
 const OPER_TYPES = [
   '登录',
@@ -40,11 +40,11 @@ export interface OperLog {
   title: string;
 }
 
-export const OPER_LOG_DB: OperLog[] = [];
+export const OPER_LOG_DB: OperLog[] = defineCollection<OperLog>({ seed: () => [], table: 'tb_oper_log' });
 
 function initLogDB() {
   if (OPER_LOG_DB.length > 0) return;
-  const baseDate = dayjs().subtract(30, 'day');
+  const baseDate = dayjs(BUILTIN_NOW).subtract(30, 'day');
   const nicknames = [
     'admin',
     '张三',
@@ -58,33 +58,33 @@ function initLogDB() {
     '郑十一',
   ];
   for (let i = 0; i < 20; i++) {
-    const operType = faker.helpers.arrayElement(OPER_TYPES);
-    const isSuccess = faker.datatype.boolean(0.9);
+    const operType = builtin.helpers.arrayElement(OPER_TYPES);
+    const isSuccess = builtin.datatype.boolean(0.9);
     OPER_LOG_DB.push({
       id: i + 1,
-      operName: faker.helpers.arrayElement(nicknames),
+      operName: builtin.helpers.arrayElement(nicknames),
       operType,
       title: `${operType}操作`,
-      method: `com.antdv.controller.${faker.helpers.arrayElement(['User', 'Role', 'Dict', 'Menu', 'Log', 'Online', 'Notice', 'File', 'Config', 'Dept'])}${faker.helpers.arrayElement(['Controller', 'Service', 'ServiceImpl'])}.${faker.hacker.verb()}`,
-      requestMethod: faker.helpers.arrayElement(REQUEST_METHODS),
-      operatorType: faker.helpers.arrayElement([1, 2]),
-      operUrl: `/${faker.helpers.arrayElement(['system', 'api', 'admin', 'manage', 'controller'])}/${faker.helpers.arrayElement(['user', 'role', 'dict', 'menu', 'log', 'file', 'config'])}`,
-      operIp: faker.internet.ipv4(),
-      operLocation: `${faker.location.city()}${faker.location.state()}`,
+      method: `com.antdv.controller.${builtin.helpers.arrayElement(['User', 'Role', 'Dict', 'Menu', 'Log', 'Online', 'Notice', 'File', 'Config', 'Dept'])}${builtin.helpers.arrayElement(['Controller', 'Service', 'ServiceImpl'])}.${builtin.hacker.verb()}`,
+      requestMethod: builtin.helpers.arrayElement(REQUEST_METHODS),
+      operatorType: builtin.helpers.arrayElement([1, 2]),
+      operUrl: `/${builtin.helpers.arrayElement(['system', 'api', 'admin', 'manage', 'controller'])}/${builtin.helpers.arrayElement(['user', 'role', 'dict', 'menu', 'log', 'file', 'config'])}`,
+      operIp: builtin.internet.ipv4(),
+      operLocation: `${builtin.location.city()}${builtin.location.state()}`,
       operParam: JSON.stringify({
         page: 1,
         pageSize: 10,
-        keyword: faker.word.sample(),
+        keyword: builtin.word.sample(),
       }),
       jsonResult: isSuccess
         ? JSON.stringify({ code: 200, message: '操作成功' })
         : '',
       status: isSuccess ? 0 : 1,
-      errorMsg: isSuccess ? '' : faker.hacker.phrase(),
+      errorMsg: isSuccess ? '' : builtin.hacker.phrase(),
       operTime: baseDate
-        .add(faker.number.int({ min: 0, max: 720 }), 'hour')
+        .add(builtin.number.int({ min: 0, max: 720 }), 'hour')
         .format('YYYY-MM-DD HH:mm:ss'),
-      costTime: faker.number.int({ min: 5, max: 500 }),
+      costTime: builtin.number.int({ min: 5, max: 500 }),
     });
   }
 }

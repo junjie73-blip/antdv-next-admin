@@ -1,44 +1,58 @@
-import { faker } from '@faker-js/faker/locale/zh_CN';
+/**
+ * 安全态势统计：按威胁类型、来源地区、日期对真实安全事件做聚合。
+ * 原先每次请求即时取随机数，现在所有数值都来自持久化的事件记录。
+ */
 
+import { SECURITY_EVENTS } from '../../utils/db/security';
+import { countByDay, lastNDays } from '../../utils/derive';
 import { envelope } from '../../utils/response';
 import { defineMockRoute } from '../../utils/runtime';
 
-/**
- * 安全态势统计：legacy 每次请求即时取值（种子在 security 数据层模块加载时固定），
- * 因此同一进程内多次请求会得到延续的随机序列，这里保持同样行为。
- */
+const THREAT_KEYWORDS = ['XSS', 'SQL注入', 'CSRF', '暴力破解'] as const;
+const THREAT_NAMES = ['XSS攻击', 'SQL注入', 'CSRF攻击', '暴力破解', '扫描探测'] as const;
+const REGIONS = ['北京', '上海', '广州', '深圳', '杭州', '成都', '海外'] as const;
+
+/** 与旧 toLocaleDateString('zh-CN') 的展示格式一致 */
+function formatCN(date: string): string {
+  const [year, month, day] = date.split('-');
+  return `${Number(year)}/${Number(month)}/${Number(day)}`;
+}
+
 export default defineMockRoute({
-  handler: () =>
-    envelope(
+  handler: () => {
+    const events = [...SECURITY_EVENTS];
+
+    const threatDistribution = THREAT_NAMES.map((name, index) => ({
+      name,
+      value:
+        index < THREAT_KEYWORDS.length
+          ? events.filter((event) => event.title.includes(THREAT_KEYWORDS[index]!)).length
+          : events.filter(
+              (event) =>
+                event.type === 'attack_attempt' &&
+                !THREAT_KEYWORDS.some((keyword) => event.title.includes(keyword)),
+            ).length,
+    }));
+
+    const attackSources = REGIONS.map((region) => ({
+      region,
+      value: events.filter((event) => event.location === region).length,
+    }));
+
+    const days = lastNDays(14);
+    const daily = countByDay(days, events.map((event) => event.createdAt));
+    const dailyEvents = days.map((date, i) => ({ date: formatCN(date), count: daily[i]! }));
+    const responseTime = days.map((date, i) => ({
+      date: formatCN(date),
+      avgMs: 50 + daily[i]! * 20,
+    }));
+
+    return envelope(
       200,
-      {
-        threatDistribution: [
-          { name: 'XSS攻击', value: faker.number.int({ min: 20, max: 80 }) },
-          { name: 'SQL注入', value: faker.number.int({ min: 10, max: 50 }) },
-          { name: 'CSRF攻击', value: faker.number.int({ min: 15, max: 60 }) },
-          { name: '暴力破解', value: faker.number.int({ min: 30, max: 90 }) },
-          { name: '扫描探测', value: faker.number.int({ min: 40, max: 100 }) },
-        ],
-        attackSources: [
-          { region: '北京', value: faker.number.int({ min: 100, max: 500 }) },
-          { region: '上海', value: faker.number.int({ min: 80, max: 400 }) },
-          { region: '广州', value: faker.number.int({ min: 50, max: 300 }) },
-          { region: '深圳', value: faker.number.int({ min: 60, max: 350 }) },
-          { region: '杭州', value: faker.number.int({ min: 40, max: 200 }) },
-          { region: '成都', value: faker.number.int({ min: 30, max: 180 }) },
-          { region: '海外', value: faker.number.int({ min: 200, max: 800 }) },
-        ],
-        dailyEvents: Array.from({ length: 14 }, (_, i) => ({
-          date: faker.date.recent({ days: 14 - i }).toLocaleDateString('zh-CN'),
-          count: faker.number.int({ min: 5, max: 50 }),
-        })),
-        responseTime: Array.from({ length: 14 }, (_, i) => ({
-          date: faker.date.recent({ days: 14 - i }).toLocaleDateString('zh-CN'),
-          avgMs: faker.number.int({ min: 50, max: 500 }),
-        })),
-      },
+      { threatDistribution, attackSources, dailyEvents, responseTime },
       'ok',
-    ),
+    );
+  },
   method: 'GET',
   path: '/security/stats',
 });

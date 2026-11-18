@@ -1,20 +1,12 @@
-import { generateEvents } from '../../../utils/db/security';
+/** 安全事件列表：从持久化事件表做真实分页查询 */
+import { SECURITY_EVENTS } from '../../../utils/db/security';
+import { paginateList } from '../../../utils/pagination';
 import { success } from '../../../utils/response';
 import { defineMockRoute } from '../../../utils/runtime';
 
 export default defineMockRoute({
   handler({ query }) {
-    const page = Number(query.pageNum || query.page || 1);
-    const pageSize = Number(query.pageSize || 10);
-    const allEvents = generateEvents(56);
-    const start = (page - 1) * pageSize;
-    return success(
-      {
-        list: allEvents.slice(start, start + pageSize),
-        total: allEvents.length,
-      },
-      'ok',
-    );
+    return success(paginateList([...SECURITY_EVENTS], query), 'ok');
   },
   method: 'GET',
   path: '/security/events/list',

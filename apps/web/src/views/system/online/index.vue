@@ -73,14 +73,13 @@ const searchFormSchemas: FormSchema[] = [
     field: 'status',
     label: '状态',
     component: 'Select',
-    componentProps: {
+    componentProps: () => ({
       placeholder: '选择状态',
       allowClear: true,
-      options: [
-        { label: '在线', value: 0 },
-        { label: '已离线', value: 1 },
-      ],
-    },
+      // 本页只呈现有效会话（在线），不再提供"已离线"筛选：
+      // 离线记录归登录日志，不应出现在"在线用户"口径里。
+      options: [{ label: '在线', value: 0 }],
+    }),
     colProps: { span: 6 },
   },
 ];
@@ -117,7 +116,7 @@ const detailSchemas: DescriptionItem[] = [
   },
 ];
 
-async function mockApi(params: Record<string, any>) {
+async function listApi(params: Record<string, any>) {
   const res = await getOnlineUserList(params);
   const data = res?.data ?? res;
   const items = data?.list || [];
@@ -206,7 +205,7 @@ function handlePrint() {
 }
 
 function updateOnlineCount() {
-  // 在线数量已在 mockApi 中从 API 响应更新
+  // 在线数量已在 listApi 中从 API 响应更新
 }
 
 // 模拟实时刷新在线列表
@@ -363,7 +362,7 @@ const columns: BasicColumn[] = [
       </template>
       <BasicTable
         :columns="columns"
-        :api="mockApi"
+        :api="listApi"
         :immediate="true"
         :use-search-form="true"
         :form-config="{ schemas: searchFormSchemas, labelWidth: 80 }"
@@ -437,7 +436,7 @@ const columns: BasicColumn[] = [
         :data="viewingRecord"
         :schema="detailSchemas"
         :column="1"
-        bordered
+        :label-width="96"
       />
 
       <div class="mt-6 border-border border-t pt-4">

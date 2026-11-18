@@ -1,13 +1,11 @@
-import { generateAlerts } from '../../../utils/db/security';
+/** 告警列表：从持久化告警表做真实分页查询（处置后数量会真实减少） */
+import { SECURITY_ALERTS } from '../../../utils/db/security';
 import { paginateList } from '../../../utils/pagination';
 import { success } from '../../../utils/response';
 import { defineMockRoute } from '../../../utils/runtime';
 
 export default defineMockRoute({
-  handler: ({ query }) => {
-    // 仪表盘面板不带分页参数 → 仍拿全量 8 条；表格带 pageNum/pageSize 则按页返回
-    return success(paginateList(generateAlerts(8), query), 'ok');
-  },
+  handler: ({ query }) => success(paginateList([...SECURITY_ALERTS], query), 'ok'),
   method: 'GET',
   path: '/security/alerts/list',
 });

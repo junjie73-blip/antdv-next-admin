@@ -1,2 +1,5 @@
 # Nitro 构建产物
 .output/
+
+# SQLite 数据库文件（含 WAL / SHM 附属文件），属于本地测试数据，禁止入库
+.data/

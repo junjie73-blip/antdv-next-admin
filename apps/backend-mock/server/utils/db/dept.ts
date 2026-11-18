@@ -2,10 +2,10 @@
  * 部门内存库（legacy mock/dept.fake.ts 的数据层）
  */
 
-import { faker } from '@faker-js/faker/locale/zh_CN';
+import { builtin } from '../builtin-data';
+import { defineCollection, isSqliteEnabled, nextBizId } from './sqlite';
 import dayjs from 'dayjs';
 
-faker.seed(42);
 
 export interface DeptRecord {
   children?: DeptRecord[];
@@ -29,15 +29,15 @@ function generateDeptTree(): DeptRecord[] {
     parentId: 0,
     name: '总公司',
     code: 'HQ',
-    leader: faker.person.fullName(),
-    // faker 的 phone.number 只接受 { style } 选项对象，不认 mockjs 的 `#` 占位符；
-    // 用 "138" 前缀 + 8 位随机数字拼出与原意图一致的大陆手机号
-    phone: `138${faker.string.numeric(8)}`,
+    leader: builtin.person.fullName(),
+    // 手机号按「138 + 8 位确定性数字」拼装，保持 11 位大陆号码形态；
+    // 用 "138" 前缀 + 8 位确定性数字拼出大陆手机号
+    phone: `138${builtin.string.numeric(8)}`,
     sortOrder: 1,
     status: 1,
     remark: '公司总部，负责整体战略规划与决策',
     createdAt: baseDate.format('YYYY-MM-DD HH:mm:ss'),
-    userCount: faker.number.int({ min: 5, max: 15 }),
+    userCount: builtin.number.int({ min: 5, max: 15 }),
     children: [],
   };
   const deptTemplates = [
@@ -79,17 +79,17 @@ function generateDeptTree(): DeptRecord[] {
       parentId: headquarters.id,
       name: tpl.name,
       code: tpl.code,
-      leader: faker.person.fullName(),
-      // faker 的 phone.number 参数是 { style } 选项对象，不吃 mockjs 的 '#' 占位串；
+      leader: builtin.person.fullName(),
+      // 手机号按固定前缀 + 确定性数字拼装；
       // 直接拼 "138 + 8 位数字" 保持与 legacy 相同的手机号形态
-      phone: `138${faker.string.numeric(8)}`,
+      phone: `138${builtin.string.numeric(8)}`,
       sortOrder: idCounter - 1,
-      status: faker.datatype.boolean(0.85) ? 1 : 0,
+      status: builtin.datatype.boolean(0.85) ? 1 : 0,
       remark: tpl.remark,
       createdAt: baseDate
-        .add(faker.number.int({ min: 10, max: 60 }), 'day')
+        .add(builtin.number.int({ min: 10, max: 60 }), 'day')
         .format('YYYY-MM-DD HH:mm:ss'),
-      userCount: faker.number.int({ min: 3, max: 20 }),
+      userCount: builtin.number.int({ min: 3, max: 20 }),
       children: [],
     };
     headquarters.children!.push(level2Dept);
@@ -100,16 +100,16 @@ function generateDeptTree(): DeptRecord[] {
         parentId: level2Dept.id,
         name: childTpl.name,
         code: `${tpl.code}_${childTpl.code}`,
-        leader: faker.person.fullName(),
-        // 同上：faker 不支持 mockjs 占位串，用固定前缀 + 随机数字拼接
-        phone: `138${faker.string.numeric(8)}`,
+        leader: builtin.person.fullName(),
+        // 同上：固定前缀 + 确定性数字拼接
+        phone: `138${builtin.string.numeric(8)}`,
         sortOrder: idCounter - 1,
-        status: faker.datatype.boolean(0.9) ? 1 : 0,
+        status: builtin.datatype.boolean(0.9) ? 1 : 0,
         remark: childTpl.remark,
         createdAt: baseDate
-          .add(faker.number.int({ min: 30, max: 120 }), 'day')
+          .add(builtin.number.int({ min: 30, max: 120 }), 'day')
           .format('YYYY-MM-DD HH:mm:ss'),
-        userCount: faker.number.int({ min: 1, max: 10 }),
+        userCount: builtin.number.int({ min: 1, max: 10 }),
       };
       level2Dept.children!.push(level3Dept);
     }
@@ -117,10 +117,15 @@ function generateDeptTree(): DeptRecord[] {
   return [headquarters];
 }
 
+/**
+ * 内置初始组织架构（系统配置数据，确定性常量）。
+ * 只作为首次播种来源；运行期部门树一律由 `buildDeptTree()` 从真实存储实时组装。
+ */
 export const DEPT_TREE = generateDeptTree();
-// 种子数据最多用到 id 29（1 + 7 个二级 + 11 个三级），自增从 30 起；
-// 需要自增所以必须是有符号变量 let，命名为 nextDeptId 的实现服务
+
+// 种子数据最多用到 id 29（1 + 7 个二级 + 11 个三级），自增从 30 起
 let autoIncrementDeptId = 30;
+
 // 扁平化辅助函数
 function flattenDepts(nodes: DeptRecord[]): DeptRecord[] {
   const result: DeptRecord[] = [];
@@ -134,9 +139,38 @@ function flattenDepts(nodes: DeptRecord[]): DeptRecord[] {
   return result;
 }
 
-export const ALL_DEPTS_FLAT = flattenDepts(DEPT_TREE);
+/** 扁平部门表只存实体字段，children 是派生关系，不入存储 */
+function flattenForStore(nodes: DeptRecord[]): DeptRecord[] {
+  return flattenDepts(nodes).map((row) => {
+    const flat = { ...row };
+    delete flat.children;
+    return flat;
+  });
+}
 
-/** 新增部门自增 id */
+/** 部门实体：真实存储（SQLite 持久化 / 内存实现），所有 CRUD 都落在这一份数据上 */
+export const ALL_DEPTS_FLAT: DeptRecord[] = defineCollection<DeptRecord>({
+  seed: () => flattenForStore(DEPT_TREE),
+  table: 'tb_dept',
+});
+
+/** 按 parentId 从真实存储实时组装部门树，保证新增/修改/删除后树立即反映变化 */
+export function buildDeptTree(): DeptRecord[] {
+  const byId = new Map<number, DeptRecord>();
+  for (const row of ALL_DEPTS_FLAT) {
+    byId.set(Number(row.id), { ...row, children: [] });
+  }
+  const roots: DeptRecord[] = [];
+  for (const row of ALL_DEPTS_FLAT) {
+    const node = byId.get(Number(row.id))!;
+    const parent = byId.get(Number(row.parentId));
+    if (parent && parent !== node) parent.children!.push(node);
+    else roots.push(node);
+  }
+  return roots;
+}
+
+/** 新增部门 id：SQLite 下取库内 max+1，重启不撞号 */
 export function nextDeptId(): number {
-  return autoIncrementDeptId++;
+  return isSqliteEnabled() ? nextBizId('tb_dept') : autoIncrementDeptId++;
 }

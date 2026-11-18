@@ -2,10 +2,10 @@
  * 在线用户内存库（legacy mock/online.fake.ts 的数据层）
  */
 
-import { faker } from '@faker-js/faker/locale/zh_CN';
+import { BUILTIN_NOW, builtin } from '../builtin-data';
+import { defineCollection } from './sqlite';
 import dayjs from 'dayjs';
 
-faker.seed(500);
 
 const BROWSERS = ['Chrome', 'Firefox', 'Safari', 'Edge'] as const;
 const OS_LIST = [
@@ -30,11 +30,11 @@ export interface OnlineUser {
   username: string;
 }
 
-export const ONLINE_DB: OnlineUser[] = [];
+export const ONLINE_DB: OnlineUser[] = defineCollection<OnlineUser>({ seed: () => [], table: 'tb_online' });
 
 function initOnlineDB() {
   if (ONLINE_DB.length > 0) return;
-  const baseDate = dayjs().subtract(2, 'hour');
+  const baseDate = dayjs(BUILTIN_NOW).subtract(2, 'hour');
   const nicknames = [
     { username: 'admin', nickname: '超级管理员' },
     { username: 'zhangsan', nickname: '张三' },
@@ -50,18 +50,18 @@ function initOnlineDB() {
   for (let i = 0; i < 10; i++) {
     const user = nicknames[i]!;
     ONLINE_DB.push({
-      tokenId: faker.string.uuid(),
-      sessionId: faker.string.alphanumeric({ length: 32 }),
+      tokenId: builtin.string.uuid(),
+      sessionId: builtin.string.alphanumeric({ length: 32 }),
       username: user.username,
       nickname: user.nickname,
-      ip: faker.internet.ipv4(),
-      location: `${faker.location.city()}${faker.location.state()}`,
-      browser: faker.helpers.arrayElement(BROWSERS),
-      os: faker.helpers.arrayElement(OS_LIST),
+      ip: builtin.internet.ipv4(),
+      location: `${builtin.location.city()}${builtin.location.state()}`,
+      browser: builtin.helpers.arrayElement(BROWSERS),
+      os: builtin.helpers.arrayElement(OS_LIST),
       loginTime: baseDate
-        .add(faker.number.int({ min: 0, max: 120 }), 'minute')
+        .add(builtin.number.int({ min: 0, max: 120 }), 'minute')
         .format('YYYY-MM-DD HH:mm:ss'),
-      status: faker.datatype.boolean(0.9) ? 0 : 1,
+      status: builtin.datatype.boolean(0.9) ? 0 : 1,
     });
   }
 }

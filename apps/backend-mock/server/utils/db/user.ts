@@ -6,7 +6,8 @@
  * （同一进程内新增/更新/删除对所有接口可见，行为与面板预期一致）。
  */
 
-import { faker } from '@faker-js/faker/locale/zh_CN';
+import { BUILTIN_NOW, builtin } from '../builtin-data';
+import { defineCollection, isSqliteEnabled, nextBizId } from './sqlite';
 import dayjs from 'dayjs';
 
 export interface UserRecord {
@@ -27,7 +28,6 @@ export interface UserRecord {
 }
 
 // 固定种子保证每次生成的数据一致
-faker.seed(100);
 // 部门固定集合 — 与页面保持一致
 export const DEPT_LIST = [
   { id: 1, name: '总公司' },
@@ -47,7 +47,7 @@ export const ROLE_OPTIONS = [
   { label: '运维人员', value: 4 },
 ];
 // 预生成 50 条用户数据，确保分页和筛选一致性
-export const USER_DB: UserRecord[] = [];
+export const USER_DB: UserRecord[] = defineCollection<UserRecord>({ seed: () => [], table: 'tb_user' });
 let autoIncrementId = 51;
 
 // 初始化用户数据库
@@ -61,41 +61,40 @@ function initUserDB() {
     email: 'admin@example.com',
     phone: '13800000001',
     gender: 1,
-    avatar: faker.image.avatar(),
+    avatar: builtin.image.avatar(),
     status: 1,
     deptId: 1,
     deptName: '总公司',
     roles: ['超级管理员'],
     remark: '系统内置管理员',
     createdAt: '2024-01-01 10:00:00',
-    updatedAt: dayjs().format('YYYY-MM-DD HH:mm:ss'),
+    updatedAt: BUILTIN_NOW,
   });
-  // 生成 49 条 faker 数据
+  // 生成 49 条内置用户数据
   for (let i = 2; i <= 50; i++) {
     const dept =
-      DEPT_LIST[faker.number.int({ min: 0, max: DEPT_LIST.length - 1 })]!;
+      DEPT_LIST[builtin.number.int({ min: 0, max: DEPT_LIST.length - 1 })]!;
     const role =
-      ROLE_OPTIONS[faker.number.int({ min: 0, max: ROLE_OPTIONS.length - 1 })]!;
+      ROLE_OPTIONS[builtin.number.int({ min: 0, max: ROLE_OPTIONS.length - 1 })]!;
     const baseDate = dayjs('2024-01-01');
     USER_DB.push({
       id: i,
-      username: faker.internet.username().toLowerCase(),
-      nickname: faker.person.fullName(),
-      email: faker.internet.email().toLowerCase(),
-      // faker 的 phone.number 只接受 { style } 选项对象，不吃 mockjs 的 '#' 占位串；
-      // 用 "1 + 10 位随机数字" 保持与 legacy 相同的 11 位大陆手机号形态
-      phone: `1${faker.string.numeric(10)}`,
-      gender: faker.helpers.arrayElement([0, 1, 2]),
-      avatar: faker.image.avatar(),
-      status: faker.datatype.boolean(0.85) ? 1 : 0,
+      username: builtin.internet.username().toLowerCase(),
+      nickname: builtin.person.fullName(),
+      email: builtin.internet.email().toLowerCase(),
+      // 手机号按固定前缀 + 10 位确定性数字拼装，保持 11 位大陆号码形态
+      phone: `1${builtin.string.numeric(10)}`,
+      gender: builtin.helpers.arrayElement([0, 1, 2]),
+      avatar: builtin.image.avatar(),
+      status: builtin.datatype.boolean(0.85) ? 1 : 0,
       deptId: dept.id,
       deptName: dept.name,
       roles: [role.label],
-      remark: faker.datatype.boolean(0.3) ? faker.company.catchPhrase() : '',
+      remark: builtin.datatype.boolean(0.3) ? builtin.company.catchPhrase() : '',
       createdAt: baseDate
-        .add(faker.number.int({ min: 0, max: 365 }), 'day')
+        .add(builtin.number.int({ min: 0, max: 365 }), 'day')
         .format('YYYY-MM-DD HH:mm:ss'),
-      updatedAt: dayjs().format('YYYY-MM-DD HH:mm:ss'),
+      updatedAt: BUILTIN_NOW,
     });
   }
 }
@@ -103,5 +102,5 @@ initUserDB();
 
 /** 新增用户自增 id（legacy 中 POST handler 直接自增模块变量） */
 export function nextUserId(): number {
-  return autoIncrementId++;
+  return isSqliteEnabled() ? nextBizId('tb_user') : autoIncrementId++;
 }

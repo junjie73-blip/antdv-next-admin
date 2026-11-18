@@ -29,7 +29,9 @@
     "docs:preview": "pnpm --filter @antdv/docs preview",
     "format": "vsh lint --format",
     "lint": "vsh lint",
-    "mock:fixtures": "node ./scripts/generate-mock-fixtures.mjs",
+    "mock:seed": "pnpm --filter @antdv/backend-mock mock:seed",
+    "mock:reset": "pnpm --filter @antdv/backend-mock mock:reset",
+    "mock:db:info": "pnpm --filter @antdv/backend-mock mock:db:info",
     "postinstall": "pnpm -r --filter \"./internal/**\" --filter \"./scripts/**\" run --if-present build",
     "preinstall": "npx only-allow pnpm",
     "prepare": "is-ci || pnpm exec lefthook install",
@@ -47,7 +49,9 @@
     "sync-upstream": " sync-upstream"
   },
   "dependencies": {
-    "@tanstack/vue-store": "catalog:"
+    "@tanstack/vue-store": "catalog:",
+    "better-sqlite3": "^13.2.0",
+    "sqlite": "^5.1.1"
   },
   "devDependencies": {
     "@antdv/commitlint-config": "workspace:*",

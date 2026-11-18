@@ -1,10 +1,8 @@
 /**
- * 面板生成接口的校验与落库
+ * 自定义接口定义的校验（生成式响应能力已下线）。
  *
- * legacy 会把定义写成 mock/generated/<id>.fake.ts 交给 vite 插件热加载；
- * Nitro 的路由表在启动期固定，所以定义改为持久化进 store，
- * 由 server/middleware/generated.ts 在请求进入路由表前匹配短路。
- * file 字段仍按 legacy 命名规则生成，仅供面板展示。
+ * 保留校验与回显是为了兼容既有接口路径与返回结构；定义不再注册成运行时路由，
+ * 不再渲染模板，也不会返回生成的假响应。file 字段按既有命名规则生成，仅作展示。
  */
 
 import type {
@@ -12,16 +10,8 @@ import type {
   GeneratedRouteFile,
 } from '@antdv/types';
 
-import type { RouteManifestItem } from './store';
-
-import { generatedFileOf, moduleOf, splitKey } from './route-meta';
-import {
-  findGenerated,
-  getStore,
-  persist,
-  registerGenerated,
-  registerManifest,
-} from './store';
+import { generatedFileOf } from './route-meta';
+import { findGenerated, getStore } from './store';
 import { parseTemplate } from './templates';
 
 const ID_RE = /^[a-z][a-z0-9-]{1,63}$/;
@@ -77,28 +67,9 @@ export function validateDefinition(body: Record<string, unknown>): {
   };
 }
 
-/** 覆盖式登记：新增与编辑同名 id 都同步 store、清单与持久化文件 */
+/** 仅回显校验后的定义；不再登记生成式路由（能力已下线） */
 export function saveGeneratedDefinition(
   definition: GeneratedRouteDefinition,
 ): GeneratedRouteFile {
-  const file = generatedFileOf(definition.id);
-  const item: GeneratedRouteFile = { ...definition, file };
-
-  registerGenerated([item]);
-
-  const { method, path } = splitKey(definition.key);
-  const manifestItem: RouteManifestItem = {
-    duplicates: [],
-    file,
-    key: definition.key,
-    method,
-    module: moduleOf(path),
-    path,
-    source: 'generated',
-  };
-  if (definition.title) manifestItem.title = definition.title;
-  registerManifest([manifestItem]);
-
-  persist(getStore());
-  return item;
+  return { ...definition, file: generatedFileOf(definition.id) };
 }

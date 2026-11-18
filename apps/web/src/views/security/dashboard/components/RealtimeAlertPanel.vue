@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { AlertItem, SecurityEventLevel } from '~/api/security';
+import { deterministicRatio } from '~/utils/deterministic';
 
 import { onMounted, ref } from 'vue';
 
@@ -88,7 +89,7 @@ onMounted(async () => {
 
   // 模拟实时推送：每15秒可能新增一条告警
   setInterval(() => {
-    if (Math.random() > 0.6) {
+    if (deterministicRatio() > 0.6) {
       // 60% 概率新增
       const levels: SecurityEventLevel[] = [
         'critical',
@@ -104,9 +105,9 @@ onMounted(async () => {
       ];
       const newAlert: AlertItem = {
         id: `alert-${Date.now()}`,
-        level: levels[Math.floor(Math.random() * levels.length)]!,
-        message: messages[Math.floor(Math.random() * messages.length)]!,
-        source: `192.168.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`,
+        level: levels[Math.floor(deterministicRatio() * levels.length)]!,
+        message: messages[Math.floor(deterministicRatio() * messages.length)]!,
+        source: `192.168.${Math.floor(deterministicRatio() * 255)}.${Math.floor(deterministicRatio() * 255)}`,
         timestamp: new Date().toISOString(),
         actions: ['查看详情', '忽略'],
       };

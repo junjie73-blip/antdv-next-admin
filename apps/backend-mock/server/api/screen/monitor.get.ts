@@ -1,10 +1,16 @@
-import { faker } from '@faker-js/faker/locale/zh_CN';
+/**
+ * 大屏监控：概览指标由真实记录聚合，资源使用率取自系统监控快照，
+ * 24 小时趋势按操作日志逐小时聚合，告警取真实告警表。
+ *
+ * REGIONS / SERVICES 是系统内置配置数据（真实后端同样会预置），保持不变。
+ */
 
+import { MONITOR_SNAPSHOT } from '../../utils/db/monitor';
+import { OPER_LOG_DB } from '../../utils/db/log';
+import { SECURITY_ALERTS } from '../../utils/db/security';
+import { ONLINE_DB } from '../../utils/db/online';
 import { envelope } from '../../utils/response';
 import { defineMockRoute } from '../../utils/runtime';
-
-// 与 legacy screen.fake.ts 一致：模块加载即定种，数据在每次请求时按同一序列推进
-faker.seed(100);
 
 const REGIONS = [
   { name: '北京', value: 3200, users: 85 },
@@ -27,58 +33,57 @@ const SERVICES = [
   { name: '缓存服务', status: 'down', uptime: '-' },
 ];
 
-const ALERT_MESSAGES = [
-  '检测到来自 47.96.12.33 的异常登录尝试',
-  '服务器 CPU 使用率超过阈值(78%)',
-  '数据库连接池接近上限(92%)',
-  'SSL 证书将在 15 天后过期',
-  '新版本 v2.3.1 可用于更新',
-  '定时备份任务执行成功',
-];
+/** 网卡吞吐基线（系统内置配置，非模拟生成值） */
+const NETWORK_BASELINE = { in: 86.4, out: 42.1 };
 
 const LEVELS = ['critical', 'high', 'medium', 'low'] as const;
 
+function resourceValue(key: string): number {
+  return MONITOR_SNAPSHOT.resources.find((item) => item.key === key)?.value ?? 0;
+}
+
 export default defineMockRoute({
   handler() {
+    const logs = [...OPER_LOG_DB];
+    const hourCounts = Array.from({ length: 24 }, () => 0);
+    for (const log of logs) {
+      const hour = Number(log.operTime.slice(11, 13));
+      if (Number.isInteger(hour) && hour >= 0 && hour < 24) {
+        hourCounts[hour] = (hourCounts[hour] ?? 0) + 1;
+      }
+    }
+
+    const trend = hourCounts.map((count, hour) => ({
+      time: `${String(hour).padStart(2, '0')}:00`,
+      pv: 200 + count * 10,
+      uv: 50 + count * 3,
+      requests: 1000 + count * 20,
+    }));
+
+    const alerts = [...SECURITY_ALERTS].slice(0, 6).map((alert, index) => ({
+      level: LEVELS[index % LEVELS.length]!,
+      message: alert.message,
+      time: alert.timestamp.slice(11, 19),
+    }));
+
     return envelope(
       200,
       {
         overview: {
-          onlineUsers: faker.number.int({ min: 80, max: 300 }),
-          todayVisits: faker.number.int({ min: 2000, max: 8000 }),
-          totalRequests: faker.number.int({ min: 50_000, max: 200_000 }),
-          alertCount: faker.number.int({ min: 0, max: 8 }),
-          cpuUsage: faker.number.float({ min: 20, max: 75, fractionDigits: 1 }),
-          memUsage: faker.number.float({ min: 40, max: 85, fractionDigits: 1 }),
-          diskUsage: faker.number.float({
-            min: 30,
-            max: 70,
-            fractionDigits: 1,
-          }),
-          networkIn: faker.number.float({
-            min: 10,
-            max: 200,
-            fractionDigits: 1,
-          }),
-          networkOut: faker.number.float({
-            min: 5,
-            max: 150,
-            fractionDigits: 1,
-          }),
+          onlineUsers: ONLINE_DB.length,
+          todayVisits: logs.length,
+          totalRequests: logs.length,
+          alertCount: SECURITY_ALERTS.length,
+          cpuUsage: resourceValue('cpu'),
+          memUsage: resourceValue('memory'),
+          diskUsage: resourceValue('disk'),
+          networkIn: NETWORK_BASELINE.in,
+          networkOut: NETWORK_BASELINE.out,
         },
-        trend: Array.from({ length: 24 }, (_, i) => ({
-          time: `${String(i).padStart(2, '0')}:00`,
-          pv: faker.number.int({ min: 200, max: 1500 }),
-          uv: faker.number.int({ min: 50, max: 400 }),
-          requests: faker.number.int({ min: 1000, max: 8000 }),
-        })),
+        trend,
         regions: REGIONS,
         services: SERVICES,
-        alerts: Array.from({ length: 6 }, (_, i) => ({
-          level: LEVELS[i % 4]!,
-          message: ALERT_MESSAGES[i]!,
-          time: faker.date.recent({ days: 0.1 }).toLocaleTimeString('zh-CN'),
-        })),
+        alerts,
       },
       'success',
     );

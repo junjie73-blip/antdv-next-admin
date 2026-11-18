@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Ref } from 'vue';
+import { deterministicRatio } from '~/utils/deterministic';
 
 import {
   computed,
@@ -130,7 +131,7 @@ const onlineUsers = ref(
       '吴昊',
     ][i % 10],
     ip: `192.168.${10 + (i % 20)}.${20 + ((i * 3) % 250)}`,
-    status: Math.random() > 0.1 ? 'online' : 'away',
+    status: deterministicRatio() > 0.1 ? 'online' : 'away',
   })),
 );
 
@@ -314,9 +315,9 @@ function generateDefaultTrendData() {
     const hour = String(i).padStart(2, '0');
     return {
       time: `${hour}:00`,
-      pv: Math.floor(800 + Math.random() * 1200),
-      uv: Math.floor(300 + Math.random() * 600),
-      requests: Math.floor(2000 + Math.random() * 3000),
+      pv: Math.floor(800 + deterministicRatio() * 1200),
+      uv: Math.floor(300 + deterministicRatio() * 600),
+      requests: Math.floor(2000 + deterministicRatio() * 3000),
     };
   });
 }
@@ -577,7 +578,7 @@ function buildHeatmapOption() {
     for (let h = 0; h < 24; h++) {
       const base =
         d < 5 ? (h >= 9 && h <= 18 ? 80 : 20) : h >= 19 && h <= 23 ? 70 : 15;
-      data.push([h, d, base + Math.floor(Math.random() * 40)]);
+      data.push([h, d, base + Math.floor(deterministicRatio() * 40)]);
     }
   }
   return {
@@ -870,8 +871,8 @@ onMounted(async () => {
       // 生成网络延迟数据
       latencyData.value = trendData.value.slice(-12).map((d) => ({
         time: d.time,
-        avg: Math.floor(30 + Math.random() * 80),
-        p99: Math.floor(100 + Math.random() * 200),
+        avg: Math.floor(30 + deterministicRatio() * 80),
+        p99: Math.floor(100 + deterministicRatio() * 200),
       }));
     } else {
       console.warn('[Monitor] API 返回格式异常:', { res, raw, data });
@@ -885,8 +886,8 @@ onMounted(async () => {
     regionData.value = generateDefaultRegionData();
     latencyData.value = Array.from({ length: 12 }, (_, i) => ({
       time: `${String(i * 2).padStart(2, '0')}:00`,
-      avg: Math.floor(40 + Math.random() * 60),
-      p99: Math.floor(120 + Math.random() * 150),
+      avg: Math.floor(40 + deterministicRatio() * 60),
+      p99: Math.floor(120 + deterministicRatio() * 150),
     }));
     await nextTick();
     updateAllCharts();
@@ -894,19 +895,19 @@ onMounted(async () => {
 
   // 模拟实时刷新（保存 timer 引用到顶层变量）
   refreshTimer = setInterval(() => {
-    overview.value.onlineUsers += Math.floor(Math.random() * 10) - 4;
-    overview.value.todayVisits += Math.floor(Math.random() * 20);
-    overview.value.totalRequests += Math.floor(Math.random() * 500);
+    overview.value.onlineUsers += Math.floor(deterministicRatio() * 10) - 4;
+    overview.value.todayVisits += Math.floor(deterministicRatio() * 20);
+    overview.value.totalRequests += Math.floor(deterministicRatio() * 500);
     overview.value.cpuUsage = Number(
       Math.max(
         10,
-        Math.min(95, overview.value.cpuUsage + (Math.random() - 0.5) * 5),
+        Math.min(95, overview.value.cpuUsage + (deterministicRatio() - 0.5) * 5),
       ).toFixed(1),
     );
     overview.value.memUsage = Number(
       Math.max(
         30,
-        Math.min(90, overview.value.memUsage + (Math.random() - 0.5) * 3),
+        Math.min(90, overview.value.memUsage + (deterministicRatio() - 0.5) * 3),
       ).toFixed(1),
     );
     // 更新延迟数据
@@ -916,11 +917,11 @@ onMounted(async () => {
         time: last.time,
         avg: Math.max(
           20,
-          Math.min(150, last.avg + Math.floor(Math.random() * 20 - 10)),
+          Math.min(150, last.avg + Math.floor(deterministicRatio() * 20 - 10)),
         ),
         p99: Math.max(
           80,
-          Math.min(300, last.p99 + Math.floor(Math.random() * 40 - 20)),
+          Math.min(300, last.p99 + Math.floor(deterministicRatio() * 40 - 20)),
         ),
       });
       if (latencyData.value.length > 24) latencyData.value.shift();
@@ -929,23 +930,23 @@ onMounted(async () => {
         latencyChart.setOption(buildLatencyOption(latencyData.value));
     }
     // 模拟新事件
-    if (Math.random() > 0.6) {
+    if (deterministicRatio() > 0.6) {
       const eventTemplates = [
         { type: 'api', msg: 'API 响应超时警告', level: 'warning' },
         {
           type: 'login',
-          msg: `用户 ${['张伟', '李娜', '王芳', '刘洋'][Math.floor(Math.random() * 4)]} 登录`,
+          msg: `用户 ${['张伟', '李娜', '王芳', '刘洋'][Math.floor(deterministicRatio() * 4)]} 登录`,
           level: 'info',
         },
         {
           type: 'alert',
           msg: 'CPU/Memory 使用率异常',
-          level: Math.random() > 0.5 ? 'warning' : 'error',
+          level: deterministicRatio() > 0.5 ? 'warning' : 'error',
         },
         { type: 'success', msg: '定时任务执行完成', level: 'success' },
       ];
       const evt =
-        eventTemplates[Math.floor(Math.random() * eventTemplates.length)]!;
+        eventTemplates[Math.floor(deterministicRatio() * eventTemplates.length)]!;
       realtimeEvents.value.unshift({
         time: new Date().toLocaleTimeString('zh-CN'),
         ...evt,
@@ -953,27 +954,27 @@ onMounted(async () => {
       if (realtimeEvents.value.length > 50) realtimeEvents.value.pop();
     }
     // 模拟安全告警动态更新
-    if (Math.random() > 0.5) {
+    if (deterministicRatio() > 0.5) {
       const alertTemplates = [
         {
           level: 'critical' as const,
-          msg: `检测到 ${['SQL注入', 'XSS攻击', '命令注入', 'SSRF攻击'][Math.floor(Math.random() * 4)]} 尝试，来源: ${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`,
+          msg: `检测到 ${['SQL注入', 'XSS攻击', '命令注入', 'SSRF攻击'][Math.floor(deterministicRatio() * 4)]} 尝试，来源: ${Math.floor(deterministicRatio() * 255)}.${Math.floor(deterministicRatio() * 255)}.${Math.floor(deterministicRatio() * 255)}.${Math.floor(deterministicRatio() * 255)}`,
         },
         {
           level: 'high' as const,
-          msg: `暴力破解攻击：IP ${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}.x.x 已尝试 ${10 + Math.floor(Math.random() * 90)} 次`,
+          msg: `暴力破解攻击：IP ${Math.floor(deterministicRatio() * 255)}.${Math.floor(deterministicRatio() * 255)}.x.x 已尝试 ${10 + Math.floor(deterministicRatio() * 90)} 次`,
         },
         {
           level: 'medium' as const,
-          msg: `异常访问：${['敏感路径扫描', '越权尝试', '大量404请求', '可疑User-Agent'][Math.floor(Math.random() * 4)]}`,
+          msg: `异常访问：${['敏感路径扫描', '越权尝试', '大量404请求', '可疑User-Agent'][Math.floor(deterministicRatio() * 4)]}`,
         },
         {
           level: 'low' as const,
-          msg: `安全提醒：${['弱密码检测', '证书即将过期', '未加密传输', '登录地点变更'][Math.floor(Math.random() * 4)]}`,
+          msg: `安全提醒：${['弱密码检测', '证书即将过期', '未加密传输', '登录地点变更'][Math.floor(deterministicRatio() * 4)]}`,
         },
       ];
       const sa =
-        alertTemplates[Math.floor(Math.random() * alertTemplates.length)]!;
+        alertTemplates[Math.floor(deterministicRatio() * alertTemplates.length)]!;
       securityAlerts.value.unshift({
         time: new Date().toLocaleTimeString('zh-CN'),
         ...sa,
@@ -981,10 +982,10 @@ onMounted(async () => {
       if (securityAlerts.value.length > 15) securityAlerts.value.pop();
     }
     // 更新攻击来源数据
-    if (Math.random() > 0.7) {
+    if (deterministicRatio() > 0.7) {
       attackSources.value = attackSources.value.map((s) => ({
         ...s,
-        value: Math.max(100, s.value + Math.floor(Math.random() * 200 - 80)),
+        value: Math.max(100, s.value + Math.floor(deterministicRatio() * 200 - 80)),
       }));
       const attackChart = charts.get('attack');
       if (attackChart) attackChart.setOption(buildAttackSourceOption());

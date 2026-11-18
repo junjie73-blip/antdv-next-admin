@@ -97,9 +97,9 @@ async function load() {
       status: STATUS_VALUE[statusTab.value],
     });
     data.value = unwrapApi<AiResourcesData | null>(res) ?? null;
-  } catch (error) {
+  } catch (cause) {
     error.value =
-      error instanceof Error ? error.message : 'AI 资源接口暂不可用';
+      cause instanceof Error ? cause.message : 'AI 资源接口暂不可用';
   } finally {
     loading.value = false;
   }

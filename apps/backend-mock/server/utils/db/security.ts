@@ -1,13 +1,13 @@
 /**
- * 安全中心数据生成器（legacy mock/security.fake.ts 的数据层）
+ * 安全中心数据层。
  *
- * 与持久化内存库不同：legacy 每次请求都重新调用 generateEvents / generateAlerts，
- * 所以这里也只导出纯函数，不缓存结果；模块加载时定种（42）以复刻 legacy 的取值序列。
+ * 旧实现每次请求都重新生成事件与告警（刷新即变、处置结果不保留）；
+ * 现在改为一次性写入真实存储的确定性内置数据，接口做真实查询/分页/状态更新。
  */
 
-import { faker } from '@faker-js/faker/locale/zh_CN';
+import { builtin } from '../builtin-data';
+import { defineCollection } from './sqlite';
 
-faker.seed(42);
 
 export type SecurityEventLevel = 'critical' | 'high' | 'low' | 'medium';
 export type SecurityEventStatus = 'dismissed' | 'handled' | 'pending';
@@ -92,32 +92,46 @@ const alertMessages = [
   '检测到可能的CSRF攻击',
 ];
 
-export function generateEvents(count: number): SecurityEvent[] {
+/** 内置初始事件（确定性常量表取值，只在表为空时写入一次） */
+function initialEvents(count: number): SecurityEvent[] {
   return Array.from({ length: count }, (_, i) => {
     const type = eventTypes[i % eventTypes.length]!;
     const level = levels[i % levels.length]!;
     const titles = eventTitles[type];
     return {
-      id: `evt-${faker.string.uuid()}`,
+      id: `evt-${builtin.string.uuid()}`,
       type,
       level,
       title: titles[i % titles.length]!,
-      description: faker.lorem.sentence(),
-      sourceIp: `${faker.number.int({ min: 1, max: 255 })}.${faker.number.int({ min: 0, max: 255 })}.${faker.number.int({ min: 0, max: 255 })}.${faker.number.int({ min: 1, max: 254 })}`,
+      description: builtin.lorem.sentence(),
+      sourceIp: `${builtin.number.int({ min: 1, max: 255 })}.${builtin.number.int({ min: 0, max: 255 })}.${builtin.number.int({ min: 0, max: 255 })}.${builtin.number.int({ min: 1, max: 254 })}`,
       location: locations[i % locations.length]!,
-      createdAt: faker.date.recent().toISOString(),
+      createdAt: builtin.date.recent().toISOString(),
       status: (i % 3 === 0 ? 'pending' : 'handled') as SecurityEventStatus,
     };
   });
 }
 
-export function generateAlerts(count: number): AlertItem[] {
+/** 内置初始告警（确定性常量表取值，只在表为空时写入一次） */
+function initialAlerts(count: number): AlertItem[] {
   return Array.from({ length: count }, (_, i) => ({
-    id: `alert-${faker.string.uuid()}`,
+    id: `alert-${builtin.string.uuid()}`,
     level: levels[i % levels.length]!,
     message: alertMessages[i % alertMessages.length]!,
-    source: `192.168.${faker.number.int({ min: 1, max: 254 })}.${faker.number.int({ min: 1, max: 254 })}`,
-    timestamp: faker.date.recent({ days: 0.5 }).toISOString(),
-    actions: i < 2 ? ['封禁IP', '强制下线'] : ['查看详情', '忽略'],
+    source: `192.168.${builtin.number.int({ min: 1, max: 254 })}.${builtin.number.int({ min: 1, max: 254 })}`,
+    timestamp: builtin.date.recent({ days: 0.5 }).toISOString(),
+      actions: i < 2 ? ['封禁IP', '强制下线'] : ['查看详情', '忽略'],
   }));
 }
+
+/** 安全事件实体：真实存储，CRUD 与分页都落在这一份数据上 */
+export const SECURITY_EVENTS: SecurityEvent[] = defineCollection<SecurityEvent>({
+  seed: () => initialEvents(56),
+  table: 'tb_security_event',
+});
+
+/** 告警实体：真实存储，处置后状态可持久化 */
+export const SECURITY_ALERTS: AlertItem[] = defineCollection<AlertItem>({
+  seed: () => initialAlerts(8),
+  table: 'tb_security_alert',
+});

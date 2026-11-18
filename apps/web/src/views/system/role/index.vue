@@ -143,11 +143,11 @@ const searchFormSchemas: FormSchema[] = [
     label: '状态',
     component: 'Select',
     colProps: { span: 6 },
-    componentProps: {
+    componentProps: () => ({
       placeholder: '选择状态',
       allowClear: true,
       options: statusOptions.value,
-    },
+    }),
   },
 ];
 
@@ -202,14 +202,14 @@ const drawerFormSchemas: FormSchema[] = [
 ];
 
 // API 适配层
-async function mockApi(params: Record<string, any>) {
+async function listApi(params: Record<string, any>) {
   try {
     const res = await getRoleList(params);
     // 兼容 mock 直接返回完整响应或已解包的数据
     const data = res?.data ?? res;
     return { items: data?.list || [], total: data?.total || 0 };
   } catch (error) {
-    console.error('[Role] mockApi error:', error);
+    console.error('[Role] listApi error:', error);
     return { items: [], total: 0 };
   }
 }
@@ -373,7 +373,7 @@ const columns: BasicColumn[] = [
       </template>
       <BasicTable
         :columns="columns"
-        :api="mockApi"
+        :api="listApi"
         :immediate="true"
         :use-search-form="true"
         :form-config="{ schemas: searchFormSchemas, labelWidth: 80 }"

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { deterministicRatio } from '~/utils/deterministic';
 
 import { cn } from '@antdv/shared/utils/cn';
 import { useAppStore } from '@antdv/stores';
@@ -325,7 +326,7 @@ function initLineChart(el: HTMLDivElement) {
         smooth: true,
         symbol: 'none',
         data: Array.from({ length: 14 }, () =>
-          Math.floor(Math.random() * 30 + 10),
+          Math.floor(deterministicRatio() * 30 + 10),
         ),
         lineStyle: { color: PALETTE.danger, width: 2 },
         areaStyle: {
@@ -342,7 +343,7 @@ function initLineChart(el: HTMLDivElement) {
         symbol: 'none',
         yAxisIndex: 1,
         data: Array.from({ length: 14 }, () =>
-          Math.floor(Math.random() * 400 + 80),
+          Math.floor(deterministicRatio() * 400 + 80),
         ),
         lineStyle: { color: PALETTE.primary, width: 2, type: 'dashed' },
       },

@@ -117,9 +117,9 @@ async function load() {
   try {
     const res = await getMonitorSnapshot({ environment: environment.value });
     snapshot.value = unwrapApi<MonitorSnapshotData | null>(res) ?? null;
-  } catch (error) {
+  } catch (cause) {
     error.value =
-      error instanceof Error ? error.message : '监控快照接口暂不可用';
+      cause instanceof Error ? cause.message : '监控快照接口暂不可用';
   } finally {
     loading.value = false;
   }

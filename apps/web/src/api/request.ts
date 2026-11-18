@@ -17,6 +17,45 @@ export interface RL<T = unknown> {
   message: string;
 }
 
+/**
+ * 业务失败异常。
+ *
+ * 后端约定 HTTP 恒为 200、成败放在信封的 `code` 上；以前 `get/post/put/del`
+ * 直接 `.data` 把 `code` 丢掉了，于是 `code=400` 也会走「操作成功」分支。
+ * 现在统一在这里抛错，页面 catch 里的 `message.error(error.message)` 才能给出真实反馈。
+ */
+export class ApiBusinessError extends Error {
+  readonly code: number;
+  readonly payload: unknown;
+
+  constructor(code: number, message: string, payload: unknown) {
+    super(message);
+    this.name = 'ApiBusinessError';
+    this.code = code;
+    this.payload = payload;
+  }
+}
+
+/** 校验业务码并解出 data；非信封响应（blob / text / 裸数据）原样透传 */
+function unwrap<T>(envelope: R<T>): T {
+  if (
+    !envelope ||
+    typeof envelope !== 'object' ||
+    !('code' in envelope) ||
+    typeof envelope.code !== 'number'
+  ) {
+    return envelope as unknown as T;
+  }
+  if (envelope.code !== 200) {
+    throw new ApiBusinessError(
+      envelope.code,
+      envelope.message || `请求失败（业务码 ${envelope.code}）`,
+      envelope.data,
+    );
+  }
+  return envelope.data;
+}
+
 export function get<T = unknown>(
   url: string,
   params?: Record<string, unknown>,
@@ -26,7 +65,7 @@ export function get<T = unknown>(
   // 包了之后 `buildUrl` 看到的是"一个叫 params 的参数"，
   // 于是发出去的是 `?params=[object Object]`，筛选与分页条件整批丢失
   // （表现是"搜索框输什么都一样、翻到第二页还是第一页的数据"）。
-  return http.Get<R<T>>(url, params, opts).then((res) => res.data);
+  return http.Get<R<T>>(url, params, opts).then(unwrap);
 }
 
 export function post<T = unknown>(
@@ -36,7 +75,7 @@ export function post<T = unknown>(
 ) {
   return http
     .Post<R<T>>(url, data, params ? { params } : undefined)
-    .then((res) => res.data);
+    .then(unwrap);
 }
 
 export function put<T = unknown>(
@@ -46,12 +85,12 @@ export function put<T = unknown>(
 ) {
   return http
     .Put<R<T>>(url, data, params ? { params } : undefined)
-    .then((res) => res.data);
+    .then(unwrap);
 }
 
 export function del<T = unknown>(
   url: string,
   params?: Record<string, unknown>,
 ) {
-  return http.Delete<R<T>>(url, params).then((res) => res.data);
+  return http.Delete<R<T>>(url, params).then(unwrap);
 }

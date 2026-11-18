@@ -76,9 +76,9 @@ async function load() {
   try {
     const res = await getReportDatasets();
     data.value = unwrapApi<null | ReportResourcesData>(res) ?? null;
-  } catch (error) {
+  } catch (cause) {
     error.value =
-      error instanceof Error ? error.message : '报表资源接口暂不可用';
+      cause instanceof Error ? cause.message : '报表资源接口暂不可用';
   } finally {
     loading.value = false;
   }

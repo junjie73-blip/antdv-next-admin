@@ -2,10 +2,10 @@
  * 文件管理内存库（legacy mock/file.fake.ts 的数据层）
  */
 
-import { faker } from '@faker-js/faker/locale/zh_CN';
+import { builtin } from '../builtin-data';
+import { defineCollection, isSqliteEnabled, nextBizId } from './sqlite';
 import dayjs from 'dayjs';
 
-faker.seed(500);
 
 export type FileType =
   | 'archive'
@@ -103,14 +103,14 @@ export function getFileTypeFromExt(ext: string): {
   );
 }
 
-function generateRandomSize(): number {
-  const rand = Math.random();
-  if (rand < 0.5) return faker.number.int({ min: 1024, max: 512 * 1024 });
+function determineFileSize(): number {
+  const rand = builtin.number.float({ min: 0, max: 1, fractionDigits: 4 });
+  if (rand < 0.5) return builtin.number.int({ min: 1024, max: 512 * 1024 });
   if (rand < 0.8)
-    return faker.number.int({ min: 512 * 1024, max: 10 * 1024 * 1024 });
+    return builtin.number.int({ min: 512 * 1024, max: 10 * 1024 * 1024 });
   if (rand < 0.95)
-    return faker.number.int({ min: 10 * 1024 * 1024, max: 500 * 1024 * 1024 });
-  return faker.number.int({
+    return builtin.number.int({ min: 10 * 1024 * 1024, max: 500 * 1024 * 1024 });
+  return builtin.number.int({
     min: 500 * 1024 * 1024,
     max: 2 * 1024 * 1024 * 1024,
   });
@@ -128,16 +128,16 @@ function createFileRecord(
   const fileInfo = isFolder
     ? { type: 'folder' as FileType, mimeType: 'inode/directory' }
     : getFileTypeFromExt(ext);
-  const size = isFolder ? 0 : generateRandomSize();
+  const size = isFolder ? 0 : determineFileSize();
   const uploader =
-    UPLOADERS[faker.number.int({ min: 0, max: UPLOADERS.length - 1 })]!;
-  const createdAt = faker.date
+    UPLOADERS[builtin.number.int({ min: 0, max: UPLOADERS.length - 1 })]!;
+  const createdAt = builtin.date
     .recent({ days: 180 })
     .toISOString()
     .replace('T', ' ')
     .slice(0, 19);
-  const updatedAt = faker.date
-    .between({ from: new Date(createdAt), to: new Date() })
+  const updatedAt = builtin.date
+    .between({ from: new Date(createdAt) })
     .toISOString()
     .replace('T', ' ')
     .slice(0, 19);
@@ -211,7 +211,7 @@ function generateFileData(): FileRecord[] {
     other: ['配置文件_{env}.json', '数据导出_{date}.csv', '字体文件.ttf'],
   };
   for (const [folderId, info] of Object.entries(folderMap)) {
-    const numFiles = faker.number.int({ min: 2, max: 5 });
+    const numFiles = builtin.number.int({ min: 2, max: 5 });
     const types: FileType[] = [
       'image',
       'document',
@@ -222,38 +222,38 @@ function generateFileData(): FileRecord[] {
     ];
     for (let i = 0; i < numFiles; i++) {
       const fileType =
-        types[faker.number.int({ min: 0, max: types.length - 1 })]!;
+        types[builtin.number.int({ min: 0, max: types.length - 1 })]!;
       const templates = fileTemplates[fileType]!;
       let fileName =
-        templates[faker.number.int({ min: 0, max: templates.length - 1 })]!;
+        templates[builtin.number.int({ min: 0, max: templates.length - 1 })]!;
       fileName = fileName
-        .replace('{word}', faker.word.adjective())
-        .replace('{digit}', String(faker.number.int({ min: 1, max: 9 })))
+        .replace('{word}', builtin.word.adjective())
+        .replace('{digit}', String(builtin.number.int({ min: 1, max: 9 })))
         .replace(
           '{month}',
           ['一月', '二月', '三月', '四月', '五月', '六月'][
-            faker.number.int({ min: 0, max: 5 })
+            builtin.number.int({ min: 0, max: 5 })
           ]!,
         )
-        .replace('{id}', String(faker.string.uuid().slice(0, 8)))
+        .replace('{id}', String(builtin.string.uuid().slice(0, 8)))
         .replace(
           '{version}',
-          `${faker.number.int({ min: 1, max: 5 })}.${faker.number.int({ min: 0, max: 9 })}`,
+          `${builtin.number.int({ min: 1, max: 5 })}.${builtin.number.int({ min: 0, max: 9 })}`,
         )
-        .replace('{topic}', faker.word.noun())
+        .replace('{topic}', builtin.word.noun())
         .replace(
           '{date}',
-          dayjs(faker.date.recent({ days: 90 })).format('YYYYMMDD'),
+          dayjs(builtin.date.recent({ days: 90 })).format('YYYYMMDD'),
         )
-        .replace('{quarter}', String(faker.number.int({ min: 1, max: 4 })))
-        .replace('{episode}', String(faker.number.int({ min: 1, max: 50 })))
+        .replace('{quarter}', String(builtin.number.int({ min: 1, max: 4 })))
+        .replace('{episode}', String(builtin.number.int({ min: 1, max: 50 })))
         .replace(
           '{mood}',
-          ['轻松', '激昂', '舒缓'][faker.number.int({ min: 0, max: 2 })]!,
+          ['轻松', '激昂', '舒缓'][builtin.number.int({ min: 0, max: 2 })]!,
         )
         .replace(
           '{env}',
-          ['dev', 'test', 'prod'][faker.number.int({ min: 0, max: 2 })]!,
+          ['dev', 'test', 'prod'][builtin.number.int({ min: 0, max: 2 })]!,
         );
       files.push(createFileRecord(fileName, Number(folderId), info.path));
     }
@@ -270,10 +270,10 @@ function generateFileData(): FileRecord[] {
   return files;
 }
 
-export const FILE_DB = generateFileData();
+export const FILE_DB = defineCollection({ seed: generateFileData, table: 'tb_file' });
 let autoIncrementId = fileIdCounter + 1;
 
 /** 新文件/文件夹自增 id（legacy 在上传与建目录 handler 中直接自增模块变量） */
 export function nextFileId(): number {
-  return autoIncrementId++;
+  return isSqliteEnabled() ? nextBizId('tb_file') : autoIncrementId++;
 }

@@ -351,7 +351,7 @@ const detailSchemas: DescriptionItem[] = [
 ];
 
 // 操作日志 API
-async function mockApi(params: Record<string, any>) {
+async function listApi(params: Record<string, any>) {
   const res = await getOperLogList(params);
   const data = (res as any)?.data ?? res;
   return { items: data?.list || [], total: data?.total || 0 };
@@ -551,7 +551,7 @@ const loginColumns: BasicColumn[] = [
       <template v-if="activeTab === 0">
         <BasicTable
           :columns="columns"
-          :api="mockApi"
+          :api="listApi"
           :immediate="true"
           :use-search-form="true"
           :form-config="{ schemas: searchFormSchemas, labelWidth: 80 }"

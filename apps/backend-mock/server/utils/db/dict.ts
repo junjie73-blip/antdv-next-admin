@@ -2,9 +2,7 @@
  * 数据字典内存库（legacy mock/dict.fake.ts 的数据层）
  */
 
-import { faker } from '@faker-js/faker/locale/zh_CN';
 
-faker.seed(300);
 
 export interface DictItem {
   cssClass: string;
@@ -26,7 +24,7 @@ export interface DictType {
   typeName: string;
 }
 
-export const DICT_TYPE_DB: DictType[] = [];
+export const DICT_TYPE_DB: DictType[] = defineCollection<DictType>({ seed: () => [], table: 'tb_dict_type' });
 let autoIncrementTypeId = 7;
 let autoIncrementItemId = 19;
 
@@ -233,10 +231,21 @@ initDictDB();
 
 /** 新增字典类型自增 id */
 export function nextDictTypeId(): number {
-  return autoIncrementTypeId++;
+  return isSqliteEnabled() ? nextBizId('tb_dict_type') : autoIncrementTypeId++;
 }
 
-/** 新增字典项自增 id */
+/**
+ * 新增字典项 id。字典项嵌在各类型的 `items` 里（`tb_dict_item` 未独立接入），
+ * 内存实现沿用原自增变量；SQLite 实现遍历全部内嵌 items 取 max+1，
+ * 避免重启后 autoIncrementItemId 归位导致撞号。
+ */
 export function nextDictItemId(): number {
-  return autoIncrementItemId++;
+  if (!isSqliteEnabled()) return autoIncrementItemId++;
+  let max = 0;
+  for (const type of DICT_TYPE_DB) {
+    for (const item of type.items ?? []) {
+      if (Number.isFinite(item.id)) max = Math.max(max, item.id);
+    }
+  }
+  return Math.max(max, autoIncrementItemId - 1) + 1;
 }

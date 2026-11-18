@@ -1,14 +1,14 @@
 /**
  * 登录日志内存库（legacy mock/login-log.fake.ts 的数据层）
  *
- * 注意：与 legacy 一致，这里混合使用 Math.random()（用户/城市/成败）与 faker（版本/时间），
- * 所以每次进程启动数据不同 —— 保留该行为，面板与页面本来就按"演示数据"消费它。
+ * 数据来自确定性内置表（builtin-data），无随机数、跨重启一致；
+ * 等价于真实后端的初始日志数据，后续由真实登录行为累积。
  */
 
-import { faker } from '@faker-js/faker/locale/zh_CN';
+import { BUILTIN_NOW, builtin } from '../builtin-data';
+import { defineCollection } from './sqlite';
 import dayjs from 'dayjs';
 
-faker.seed(300);
 
 export interface LoginLogRecord {
   browser: string;
@@ -88,7 +88,7 @@ function weightedRandom<T extends { name: string; weight: number }>(
   items: T[],
 ): string {
   const totalWeight = items.reduce((sum, item) => sum + item.weight, 0);
-  let random = Math.random() * totalWeight;
+  let random = builtin.number.float({ min: 0, max: totalWeight, fractionDigits: 4 });
   for (const item of items) {
     random -= item.weight;
     if (random <= 0) return item.name;
@@ -98,32 +98,32 @@ function weightedRandom<T extends { name: string; weight: number }>(
 
 function generateLoginLogs(count = 35): LoginLogRecord[] {
   const records: LoginLogRecord[] = [];
-  const now = dayjs();
+  const now = dayjs(BUILTIN_NOW);
   for (let i = 0; i < count; i++) {
-    const user = SYSTEM_USERS[Math.floor(Math.random() * SYSTEM_USERS.length)]!;
+    const user = builtin.helpers.arrayElement(SYSTEM_USERS);
     const browserName = weightedRandom(BROWSER_CONFIG);
     const osName = weightedRandom(OS_CONFIG);
     const browserVersionMap: Record<string, string> = {
-      Chrome: `${faker.number.int({ min: 120, max: 130 })}.0`,
-      Firefox: `${faker.number.int({ min: 125, max: 135 })}.0`,
-      Safari: `${faker.number.int({ min: 17, max: 18 })}.${faker.number.int({ min: 0, max: 9 })}`,
-      Edge: `${faker.number.int({ min: 120, max: 130 })}.0`,
-      Opera: `${faker.number.int({ min: 110, max: 115 })}.0`,
+      Chrome: `${builtin.number.int({ min: 120, max: 130 })}.0`,
+      Firefox: `${builtin.number.int({ min: 125, max: 135 })}.0`,
+      Safari: `${builtin.number.int({ min: 17, max: 18 })}.${builtin.number.int({ min: 0, max: 9 })}`,
+      Edge: `${builtin.number.int({ min: 120, max: 130 })}.0`,
+      Opera: `${builtin.number.int({ min: 110, max: 115 })}.0`,
     };
     const osVersionMap: Record<string, string> = {
-      Windows: `Windows ${faker.helpers.arrayElement(['10', '11'])}`,
-      macOS: `macOS ${faker.helpers.arrayElement(['Sonoma', 'Ventura', 'Monterey'])}`,
-      Linux: faker.helpers.arrayElement([
+      Windows: `Windows ${builtin.helpers.arrayElement(['10', '11'])}`,
+      macOS: `macOS ${builtin.helpers.arrayElement(['Sonoma', 'Ventura', 'Monterey'])}`,
+      Linux: builtin.helpers.arrayElement([
         'Ubuntu 22.04',
         'Debian 12',
         'CentOS 9',
       ]),
-      iOS: `iOS ${faker.number.int({ min: 16, max: 18 })}.${faker.number.int({ min: 0, max: 5 })}`,
-      Android: `Android ${faker.number.int({ min: 13, max: 15 })}`,
+      iOS: `iOS ${builtin.number.int({ min: 16, max: 18 })}.${builtin.number.int({ min: 0, max: 5 })}`,
+      Android: `Android ${builtin.number.int({ min: 13, max: 15 })}`,
     };
     const browser = `${browserName} ${browserVersionMap[browserName]}`;
     const os = osVersionMap[osName]!;
-    const isSuccess = Math.random() < 0.9;
+    const isSuccess = builtin.datatype.boolean(0.9);
     const status: 'fail' | 'success' = isSuccess ? 'success' : 'fail';
     const userAgentTemplates: Record<string, (b: string, o: string) => string> =
       {
@@ -161,10 +161,10 @@ function generateLoginLogs(count = 35): LoginLogRecord[] {
     const userAgentFn =
       userAgentTemplates[browserName] || userAgentTemplates.Chrome!;
     const userAgent = userAgentFn(browser, os);
-    const daysAgo = faker.number.int({ min: 0, max: 29 });
-    const hoursAgo = faker.number.int({ min: 0, max: 23 });
-    const minutesAgo = faker.number.int({ min: 0, max: 59 });
-    const secondsAgo = faker.number.int({ min: 0, max: 59 });
+    const daysAgo = builtin.number.int({ min: 0, max: 29 });
+    const hoursAgo = builtin.number.int({ min: 0, max: 23 });
+    const minutesAgo = builtin.number.int({ min: 0, max: 59 });
+    const secondsAgo = builtin.number.int({ min: 0, max: 59 });
     const loginTime = now
       .subtract(daysAgo, 'day')
       .subtract(hoursAgo, 'hour')
@@ -175,21 +175,21 @@ function generateLoginLogs(count = 35): LoginLogRecord[] {
       id: i + 1,
       username: user.username,
       loginAccount: user.username,
-      ip: faker.internet.ipv4(),
+      ip: builtin.internet.ipv4(),
       location:
-        CHINESE_CITIES[Math.floor(Math.random() * CHINESE_CITIES.length)]!,
+        builtin.helpers.arrayElement(CHINESE_CITIES),
       browser,
       os,
       status,
       message: isSuccess
         ? '登录成功'
-        : FAIL_MESSAGES[Math.floor(Math.random() * FAIL_MESSAGES.length)]!,
+        : builtin.helpers.arrayElement(FAIL_MESSAGES),
       loginTime,
-      duration: faker.number.int({ min: 45, max: 2500 }),
+      duration: builtin.number.int({ min: 45, max: 2500 }),
       userAgent,
     });
   }
   return records;
 }
 
-export const LOGIN_LOG_DB = generateLoginLogs();
+export const LOGIN_LOG_DB = defineCollection({ seed: generateLoginLogs, table: 'tb_login_log' });

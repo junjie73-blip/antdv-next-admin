@@ -50,7 +50,7 @@ const orgTree: TreeDataNode[] = [
   },
 ];
 
-const mockEmployees: Record<string, Array<Record<string, any>>> = {
+const demoEmployees: Record<string, Array<Record<string, any>>> = {
   'dept-1-1-1': [
     {
       id: 1,
@@ -230,7 +230,7 @@ async function fetchTableData(params: {
 
   await new Promise((resolve) => setTimeout(resolve, 300));
 
-  const allData = mockEmployees[params.treeKey] || [];
+  const allData = demoEmployees[params.treeKey] || [];
   const start = (params.page - 1) * params.pageSize;
   const end = start + params.pageSize;
   const list = allData.slice(start, end);

@@ -188,7 +188,7 @@ const renameFormSchemas: FormSchema[] = [
 ];
 
 // ========== API 适配层 ==========
-async function mockApi(params: Record<string, any>) {
+async function listApi(params: Record<string, any>) {
   // 兼容 mock 直接返回完整响应或已解包的数据，声明层给不出这两种形状
   const res: any = await getFileList({
     ...params,
@@ -538,7 +538,7 @@ const columns: BasicColumn[] = [
         <BasicTable
           ref="tableRef"
           :columns="columns"
-          :api="mockApi"
+          :api="listApi"
           :immediate="true"
           :use-search-form="true"
           :form-config="{ schemas: searchFormSchemas, labelWidth: 70 }"

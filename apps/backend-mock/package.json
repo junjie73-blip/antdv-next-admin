@@ -9,20 +9,23 @@
     "dev": "nitro dev",
     "preview": "node .output/server/index.mjs",
     "start": "node .output/server/index.mjs",
+    "mock:seed": "node --experimental-strip-types scripts/mock-db.mjs seed",
+    "mock:reset": "node --experimental-strip-types scripts/mock-db.mjs reset",
+    "mock:db:info": "node --experimental-strip-types scripts/mock-db.mjs info",
     "test:unit": "vitest run",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
     "@antdv/types": "workspace:*",
-    "@faker-js/faker": "catalog:",
+    "@paralleldrive/cuid2": "^3.3.0",
+    "better-sqlite3": "catalog:",
     "dayjs": "catalog:",
     "jose": "catalog:",
-    "mockjs": "catalog:",
     "nitropack": "catalog:"
   },
   "devDependencies": {
     "@antdv/tsconfig": "workspace:*",
-    "@types/mockjs": "catalog:",
+    "@types/better-sqlite3": "^9.6.0",
     "h3": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"

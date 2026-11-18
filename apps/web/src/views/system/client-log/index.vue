@@ -124,7 +124,7 @@ interface ClientLogListData {
   total: number;
 }
 
-async function mockApi(params: Record<string, any>) {
+async function listApi(params: Record<string, any>) {
   const res = await getClientLogList(params);
   const data = unwrapApi<ClientLogListData | null>(res);
   stats.value = data?.stats ?? {
@@ -225,7 +225,7 @@ const columns: BasicColumn[] = [
       <BasicTable
         :key="reloadKey"
         :columns="columns"
-        :api="mockApi"
+        :api="listApi"
         :immediate="true"
         :use-search-form="true"
         :form-config="{ schemas: searchFormSchemas, labelWidth: 80 }"

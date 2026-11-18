@@ -5,11 +5,10 @@
  * - vite-plugin-fake-server 用 bundle-import 把相对依赖内联进每个 mock 文件，状态只能挂 globalThis；
  *   Nitro 是单进程服务，理论上模块级变量即可共享，但 dev 下 handler 会被热重载重建，
  *   保留 globalThis 单例可以让热重载与手动重置的行为与 legacy 完全一致。
- * - 面板生成的自定义接口过去落地为 mock/generated/<id>.fake.ts 由插件热加载，
- *   Nitro 无法在运行时新增文件路由，所以生成接口的「定义」直接持久化进本 store，
- *   由 server/middleware/generated.ts 在请求进入路由前匹配短路（见该文件注释）。
+ * - 生成式自定义接口能力已下线；保留 `generated` 字段只是为了让运行时状态结构
+ *   与既有持久化文件兼容，不再有请求会命中生成路由。
  *
- * 持久化保留配置（总开关 / 单接口覆盖 / 生成接口定义）；命中统计与日志仍属于当次进程会话。
+ * 持久化保留配置（总开关 / 单接口覆盖 / 历史生成接口定义）；命中统计与日志属于当次进程会话。
  */
 
 import type {

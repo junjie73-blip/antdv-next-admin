@@ -438,7 +438,7 @@ function withAncestors(
   return flat.filter((item) => keep.has(item.id));
 }
 
-async function mockApi(params: Record<string, any>) {
+async function listApi(params: Record<string, any>) {
   const { keyword, menuType } = params;
   const flat = flattenMenuTree(allData.value);
   let filtered = [...flat];
@@ -774,7 +774,7 @@ const columns: BasicColumn[] = [
     <Card title="菜单树" :class="cardClassName">
       <BasicTable
         :columns="columns"
-        :api="mockApi"
+        :api="listApi"
         :immediate="true"
         :use-search-form="true"
         :form-config="{ schemas: searchFormSchemas, labelWidth: 80 }"

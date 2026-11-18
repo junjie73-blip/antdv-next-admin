@@ -1,8 +1,11 @@
+import { builtin } from '../builtin-data';
+import { defineCollection, defineKVMap } from './sqlite';
+
 /**
  * 系统管理补集演示数据：服务监控快照 / 客户端日志 / 验证码日志 / 系统配置 / 详情分组。
  *
- * 这里刻意不用 faker：监控面板要能被单测断言，日志记录要能被筛选函数稳定分页，
- * 所以用一个线性同余伪随机 + 固定日期表生成确定性数据。
+ * 数据全部来自确定性内置表与固定日期表，不含随机数生成器，
+ * 监控面板可被单测断言，日志可被筛选函数稳定分页。
  */
 
 export type Tone = 'error' | 'info' | 'success' | 'warning';
@@ -164,13 +167,9 @@ export function healthOf(score: number): { label: string; tone: Tone } {
 
 /* --------------------------------- 日志 --------------------------------- */
 
-/** 固定种子的伪随机，保证每次进程启动生成同一批记录 */
-function seeded(seed: number): () => number {
-  let state = seed;
-  return () => {
-    state = (Math.imul(state, 1_664_525) + 1_013_904_223) >>> 0;
-    return state / 4_294_967_296; // 2 ** 32，LCG 归一化到 [0, 1)
-  };
+/** 确定性内置序列：每次调用从常量表头重置，保证生成函数可重复调用 */
+function deterministicSequence(): () => number {
+  return builtin.sequence();
 }
 
 const CITIES = [
@@ -238,7 +237,7 @@ function clientLogLevel(roll: number): ClientLogRecord['level'] {
 }
 
 export function generateClientLogs(count = 88): ClientLogRecord[] {
-  const random = seeded(20_261_110);
+  const random = deterministicSequence();
   return Array.from({ length: count }, (_, index) => {
     const level = clientLogLevel(random());
     return {
@@ -262,7 +261,7 @@ export function generateClientLogs(count = 88): ClientLogRecord[] {
   });
 }
 
-export const CLIENT_LOG_DB = generateClientLogs();
+export const CLIENT_LOG_DB = defineCollection({ seed: generateClientLogs, table: 'tb_client_log' });
 
 export interface CaptchaLogRecord {
   code: string;
@@ -291,7 +290,7 @@ function captchaLogType(roll: number): CaptchaLogRecord['type'] {
 }
 
 export function generateCaptchaLogs(count = 88): CaptchaLogRecord[] {
-  const random = seeded(20_261_120);
+  const random = deterministicSequence();
   return Array.from({ length: count }, (_, index) => {
     const type = captchaLogType(random());
     return {
@@ -311,7 +310,7 @@ export function generateCaptchaLogs(count = 88): CaptchaLogRecord[] {
   });
 }
 
-export const CAPTCHA_LOG_DB = generateCaptchaLogs();
+export const CAPTCHA_LOG_DB = defineCollection({ seed: generateCaptchaLogs, table: 'tb_captcha_log' });
 
 /** 通用日志筛选：关键字 + 枚举 + 时间倒序，客户端日志与验证码日志共用口径 */
 export function selectLogs<T extends { id: number; time: string }>(
@@ -368,13 +367,13 @@ export const CONFIG_PANELS: ConfigPanel[] = [
         key: 'siteUrl',
         label: '站点地址',
         type: 'text',
-        placeholder: 'https://example.com',
+        placeholder: 'https://junjie73-blip.github.io/antdv-next-admin/',
       },
       {
         key: 'supportEmail',
         label: '支持邮箱',
         type: 'text',
-        placeholder: 'support@example.com',
+        placeholder: '请输入本站支持邮箱',
       },
       {
         key: 'icp',
@@ -528,11 +527,12 @@ export const CONFIG_PANELS: ConfigPanel[] = [
 /** 面板默认值：页面「恢复默认」与后端保存都从这里取 */
 export const CONFIG_DEFAULTS: Record<string, Record<string, ConfigValue>> = {
   site: {
-    siteName: 'Wuhu Admin',
-    siteUrl: 'https://admin.example.com',
-    supportEmail: 'support@example.com',
-    icp: '浙ICP备2026000000号',
-    copyright: '© 2026 Wuhu Admin',
+    siteName: 'Antdv Admin',
+    siteUrl: 'https://junjie73-blip.github.io/antdv-next-admin/',
+    supportEmail: '',
+    // 本站为开源项目，无备案主体信息，避免再放占位备案号
+    icp: '',
+    copyright: '© 2026 Antdv Admin',
     enabled: true,
     maintenance: false,
     maintenanceTip: '系统维护中，请稍后访问',
@@ -559,27 +559,27 @@ export const CONFIG_DEFAULTS: Record<string, Record<string, ConfigValue>> = {
     encryption: 'SSL',
     smtpHost: 'smtp.exmail.qq.com',
     smtpPort: 465,
-    smtpUser: 'noreply@example.com',
+    smtpUser: '',
     smtpPassword: '',
-    fromName: '系统通知',
-    fromEmail: 'noreply@example.com',
+    fromName: 'Antdv Admin 通知',
+    fromEmail: '',
   },
   sms: {
     provider: '腾讯云短信',
-    signature: 'Wuhu Admin',
+    signature: 'Antdv Admin',
     accessKey: '',
     accessSecret: '',
-    loginTemplate: 'SMS_20260001',
-    noticeTemplate: 'SMS_20260002',
+    loginTemplate: '',
+    noticeTemplate: '',
   },
   storage: {
     provider: 'MinIO',
-    region: 'cn-east-1',
-    endpoint: 'https://oss.example.com',
-    bucket: 'wuhu-admin',
+    region: '',
+    endpoint: '',
+    bucket: 'antdv-next-admin',
     accessKeyId: '',
     accessKeySecret: '',
-    publicDomain: 'https://cdn.example.com',
+    publicDomain: '',
     pathPrefix: 'uploads/',
   },
   client: {
@@ -587,17 +587,22 @@ export const CONFIG_DEFAULTS: Record<string, Record<string, ConfigValue>> = {
     maxFileSize: 10,
     defaultPageSize: 20,
     compressImage: true,
-    clientVersion: '2.8.1',
-    updateUrl: 'https://admin.example.com/release',
+    clientVersion: '0.1.0',
+    updateUrl: 'https://github.com/junjie73-blip/antdv-next-admin/releases',
     allowedTypes: '.jpg,.png,.pdf,.xlsx',
   },
 };
 
-/** 保存后只在内存中生效，重启 mock 服务即回到默认值（演示口径） */
+/**
+ * 系统配置当前值（SQLite 迁移 P2 · config）。
+ * 每个面板在 `tb_config` 存一行，save/reset handler 的
+ * `CONFIG_VALUES[panel] = next` 写法由 defineKVMap 代理落库，handler 零改动；
+ * memory 模式下退化为普通对象副本，行为与改造前一致。
+ */
 export const CONFIG_VALUES: Record<
   string,
   Record<string, ConfigValue>
-> = structuredClone(CONFIG_DEFAULTS);
+> = defineKVMap('tb_config', CONFIG_DEFAULTS);
 
 /* ------------------------------- 记录详情 ------------------------------- */
 

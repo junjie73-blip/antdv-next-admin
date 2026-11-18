@@ -144,16 +144,16 @@ async function fetchData(params: Record<string, unknown> = {}) {
     const payload = unwrapApi<null | WorkflowMonitorData>(res);
     data.value = payload ?? null;
     return { items: payload?.list ?? [], total: payload?.total ?? 0 };
-  } catch (error) {
+  } catch (cause) {
     error.value =
-      error instanceof Error ? error.message : '流程监控接口暂不可用';
+      cause instanceof Error ? cause.message : '流程监控接口暂不可用';
     return { items: [], total: 0 };
   } finally {
     loading.value = false;
   }
 }
 
-async function mockApi(params: Record<string, any>) {
+async function listApi(params: Record<string, any>) {
   return fetchData(params);
 }
 
@@ -365,7 +365,7 @@ const columns: BasicColumn[] = [
           <BasicTable
             :key="reloadKey"
             :columns="columns"
-            :api="mockApi"
+            :api="listApi"
             :immediate="true"
             :use-search-form="true"
             :form-config="{ schemas: searchFormSchemas, labelWidth: 80 }"

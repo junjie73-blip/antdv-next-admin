@@ -284,7 +284,7 @@ const modalFormSchemas: FormSchema[] = [
 ];
 
 // ========== API 适配层 — 树形表格不分页 ==========
-async function mockApi(params: Record<string, any>) {
+async function listApi(params: Record<string, any>) {
   // 先等树到位再取数：首屏 `immediate` 比 onMounted 的 fetch 更早，不等就是空表
   await ensureDeptTree();
   const { keyword } = params;
@@ -568,7 +568,7 @@ const columns: BasicColumn[] = [
         <BasicTable
           ref="tableRef"
           :columns="columns"
-          :api="mockApi"
+          :api="listApi"
           :immediate="true"
           :use-search-form="true"
           :form-config="{ schemas: searchFormSchemas, labelWidth: 80 }"

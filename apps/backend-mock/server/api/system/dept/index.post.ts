@@ -2,7 +2,7 @@ import type { DeptRecord } from '../../../utils/db/dept';
 
 import dayjs from 'dayjs';
 
-import { nextDeptId } from '../../../utils/db/dept';
+import { ALL_DEPTS_FLAT, nextDeptId } from '../../../utils/db/dept';
 import { success } from '../../../utils/response';
 import { defineMockRoute } from '../../../utils/runtime';
 
@@ -22,6 +22,9 @@ export default defineMockRoute({
       userCount: 0,
       children: [],
     };
+
+    // 真实写入：此前只回显构造对象却不落库，导致刷新后新增部门消失
+    ALL_DEPTS_FLAT.push(newDept);
 
     return success(newDept, '新增部门成功');
   },

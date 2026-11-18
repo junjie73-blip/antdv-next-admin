@@ -39,8 +39,7 @@ const DESCRIPTION = '/components/description';
 const DIRECTIVE = '/components/directive';
 
 /**
- * 菜单 Demo 段的叶子数（`apps/backend-mock/server/api/menus.get.ts`，与
- * `apps/web/src/mock/fixtures.json` 的 `/menus` 是同一份数据的两个副本）：
+ * 菜单 Demo 段的叶子数（真实数据源：`apps/backend-mock/server/api/menus.get.ts`）：
  * 总览 1 + 表格 5 + 表单 4 + 二级散页 17 = 27，
  * 其中「示例总览」本页不进卡片墙（`SELF_PATH` 被过滤），所以墙上是 26 张卡。
  * 菜单叶子 → 卡片之间没有任何过滤（`status` / `permission` / `hidden` 都不参与，

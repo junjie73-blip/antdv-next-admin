@@ -266,7 +266,7 @@ const paginationColumns: BasicColumn[] = [
   { title: 'Date', dataIndex: 'date', key: 'date', width: 130 },
 ];
 
-function paginationMockApi(params: {
+function paginationListApi(params: {
   page?: number;
   pageNum?: number;
   pageSize?: number;
@@ -284,7 +284,7 @@ function paginationMockApi(params: {
 
 const [registerPagination] = useTable({
   columns: paginationColumns,
-  api: paginationMockApi,
+  api: paginationListApi,
   pagination: {
     pageSize: 3,
     showSizeChanger: true,

@@ -171,8 +171,6 @@ export default {
     MonitorLog: 'Operation Logs',
     MonitorLoginLog: 'Login Logs',
     ScreenMonitor: 'Live Monitor',
-    Security: 'Security',
-    SecurityDashboard: 'Security Dashboard',
     SystemDept: 'Departments',
     SystemFile: 'Files',
     SystemManage: 'System',

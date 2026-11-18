@@ -1,11 +1,21 @@
 /**
- * 角色内存库（legacy mock/role.fake.ts 的数据层）
+ * 角色数据层（legacy mock/role.fake.ts 的后继）。
+ *
+ * SQLite 迁移示范（SQLITE_MIGRATION_PLAN.md P2 首个模块）：
+ * - `ROLE_DB` 由 `defineCollection` 提供：内存实现下是普通数组（行为与改造前一致），
+ *   SQLite 实现下是透明代理，`push` / `splice` / 索引赋值 / 行属性赋值都会落库，
+ *   因此 `server/api/system/role/**` 四个 handler **一行都不用改**；
+ * - 主键升级为 cuid 物理主键 `_pk`（库内），对外 `id` 仍是 number —— 前端契约不变；
+ * - 删除改为软删除（deleted=1），`list` 自动过滤；
+ * - `nextRoleId()` 在 SQLite 下改为读库取 max+1，重启不会撞号。
+ *
+ * 前端响应信封、分页字段（pageNum/pageSize）、`data.list/total` 形态完全不变。
  */
 
-import { faker } from '@faker-js/faker/locale/zh_CN';
 
-// 与 legacy 一致：seed 影响后续共享 faker 实例的生成
-faker.seed(200);
+import { defineCollection, getStore, isSqliteEnabled, nextBizId } from './sqlite';
+
+// 内置角色数据为确定性常量，不受装载顺序影响
 
 export interface RoleItem {
   code: string;
@@ -18,7 +28,7 @@ export interface RoleItem {
   status: number;
 }
 
-export const ROLE_DB: RoleItem[] = [
+const SEED_ROLES: RoleItem[] = [
   {
     id: 1,
     name: '超级管理员',
@@ -80,9 +90,41 @@ export const ROLE_DB: RoleItem[] = [
     createdAt: '2024-03-15 16:20:00',
   },
 ];
+
+/** 每次播种返回全新对象，避免嵌套 menuIds 被代理写回时污染常量 */
+function cloneSeed(): RoleItem[] {
+  return SEED_ROLES.map((role) => ({ ...role, menuIds: [...role.menuIds] }));
+}
+
+export const ROLE_DB: RoleItem[] = defineCollection<RoleItem>({
+  seed: cloneSeed,
+  table: 'tb_role',
+});
+
 let autoIncrementId = 7;
 
-/** 新增角色自增 id */
+/**
+ * 新增角色 id。内存实现沿用原自增变量（逐字兼容）；
+ * SQLite 实现取库内 max+1 —— 不再有模块级自增状态，重启也不会撞号。
+ */
 export function nextRoleId(): number {
-  return autoIncrementId++;
+  return isSqliteEnabled() ? nextBizId('tb_role') : autoIncrementId++;
+}
+
+/**
+ * 角色 ↔ 菜单关系写入中间表（无外键，软删除）。
+ * 迁移期 `menuIds` 仍在业务行内保留以维持前端契约；关联表同步维护，
+ * 待 P2 全量迁移完成后改为以关联表为唯一真源。
+ */
+export function syncRoleMenuLinks(roleId: number, menuIds: number[]): void {
+  if (!isSqliteEnabled()) return;
+  const store = getStore();
+  const active = store.links('tb_role_menu', roleId).map((link) => String(link.menu_id));
+  const wanted = menuIds.map(String);
+  for (const id of active) {
+    if (!wanted.includes(id)) store.unlink('tb_role_menu', roleId, id);
+  }
+  for (const id of wanted) {
+    if (!active.includes(id)) store.link('tb_role_menu', roleId, id);
+  }
 }

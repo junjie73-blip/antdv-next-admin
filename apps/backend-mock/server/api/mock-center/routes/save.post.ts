@@ -7,12 +7,8 @@ import {
 import { bizError, envelope } from '../../../utils/response';
 
 /**
- * 保存面板生成的自定义接口。
- *
- * legacy 会落地 mock/generated/<id>.fake.ts 让插件热加载，写文件失败要回 500；
- * Nitro 下定义持久化进 store（server/utils/store.ts 的 generated 字段），
- * 由 server/middleware/generated.ts 立即生效，落盘失败已在 store.persist 内部降级为告警，
- * 所以这里没有 500 分支，file 字段仅作为面板展示用的虚拟路径。
+ * 保存自定义接口定义：生成式响应能力已下线，这里只做校验与回显，
+ * 保持既有请求参数与返回结构兼容，不再注册运行时假路由。
  */
 export default defineEventHandler(async (event) => {
   const body = ((await readBody(event)) ?? {}) as Record<string, unknown>;

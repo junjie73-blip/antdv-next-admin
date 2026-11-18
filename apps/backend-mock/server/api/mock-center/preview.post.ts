@@ -3,7 +3,7 @@ import { defineEventHandler, readBody } from '#imports';
 import { bizError, envelope } from '../../utils/response';
 import { renderPreview } from '../../utils/templates';
 
-/** 渲染一次 mockjs 模板供面板预览；失败只回业务码 400，与 legacy 一致 */
+/** 校验响应模板并原样回显样本；不生成任何数据，失败只回业务码 400 */
 export default defineEventHandler(async (event) => {
   const body = ((await readBody(event)) ?? {}) as Record<string, unknown>;
   const preview = renderPreview(body.template);

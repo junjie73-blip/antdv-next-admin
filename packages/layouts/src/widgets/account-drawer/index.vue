@@ -5,6 +5,7 @@ import { useLayoutI18n } from '@antdv/layout-ui';
 import { BasicDrawer, useDrawer } from '@antdv/popup-ui';
 import { cn } from '@antdv/shared/utils/cn';
 import { Icon } from '@iconify/vue';
+import { useWindowSize } from '@vueuse/core';
 
 import { layoutHost } from '../../host';
 
@@ -71,19 +72,32 @@ const tabItemClassName = (tab: AccountTab) =>
       : 'text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800',
   );
 
+/**
+ * 抽屉宽度：桌面 720（两栏并排），窄屏跟着视口收。
+ *
+ * 原来写死 720，在 360px 手机上整张面板被居中到 x=-360 —— 左半边完全在屏幕外，
+ * 用户只看到被截断的右半，再加上 reka 在移动端挂的 swipe 手势区，轻触就被当成
+ * 下拉关闭，于是"点个人中心/账户设置后抽屉立即消失"。跟 setting-drawer 的
+ * drawerSize 同一套路：留 24px 贴边、兜 280px 下限，保证极窄屏也能整张落进视口。
+ */
+const { width: viewportWidth } = useWindowSize();
+const drawerSize = computed(() =>
+  Math.max(280, Math.min(720, viewportWidth.value - 24)),
+);
+
 defineExpose({ open, close });
 </script>
 
 <template>
   <BasicDrawer
     :title="t('header.profile')"
-    :size="720"
+    :size="drawerSize"
     :show-footer="false"
     :mask-closable="true"
     :destroy-on-hidden="false"
     @register="registerDrawer"
   >
-    <div data-account-drawer class="min-h-0">
+    <div data-account-drawer class="min-h-0 pb-4">
       <div
         role="tablist"
         :class="tabBarClassName"

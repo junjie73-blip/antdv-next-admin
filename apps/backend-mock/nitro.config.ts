@@ -21,6 +21,16 @@ export default defineNitroConfig({
   // 类型产物路径同理没有 `nitroTypesPath` 这个选项（2.13 固定在 `<buildDir>/types` 下），
   // 而 tsconfig 是按 `.nitro/types/*.d.ts` 通配引入的，所以不需要显式指定文件名。
   preset: 'node-server',
+  /**
+   * better-sqlite3 是原生模块（含 .node 二进制），显式声明 external，
+   * 运行时由 connection.ts 的惰性 createRequire 从 node_modules 加载，
+   * 只有 MOCK_STORE=sqlite 才会真正加载。
+   * 注意：惰性加载不会被 Nitro 静态分析到，产物 .output/server/package.json
+   * 不会列出它；部署时需保证 apps/backend-mock/package.json 的依赖被一并安装。
+   */
+  externals: {
+    external: ['better-sqlite3'],
+  },
   routeRules: {
     '/**': { cors: true },
   },
