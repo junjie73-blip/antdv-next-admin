@@ -3,7 +3,7 @@
  */
 
 import { builtin } from '../builtin-data';
-import { defineCollection, isSqliteEnabled, nextBizId } from './sqlite';
+import { defineCollection, nextBizId } from './sqlite';
 import dayjs from 'dayjs';
 
 
@@ -184,9 +184,7 @@ function generatePostData(): PostRecord[] {
 }
 
 export const POST_DB = defineCollection({ seed: generatePostData, table: 'tb_post' });
-let autoIncrementId = 22;
-
 /** 新增岗位自增 id */
 export function nextPostId(): number {
-  return isSqliteEnabled() ? nextBizId('tb_post') : autoIncrementId++;
+  return nextBizId('tb_post');
 }

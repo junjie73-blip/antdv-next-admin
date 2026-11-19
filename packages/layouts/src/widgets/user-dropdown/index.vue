@@ -92,9 +92,41 @@ const DOCS_URL = [
   '-next-admin/',
 ].join('');
 
+/**
+ * 等待 modal 下拉退场、body 恢复 pointer-events 后再执行回调。
+ *
+ * reka 的 DropdownMenu 是模态浮层：打开时给 `<body>` 写 `pointer-events: none`，
+ * 关闭动画（约 200ms）走完才解锁。若在这期间打开抽屉，抽屉会被这层
+ * `pointer-events: none` 吞掉事件；更要命的是 reka 在 touch 设备上把菜单项的
+ * `pointerdown` 延迟到 `click` 派发，抽屉若在 click 里同步打开，那次延迟的
+ * `pointerdown` 会被抽屉当成 "interact outside" 而**立刻关闭** —— 这正是
+ * "点个人中心/账户设置抽屉闪一下就没"的根因。
+ */
+function waitForBodyUnlocked(): Promise<void> {
+  return new Promise((resolve) => {
+    const startedAt = Date.now();
+    const check = () => {
+      // 没有内联 pointerEvents 即已解锁；400ms 兜底，避免异常时永久不打开
+      if (!document.body.style.pointerEvents || Date.now() - startedAt > 400) {
+        resolve();
+        return;
+      }
+      requestAnimationFrame(check);
+    };
+    requestAnimationFrame(check);
+  });
+}
+
+/** 从头像下拉打开账户抽屉：先让本次 click（含 reka 延迟派发）跑完，再等浮层退场 */
+function openAccountDrawerFromMenu(tab: 'center' | 'settings') {
+  setTimeout(() => {
+    void waitForBodyUnlocked().then(() => accountDrawerRef.value?.open(tab));
+  }, 0);
+}
+
 function handleUserMenuClick(key: string) {
   if (key === 'profile' || key === 'settings') {
-    accountDrawerRef.value?.open(key === 'settings' ? 'settings' : 'center');
+    openAccountDrawerFromMenu(key === 'settings' ? 'settings' : 'center');
   } else if (key === 'docs') {
     window.open(DOCS_URL, '_blank');
   } else if (key === 'lock') {

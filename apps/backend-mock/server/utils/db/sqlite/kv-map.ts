@@ -6,9 +6,9 @@
  * `CONFIG_VALUES[panel] = next`，因此这里用一层对象代理把读写翻译成
  * `DataStore.getById / insert / update`，handler 一行不用改：
  *
- * - `MOCK_STORE=memory` 返回普通对象副本，行为与改造前完全一致；
- * - SQLite 模式每个面板在 `tb_config` 存一行（`data = { id, values }`），
+ * - SQLite 是唯一存储：每个面板在 `tb_config` 存一行（`data = { id, values }`），
  *   首次加载按默认值补齐缺失面板，改完落库、重启仍在。
+ * - 配置默认值是应用正常运行所需的配置项（非伪造业务记录），所有环境都会初始化。
  *
  * 代理完整实现 ownKeys / getOwnPropertyDescriptor，保证
  * `JSON.stringify(CONFIG_VALUES)`（响应信封）与对象展开语义不变。
@@ -28,7 +28,6 @@ export function defineKVMap<T extends object>(
   defaults: Record<string, T>,
 ): Record<string, T> {
   const store: DataStore = getStore();
-  if (store.kind === 'memory') return structuredClone(defaults);
 
   // 逐个面板补齐（而非只看 count），避免中途失败留下的半空表
   for (const [key, value] of Object.entries(defaults)) {

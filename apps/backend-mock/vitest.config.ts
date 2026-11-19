@@ -20,12 +20,12 @@ export default defineConfig({
   test: {
     environment: 'node',
     include: ['test/**/*.test.ts'],
-    // sqlite 模式下给测试默认隔离到内存库：demo-task 等老测试直接读写 `*_DB`
-    // 数组（无临时库逻辑），不隔离会污染真实 .data/mock.sqlite，且依赖历史
-    // 脏数据导致「双实现并行」验收不可重复。db-* 域的 e2e 测试在 beforeEach
-    // 里会自行覆盖为临时文件，不受此项影响；memory 模式不注入，行为不变。
+    // SQLite 是唯一存储：测试默认隔离到内存库，避免 demo-task 等老测试直接
+    // 读写 `*_DB` 数组时污染真实 .data/mock.sqlite 或依赖历史脏数据，
+    // 保证验收可重复。db-* 域 e2e 测试在 beforeEach 里自行覆盖为临时文件，
+    // 不受此项影响。MOCK_ENV 未设置时 env.ts 判定为 development（会播种）。
     env:
-      process.env.MOCK_STORE === 'sqlite' && !process.env.MOCK_DB_FILE
+      !process.env.MOCK_DB_FILE
         ? { MOCK_DB_FILE: ':memory:' }
         : {},
   },

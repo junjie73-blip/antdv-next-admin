@@ -3,7 +3,6 @@ import type { FormSchema } from '@antdv/form-ui';
 import type { BasicColumn } from '@antdv/table-ui';
 
 import { computed, onMounted, ref } from 'vue';
-import { useRouter } from 'vue-router';
 
 import {
   Card,
@@ -31,9 +30,10 @@ import {
   updateUser,
 } from '~/api/system';
 import { useDictStore } from '~/stores';
-defineOptions({ name: 'SystemUser' });
 
-const router = useRouter();
+import RecordDetailDrawer from '../components/RecordDetailDrawer.vue';
+
+defineOptions({ name: 'SystemUser' });
 
 interface UserRecord {
   id: number;
@@ -297,12 +297,12 @@ function handleAdd() {
   modalMethods.openModal();
 }
 
-/** 跳通用记录详情页（module + id 由后端下发分组定义） */
+/** 详情统一走抽屉，不再跳出当前页（module 由业务模块决定） */
+const detailDrawerRef = ref<InstanceType<typeof RecordDetailDrawer> | null>(
+  null,
+);
 function handleDetail(record: UserRecord) {
-  router.push({
-    path: '/system/record-detail',
-    query: { module: 'user', id: String(record.id) },
-  });
+  detailDrawerRef.value?.open('user', String(record.id));
 }
 
 function handleEdit(record: UserRecord) {
@@ -615,5 +615,8 @@ const columns: BasicColumn[] = [
         @register="formRegister"
       />
     </BasicModal>
+
+    <!-- 详情抽屉：替代原「记录详情」独立页，交互统一且不打断当前列表 -->
+    <RecordDetailDrawer ref="detailDrawerRef" />
   </div>
 </template>

@@ -3,7 +3,7 @@
  */
 
 import { builtin } from '../builtin-data';
-import { defineCollection, isSqliteEnabled, nextBizId } from './sqlite';
+import { defineCollection, nextBizId } from './sqlite';
 import dayjs from 'dayjs';
 
 
@@ -123,9 +123,6 @@ function generateDeptTree(): DeptRecord[] {
  */
 export const DEPT_TREE = generateDeptTree();
 
-// 种子数据最多用到 id 29（1 + 7 个二级 + 11 个三级），自增从 30 起
-let autoIncrementDeptId = 30;
-
 // 扁平化辅助函数
 function flattenDepts(nodes: DeptRecord[]): DeptRecord[] {
   const result: DeptRecord[] = [];
@@ -172,5 +169,5 @@ export function buildDeptTree(): DeptRecord[] {
 
 /** 新增部门 id：SQLite 下取库内 max+1，重启不撞号 */
 export function nextDeptId(): number {
-  return isSqliteEnabled() ? nextBizId('tb_dept') : autoIncrementDeptId++;
+  return nextBizId('tb_dept');
 }

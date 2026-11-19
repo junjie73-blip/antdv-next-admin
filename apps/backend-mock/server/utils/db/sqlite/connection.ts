@@ -16,6 +16,7 @@ import { createRequire } from 'node:module';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { dbFileName } from './env';
 import { ALL_DDL } from './schema';
 
 /** 统一数据库连接接口：better-sqlite3 与 node:sqlite 的 DatabaseSync 都满足 */
@@ -72,16 +73,18 @@ function resolvePackageRoot(): string {
   return resolve(process.cwd(), 'apps/backend-mock');
 }
 
-/** 数据库文件路径：可用 MOCK_DB_FILE 覆盖（测试用 :memory: 或临时文件） */
+/**
+ * 数据库文件路径：MOCK_DB_FILE 显式覆盖优先（测试用 :memory: / 临时文件 / 运维脚本）。
+ * 否则按环境分库：dev → mock.sqlite，prod → mock.production.sqlite（见 env.ts）。
+ */
 export function resolveDbFile(): string {
   const override = process.env.MOCK_DB_FILE;
   if (override) return override === ':memory:' ? override : resolve(override);
-  return join(resolvePackageRoot(), '.data', 'mock.sqlite');
+  return join(resolvePackageRoot(), '.data', dbFileName());
 }
 
 function createConnection(file: string): DbConnection {
-  // 惰性加载：MOCK_STORE=memory 时根本不会走到这里，
-  // 因此回滚路径完全不依赖原生模块是否可用。
+  // 惰性加载：只有真正取连接时才 require 原生模块，便于构建/分析阶段不触碰它。
   const require = createRequire(import.meta.url);
 
   if (process.env.MOCK_SQLITE_DRIVER === 'node') {

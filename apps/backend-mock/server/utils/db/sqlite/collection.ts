@@ -8,18 +8,18 @@
  * 全部翻译成 DataStore 的 insert / update / remove（软删除），读操作则每次
  * 从仓储拉最新快照 —— 因此 SQLite 成为唯一真实源，重启后数据仍在。
  *
- * `MOCK_STORE=memory`（默认）时直接返回普通数组，行为与改造前逐字一致。
+ * SQLite 是唯一存储实现；生产环境不自动播种（由 env.ts 判定），表保持空由接口写入。
  */
 
 import type { DataStore, Row } from './store';
 
 import { getStore } from './runtime';
+import { shouldSeedBuiltinData } from './env';
 import { idKey } from './ids';
 
 /** 库内下一个业务 id（替代模块级 next*Id 自增变量，重启不撞号） */
 export function nextBizId(table: string): number {
   const store = getStore();
-  if (store.kind === 'memory') return 0; // 由调用方回落到原自增逻辑
   const rows = store.list<Row>(table, { includeDeleted: true }).list;
   return rows.reduce((max, row) => {
     const n = Number(row.id);
@@ -152,10 +152,8 @@ export function defineCollection<T extends object>(options: CollectionOptions<T>
   const { table, seed } = options;
   const store: DataStore = getStore();
 
-  // 默认内存实现：保持改造前的普通数组语义，零回归
-  if (store.kind === 'memory') return seed ? seed() : [];
-
-  ensureSeed(table, seed, store);
+  // 生产环境不播种业务数据：表由 DDL 建好但保持空，只由接口写入产生数据
+  if (shouldSeedBuiltinData()) ensureSeed(table, seed, store);
   return createSqliteArray<T>(table, store);
 }
 

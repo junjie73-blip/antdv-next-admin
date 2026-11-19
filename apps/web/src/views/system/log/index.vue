@@ -547,8 +547,9 @@ const loginColumns: BasicColumn[] = [
         </button>
       </div>
 
-      <!-- 操作日志 -->
+      <!-- 操作日志：整体缩进与 tab 栏 px-6 对齐，避免表单/表格/分页贴卡片边 -->
       <template v-if="activeTab === 0">
+        <div class="px-6 pb-4">
         <BasicTable
           :columns="columns"
           :api="listApi"
@@ -649,10 +650,12 @@ const loginColumns: BasicColumn[] = [
             </div>
           </template>
         </BasicTable>
+        </div>
       </template>
 
-      <!-- 登录日志 -->
+      <!-- 登录日志：与操作日志同样缩进 -->
       <template v-if="activeTab === 1">
+        <div class="px-6 pb-4">
         <BasicTable
           :columns="loginColumns"
           :api="mockLoginApi"
@@ -686,6 +689,7 @@ const loginColumns: BasicColumn[] = [
             </div>
           </template>
         </BasicTable>
+        </div>
       </template>
 
       <!-- 错误日志 -->

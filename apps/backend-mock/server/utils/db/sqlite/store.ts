@@ -1,7 +1,7 @@
 /**
- * 仓储抽象：DataStore 接口 + MemoryStore / SqliteStore 双实现。
+ * 仓储实现：SqliteStore（SQLite 唯一实现）。
  *
- * 两种实现对外语义必须完全一致，由 `test/db-store.test.ts` 逐条守护：
+ * 对外语义由 `test/db-store.test.ts` 逐条守护：
  * - `insert` 生成 cuid 物理主键 `_pk`，业务 id 缺省时按库内 max+1 分配；
  * - `remove` 一律软删除（deleted=1 + deleted_at），**没有物理 DELETE**；
  * - `list` / `getById` 强制过滤 `deleted = 0`，除非显式 `includeDeleted`；
@@ -48,7 +48,7 @@ export interface LinkRow {
 }
 
 export interface DataStore {
-  readonly kind: 'memory' | 'sqlite';
+  readonly kind: 'sqlite';
   list<T extends object>(table: string, opts?: QueryOpts): Paged<T>;
   getById<T extends object>(table: string, id: unknown): T | undefined;
   /** 返回生成的 cuid 物理主键 */
@@ -253,180 +253,6 @@ export class SqliteStore implements DataStore {
         payload: r.payload ? (JSON.parse(String(r.payload)) as Row) : null,
       }))
       .filter((r) => matches(r as unknown as Row, opts.where)) as LinkRow[];
-  }
-}
-
-/* -------------------------------------------------------------------------- */
-/* MemoryStore                                                                 */
-/* -------------------------------------------------------------------------- */
-
-interface MemoryRecord {
-  record: StoredRecord;
-  seq: number;
-}
-
-/**
- * 内存实现：与 SqliteStore 行为等价的兜底 / 对照实现。
- * `MOCK_STORE=memory`（默认）时由它承载数据，且现有 `*_DB` 数组仍可被
- * 未迁移的模块直接读写 —— 迁移期与回滚期都靠它保持今日行为。
- */
-export class MemoryStore implements DataStore {
-  readonly kind = 'memory' as const;
-
-  private readonly tables = new Map<string, MemoryRecord[]>();
-  private readonly linkTables = new Map<string, LinkRow[]>();
-  private seq = 0;
-
-  private bucket(table: string): MemoryRecord[] {
-    assertTableName(table);
-    let rows = this.tables.get(table);
-    if (!rows) {
-      rows = [];
-      this.tables.set(table, rows);
-    }
-    return rows;
-  }
-
-  private visible(table: string, includeDeleted = false): MemoryRecord[] {
-    return this.bucket(table)
-      .filter((r) => includeDeleted || r.record.deleted === 0)
-      .sort((a, b) => a.seq - b.seq);
-  }
-
-  list<T extends object>(table: string, opts: QueryOpts = {}): Paged<T> {
-    let items = this.visible(table, opts.includeDeleted)
-      .map((r) => r.record.data)
-      .filter((row) => matches(row, opts.where));
-    const total = items.length;
-    if (opts.pageNum !== undefined && opts.pageSize !== undefined) {
-      const page = Math.max(1, Math.floor(opts.pageNum));
-      const size = Math.max(1, Math.floor(opts.pageSize));
-      items = items.slice((page - 1) * size, page * size);
-    }
-    return { list: items.map((row) => ({ ...row })) as T[], total };
-  }
-
-  getById<T extends object>(table: string, id: unknown): T | undefined {
-    const key = idKey(id);
-    const found = this.visible(table).find((r) => r.record.biz_id === key);
-    return found ? ({ ...found.record.data } as T) : undefined;
-  }
-
-  insert(table: string, row: object): string {
-    const bucket = this.bucket(table);
-    const data: Row = { ...row };
-    if (data.id === undefined || data.id === null || data.id === '') {
-      const max = bucket.reduce((acc, r) => {
-        const n = Number(r.record.biz_id);
-        return Number.isFinite(n) ? Math.max(acc, n) : acc;
-      }, 0);
-      data.id = max + 1;
-    }
-    const pk = genId();
-    const now = nowIso();
-    bucket.push({
-      seq: this.seq++,
-      record: {
-        _pk: pk,
-        biz_id: idKey(data.id),
-        data,
-        deleted: 0,
-        deleted_at: null,
-        created_at: now,
-        updated_at: now,
-      },
-    });
-    Object.assign(row, data);
-    return pk;
-  }
-
-  update(table: string, id: unknown, patch: object): boolean {
-    const found = this.visible(table).find((r) => r.record.biz_id === idKey(id));
-    if (!found) return false;
-    found.record.data = { ...found.record.data, ...patch };
-    found.record.biz_id = idKey(found.record.data.id);
-    found.record.updated_at = nowIso();
-    return true;
-  }
-
-  remove(table: string, id: unknown): boolean {
-    const found = this.visible(table).find((r) => r.record.biz_id === idKey(id));
-    if (!found) return false;
-    found.record.deleted = 1;
-    found.record.deleted_at = nowIso();
-    found.record.updated_at = nowIso();
-    return true;
-  }
-
-  restore(table: string, id: unknown): boolean {
-    const found = this.bucket(table).find(
-      (r) => r.record.biz_id === idKey(id) && r.record.deleted === 1,
-    );
-    if (!found) return false;
-    found.record.deleted = 0;
-    found.record.deleted_at = null;
-    found.record.updated_at = nowIso();
-    return true;
-  }
-
-  count(table: string, includeDeleted = false): number {
-    return this.visible(table, includeDeleted).length;
-  }
-
-  truncate(table: string): void {
-    this.tables.set(table, []);
-    this.linkTables.delete(table);
-  }
-
-  link(table: string, leftId: unknown, rightId: unknown, payload: object = {}): string {
-    const def = linkDef(table);
-    if (!def) throw new Error(`[mock-sqlite] 未知的关联表: ${table}`);
-    let rows = this.linkTables.get(table);
-    if (!rows) {
-      rows = [];
-      this.linkTables.set(table, rows);
-    }
-    const pk = genId();
-    rows.push({
-      _pk: pk,
-      [def.left]: idKey(leftId),
-      [def.right]: idKey(rightId),
-      payload: payload as Record<string, unknown>,
-      deleted: 0,
-      deleted_at: null,
-      created_at: nowIso(),
-    });
-    LINK_TABLE_NAMES.add(table);
-    return pk;
-  }
-
-  unlink(table: string, leftId: unknown, rightId: unknown): boolean {
-    const def = linkDef(table);
-    if (!def) throw new Error(`[mock-sqlite] 未知的关联表: ${table}`);
-    const rows = this.linkTables.get(table) ?? [];
-    let hit = false;
-    for (const row of rows) {
-      if (
-        row[def.left] === idKey(leftId) &&
-        row[def.right] === idKey(rightId) &&
-        row.deleted === 0
-      ) {
-        row.deleted = 1;
-        row.deleted_at = nowIso();
-        hit = true;
-      }
-    }
-    return hit;
-  }
-
-  links(table: string, leftId: unknown, opts: QueryOpts = {}): LinkRow[] {
-    const def = linkDef(table);
-    if (!def) throw new Error(`[mock-sqlite] 未知的关联表: ${table}`);
-    return (this.linkTables.get(table) ?? [])
-      .filter((r) => r[def.left] === idKey(leftId))
-      .filter((r) => opts.includeDeleted || r.deleted === 0)
-      .filter((r) => matches(r as unknown as Row, opts.where))
-      .map((r) => ({ ...r }));
   }
 }
 

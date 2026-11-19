@@ -125,6 +125,15 @@ function openDetail(item: AiResourceItem) {
   viewing.value = item;
   drawerMethods.openDrawer();
 }
+
+/** 供应商表格的操作列：详情走独立抽屉（供应商是只读快照，无新增/编辑接口） */
+type AiProvider = AiResourcesData['providers'][number];
+const viewingProvider = ref<null | AiProvider>(null);
+const [providerDrawerRegister, providerDrawerMethods] = useDrawer();
+function openProviderDetail(provider: AiProvider) {
+  viewingProvider.value = provider;
+  providerDrawerMethods.openDrawer();
+}
 </script>
 
 <template>
@@ -280,6 +289,7 @@ function openDetail(item: AiResourceItem) {
                   <th :class="headCellClassName">调用协议</th>
                   <th :class="headCellClassName">描述</th>
                   <th :class="headCellClassName">创建时间</th>
+                  <th :class="headCellClassName">操作</th>
                 </tr>
               </thead>
               <tbody>
@@ -293,6 +303,15 @@ function openDetail(item: AiResourceItem) {
                   </td>
                   <td :class="bodyCellClassName">{{ provider.description }}</td>
                   <td :class="bodyCellClassName">{{ provider.createdAt }}</td>
+                  <td :class="bodyCellClassName">
+                    <Button
+                      variant="link"
+                      class="h-auto px-0.5!"
+                      @click="openProviderDetail(provider)"
+                    >
+                      <Icon icon="ant-design:eye-outlined" /> 详情
+                    </Button>
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -339,6 +358,30 @@ function openDetail(item: AiResourceItem) {
         </Descriptions>
       </template>
       <p v-else :class="hintClassName">暂无资源详情</p>
+    </BasicDrawer>
+
+    <!-- 供应商详情抽屉：与资源详情一致，详情不跳出当前页 -->
+    <BasicDrawer
+      title="供应商详情"
+      :width="480"
+      :show-footer="false"
+      @register="providerDrawerRegister"
+    >
+      <Descriptions v-if="viewingProvider" :column="1" bordered size="middle">
+        <DescriptionsItem label="供应商名称">
+          {{ viewingProvider.name }}
+        </DescriptionsItem>
+        <DescriptionsItem label="编号">{{ viewingProvider.id }}</DescriptionsItem>
+        <DescriptionsItem label="调用协议">
+          {{ viewingProvider.protocol }}
+        </DescriptionsItem>
+        <DescriptionsItem label="描述">
+          {{ viewingProvider.description }}
+        </DescriptionsItem>
+        <DescriptionsItem label="创建时间">
+          {{ viewingProvider.createdAt }}
+        </DescriptionsItem>
+      </Descriptions>
     </BasicDrawer>
   </div>
 </template>

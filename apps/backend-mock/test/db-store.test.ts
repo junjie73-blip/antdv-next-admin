@@ -1,15 +1,15 @@
 /**
- * DataStore 双实现等价测试（SQLITE_MIGRATION_PLAN.md 1.4）。
+ * SqliteStore 仓储契约测试（SQLITE_MIGRATION_PLAN.md 1.4）。
  *
- * 同一组断言分别跑 MemoryStore 与 SqliteStore，防止实现漂移：
- * CRUD / 分页 / 软删除 / 恢复 / 关联表 / cuid 主键 / 无物理 DELETE。
+ * SQLite 是唯一存储实现，覆盖：CRUD / 分页 / 软删除 / 恢复 / 关联表 /
+ * cuid 主键 / 无物理 DELETE。内存实现已下线，不再做双实现矩阵。
  */
 
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { closeDb, getDb, resetDbForTest } from '../server/utils/db/sqlite/connection';
 import { genId } from '../server/utils/db/sqlite/ids';
-import { MemoryStore, SqliteStore } from '../server/utils/db/sqlite/store';
+import { SqliteStore } from '../server/utils/db/sqlite/store';
 
 import type { DataStore, Row } from '../server/utils/db/sqlite/store';
 
@@ -36,7 +36,6 @@ afterEach(() => {
 });
 
 const IMPLEMENTATIONS: Array<[string, () => DataStore]> = [
-  ['MemoryStore', () => new MemoryStore()],
   ['SqliteStore', makeSqlite],
 ];
 

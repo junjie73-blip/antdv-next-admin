@@ -23,8 +23,7 @@ export default defineNitroConfig({
   preset: 'node-server',
   /**
    * better-sqlite3 是原生模块（含 .node 二进制），显式声明 external，
-   * 运行时由 connection.ts 的惰性 createRequire 从 node_modules 加载，
-   * 只有 MOCK_STORE=sqlite 才会真正加载。
+   * 运行时由 connection.ts 的惰性 createRequire 从 node_modules 加载。
    * 注意：惰性加载不会被 Nitro 静态分析到，产物 .output/server/package.json
    * 不会列出它；部署时需保证 apps/backend-mock/package.json 的依赖被一并安装。
    */

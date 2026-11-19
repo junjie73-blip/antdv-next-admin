@@ -334,7 +334,7 @@ test.describe('全站页面巡检', () => {
 
     // 「跳过卡片」这半边不靠某个示例页养着：素材页曾经真的存在过（旧的
     // `/components/feedback`），页面一删这条护栏就没人守了。自己造一段更稳。
-    await go(page, '/components/overview');
+    await go(page, '/components/upload');
     await contentRegion(page).evaluate((region) => {
       const card = document.createElement('div');
       card.dataset.slot = 'card';

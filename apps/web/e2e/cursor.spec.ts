@@ -235,7 +235,6 @@ test.describe('可交互元素的光标', () => {
     await signIn(page);
     for (const path of [
       '/system/user',
-      '/components/overview',
       '/components/upload',
       '/components/loading',
       '/components/editor',

@@ -58,7 +58,7 @@ Mock 服务由 dev 进程**在进程内**拉起（Nitro，端口 5320），`/api
 <details>
 <summary>展开更多页面截图</summary>
 
-**组件示例总览**
+**组件示例**
 
 ![组件示例](./screenshots/03-components.png)
 

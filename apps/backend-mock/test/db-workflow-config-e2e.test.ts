@@ -5,7 +5,7 @@
  * - 工作流改为 defineCollection(tb_workflow)
  * - 系统配置改为 defineKVMap(tb_config)
  * 这里直接调用真实 handler，验证 save / status / delete / config save / reset
- * 在 MOCK_STORE=sqlite 下落库，且「模拟重启」（清单例 + 重载模块）后数据仍在。
+ * 在 SQLite 下落库，且「模拟重启」（清单例 + 重载模块）后数据仍在。
  */
 
 import { existsSync, mkdtempSync, rmSync } from 'node:fs';
@@ -91,7 +91,6 @@ async function getConfig(): Promise<Envelope<ConfigListData>> {
 
 beforeEach(async () => {
   workDir = mkdtempSync(join(tmpdir(), 'antdv-mock-wf-'));
-  process.env.MOCK_STORE = 'sqlite';
   process.env.MOCK_DB_FILE = join(workDir, 'mock.sqlite');
   await loadFresh();
 });
@@ -99,7 +98,6 @@ beforeEach(async () => {
 afterEach(() => {
   closeDb();
   resetStoreForTest();
-  delete process.env.MOCK_STORE;
   delete process.env.MOCK_DB_FILE;
   if (existsSync(workDir)) rmSync(workDir, { force: true, recursive: true });
 });

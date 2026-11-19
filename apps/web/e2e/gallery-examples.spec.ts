@@ -2,14 +2,7 @@ import type { Locator, Page } from '@playwright/test';
 
 import { expect, test } from '@playwright/test';
 
-import {
-  expectActivePath,
-  go,
-  searchBox,
-  signIn,
-  tab,
-  watchErrors,
-} from './utils/app';
+import { expectActivePath, go, signIn, tab, watchErrors } from './utils/app';
 
 /**
  * 「组件示例」这一组的**交互契约**。
@@ -30,7 +23,6 @@ import {
  * 按钮文案和宽度）：那类结论一旦被"顺手改回去"，用例该红，所以写成断言而不是注释。
  */
 
-const OVERVIEW = '/components/overview';
 const DRAG_SORT = '/components/table/drag-sort';
 const DRAG_LAYOUT = '/components/drag-layout';
 const FORM_STEPS = '/components/form/steps';
@@ -38,32 +30,11 @@ const MODAL_DRAWER = '/components/modal-drawer';
 const DESCRIPTION = '/components/description';
 const DIRECTIVE = '/components/directive';
 
-/**
- * 菜单 Demo 段的叶子数（真实数据源：`apps/backend-mock/server/api/menus.get.ts`）：
- * 总览 1 + 表格 5 + 表单 4 + 二级散页 17 = 27，
- * 其中「示例总览」本页不进卡片墙（`SELF_PATH` 被过滤），所以墙上是 26 张卡。
- * 菜单叶子 → 卡片之间没有任何过滤（`status` / `permission` / `hidden` 都不参与，
- * 见 `packages/stores/src/route.ts` 的 `normalize`），所以加一页就是 +1 张卡。
- */
-const OVERVIEW_CARD_COUNT = 26;
-
 /** 进页面并顺手把"控制台错误 / 接口 4xx"记进同一个桶 */
 async function open(page: Page, path: string) {
   const errors = watchErrors(page);
   await go(page, path);
   return errors;
-}
-
-/**
- * 卡片墙上的链接。必须圈进内容区 `<main>`：外壳的多标签页也渲染成
- * `a[href^="#/components/"]`，不过滤的话"过滤到空"永远数到 1 个以上。
- */
-function overviewLinks(page: Page) {
-  return page.locator('main').locator('a[href^="#/components/"]');
-}
-
-function overviewLink(page: Page, path: string) {
-  return page.locator('main').locator(`a[href="#${path}"]`);
 }
 
 /** 按卡片标题取那一块卡片（`[data-slot="card"]` 是 shadcn Card 的根） */
@@ -346,60 +317,6 @@ function descriptionErrors(errors: string[]) {
     (text) => !KNOWN_DESCRIPTION_ERRORS.some((pattern) => pattern.test(text)),
   );
 }
-
-test.describe('组件示例总览页', () => {
-  test.beforeEach(async ({ page }) => {
-    await signIn(page);
-  });
-
-  test('卡片墙直接来自菜单，且能过滤后点进去', async ({ page }) => {
-    const errors = await open(page, OVERVIEW);
-
-    // 清单不自己抄一份：卡片数就是菜单叶子数，新页面进菜单就会出现在这里
-    const cards = overviewLinks(page);
-    const totalCount = await cards.count();
-    expect(totalCount).toBe(OVERVIEW_CARD_COUNT);
-    // 页头那句「共 N 个示例」得和墙上的卡片对得上，否则说明分组统计漏了叶子
-    await expect(
-      page.getByText(`共 ${OVERVIEW_CARD_COUNT} 个示例`),
-    ).toBeVisible();
-
-    // 新页都在墙上：拖拽两条路（表格行 / 布局列表）、弹窗与抽屉、描述列表、分步表单
-    for (const path of [
-      DRAG_SORT,
-      DRAG_LAYOUT,
-      MODAL_DRAWER,
-      DESCRIPTION,
-      FORM_STEPS,
-    ]) {
-      await expect(overviewLink(page, path)).toBeVisible();
-    }
-
-    await searchBox(page, '按名称或路径过滤').fill('指令');
-    await expect(overviewLink(page, DIRECTIVE)).toBeVisible();
-    expect(await cards.count()).toBeLessThan(totalCount);
-    await expect(page.getByText('已过滤')).toBeVisible();
-
-    // 真链接 → 点了要落到目标页，并且外壳标签页跟着激活
-    await overviewLink(page, DIRECTIVE).click();
-    await expectActivePath(page, DIRECTIVE);
-
-    expect(errors.errors).toEqual([]);
-    expect(errors.badResponses).toEqual([]);
-    errors.stop();
-  });
-
-  test('过滤到没有匹配时给空状态，而不是留一片空白', async ({ page }) => {
-    const errors = await open(page, OVERVIEW);
-
-    await searchBox(page, '按名称或路径过滤').fill('不存在的示例名');
-    await expect(page.getByText('没有匹配的示例页')).toBeVisible();
-    expect(await overviewLinks(page).count()).toBe(0);
-
-    expect(errors.errors).toEqual([]);
-    errors.stop();
-  });
-});
 
 test.describe('表格拖拽排序页', () => {
   test.beforeEach(async ({ page }) => {
@@ -1720,7 +1637,7 @@ test.describe('自定义指令页', () => {
 
   test('四页之间来回切换不留脏状态', async ({ page }) => {
     const errors = await open(page, DRAG_LAYOUT);
-    for (const path of [OVERVIEW, DRAG_SORT, MODAL_DRAWER, DRAG_LAYOUT]) {
+    for (const path of [DESCRIPTION, DRAG_SORT, MODAL_DRAWER, DRAG_LAYOUT]) {
       await go(page, path);
       await expectActivePath(page, path);
     }

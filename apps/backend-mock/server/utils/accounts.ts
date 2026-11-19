@@ -87,7 +87,6 @@ export const accounts: [MockAccount, ...MockAccount[]] = [
       'Analysis',
       'AccountCenter',
       'AccountSettings',
-      'DemoComponentsOverview',
       'DemoTableAnimation',
       'DemoTableBasic',
       'DemoTableCrud',

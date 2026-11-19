@@ -1,27 +1,43 @@
 <script setup lang="ts">
+import type { FormSchema } from '@antdv/form-ui';
+import type { BasicColumn } from '@antdv/table-ui';
+
 import type { DataPageProps, DataRow } from './types';
 
 import { computed, ref } from 'vue';
 
-import { Button, Input, Progress } from '@antdv/shadcn-ui';
+import { BasicForm, useForm } from '@antdv/form-ui';
+import {
+  BasicDrawer,
+  BasicModal,
+  message,
+  useDrawer,
+  useModal,
+} from '@antdv/popup-ui';
+import { Button, Progress } from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/utils/cn';
+import { BasicTable, useTable } from '@antdv/table-ui';
 import { Icon } from '@iconify/vue';
 
 import { Card } from '../card';
+import { Descriptions, DescriptionsItem } from '../descriptions';
+import { Divider } from '../divider';
 import { PageHeader } from '../page-header';
+import { Popconfirm } from '../popconfirm';
 import { Tag } from '../tag';
 
 /**
  * 数据工作台：把「项目管理 / 模板中心 / AI 开发 / 审批流」这一批列表页
- * 收敛成同一套骨架（与参考 admin 的四段式一致）：
+ * 收敛成同一套骨架。表格及交互全部走 BasicTable 生态，与 system/user 列表
+ * 的实现方式保持一致：
  *
- *   1. 顶部统计卡（指标 + 图标）
- *   2. 查询区（关键字 + 条件下拉 + 查询/重置）
- *   3. 工具栏（主操作 + 批量操作 + 已选计数）
- *   4. 数据表格（状态标签、进度条、行选择、分页）
+ *   1. 顶部统计卡（指标 + 图标）—— 数据由页面侧提供
+ *   2. BasicTable：内置 BasicForm 查询区、行选择、分页 + 自定义操作列
+ *   3. 新增/编辑统一走 BasicModal + BasicForm，详情走 BasicDrawer
  *
- * 页面侧只提供静态数据与列定义，交互（查询、选择、分页、新建/删除）
- * 在这里统一实现，避免 17 个页面各写一份半残的占位。
+ * 数据本身是页面侧传入的静态 rows。为了复用 BasicTable 的查询表单与分页链路，
+ * 这里用 `api` 适配层在内存里做「关键字/条件过滤 → 分页切片」，等价于后端的
+ * `{ list, total }` 端点（配了 api 后 BasicTable 不再做客户端切片，必须自己切）。
  */
 const props = withDefaults(defineProps<DataPageProps>(), {
   createFields: undefined,
@@ -35,14 +51,124 @@ const props = withDefaults(defineProps<DataPageProps>(), {
   statusKey: '',
 });
 
-const keyword = ref('');
-const filterValues = ref<Record<string, string>>({});
-const selected = ref<string[]>([]);
-const pageNum = ref(1);
-const pageSize = 8;
+/** 本地数据源（增删改直接改它，再 tableMethods.reload() 走一遍 api 适配层） */
 const rows = ref<DataRow[]>([...props.rows]);
-const createOpen = ref(false);
-const draft = ref<DataRow>({});
+
+const keywordField = 'keyword';
+
+/** 查询区：关键字 + 页面侧声明的每个筛选项，转成 BasicForm 的 schema */
+const searchFormSchemas = computed<FormSchema[]>(() => [
+  {
+    field: keywordField,
+    label: '关键词',
+    component: 'Input',
+    componentProps: {
+      placeholder: '输入关键字查询',
+      allowClear: true,
+    },
+    colProps: { span: 6 },
+  },
+  ...props.filters.map((filter) => ({
+    field: filter.key,
+    label: filter.label,
+    component: 'Select' as const,
+    componentProps: {
+      placeholder: filter.placeholder ?? `请选择${filter.label}`,
+      allowClear: true,
+      options: (filter.options ?? []).map((option) => ({
+        label: option.label,
+        value: option.value,
+      })),
+    },
+    colProps: { span: 6 },
+  })),
+]);
+
+/** 状态列的动态插槽名（BasicTable 按 cell-<key> 找插槽） */
+const statusCellSlot = computed(() => `cell-${props.statusKey}`);
+
+/** 列定义：DataColumn → BasicColumn（状态/进度列用同名 cell 插槽定制渲染） */
+const tableColumns = computed<BasicColumn[]>(() =>
+  props.columns.map((column) => ({
+    title: column.title,
+    dataIndex: column.key,
+    key: column.key,
+    width: column.width,
+    align: 'center',
+    ellipsis: true,
+  })),
+);
+
+/**
+ * api 适配层：BasicTable 会把查询表单的值展开进 params，并附上 pageNum/pageSize。
+ * 这里在内存里对 rows 做过滤 + 切片，返回 { list, total }。
+ */
+async function listApi(params: Record<string, any>) {
+  const pageNum = Number(params.pageNum ?? 1);
+  const pageSize = Number(params.pageSize ?? 8);
+  const kw = String(params[keywordField] ?? '')
+    .trim()
+    .toLowerCase();
+
+  const list = rows.value.filter((row) => {
+    const matchKeyword =
+      !kw ||
+      Object.values(row).some((value) =>
+        String(value).toLowerCase().includes(kw),
+      );
+    const matchFilter = props.filters.every((filter) => {
+      const value = params[filter.key];
+      return (
+        value === undefined ||
+        value === null ||
+        value === '' ||
+        row[filter.key] === String(value)
+      );
+    });
+    return matchKeyword && matchFilter;
+  });
+
+  const total = list.length;
+  const start = (pageNum - 1) * pageSize;
+  return { list: list.slice(start, start + pageSize), total };
+}
+
+/** 新增/编辑表单字段（默认取 columns 前三项，去掉状态列） */
+const createColumns = computed(() => {
+  const keys = props.createFields ?? props.columns.slice(0, 3).map((c) => c.key);
+  return props.columns.filter(
+    (c) => keys.includes(c.key) && c.key !== props.statusKey,
+  );
+});
+
+const modalFormSchemas = computed<FormSchema[]>(() =>
+  createColumns.value.map((column) => ({
+    field: column.key,
+    label: column.title,
+    component: 'Input',
+    required: true,
+    componentProps: { placeholder: `请输入${column.title}` },
+  })),
+);
+
+const [tableRegister, tableMethods] = useTable();
+const [modalRegister, modalMethods] = useModal();
+const [detailRegister, detailMethods] = useDrawer();
+const [formRegister, formMethods] = useForm();
+
+/** 编辑态：非空表示编辑现有行 */
+const editingKey = ref<null | string>(null);
+const detailRow = ref<null | DataRow>(null);
+const selectedCount = ref(0);
+
+function handleSelectionChange(keys: (number | string)[]) {
+  selectedCount.value = keys.length;
+}
+
+/** 操作列按钮样式，与参考页 system/user 的 link 按钮保持一致 */
+const actionClassName = cn('flex items-center justify-center');
+const btnClassName = cn('h-auto px-0.5!');
+const dividerClassName = cn('mx-0');
 
 const toneClass: Record<string, string> = {
   amber: 'text-amber-600 bg-amber-500/10',
@@ -52,81 +178,67 @@ const toneClass: Record<string, string> = {
   violet: 'text-violet-600 bg-violet-500/10',
 };
 
-const filtered = computed(() => {
-  const kw = keyword.value.trim().toLowerCase();
-  return rows.value.filter((row) => {
-    const matchKeyword =
-      !kw ||
-      Object.values(row).some((v) => String(v).toLowerCase().includes(kw));
-    const matchFilter = Object.entries(filterValues.value).every(
-      ([key, value]) => !value || row[key] === value,
-    );
-    return matchKeyword && matchFilter;
-  });
-});
-
-const totalPages = computed(() =>
-  Math.max(1, Math.ceil(filtered.value.length / pageSize)),
-);
-const paged = computed(() => {
-  const start = (Math.min(pageNum.value, totalPages.value) - 1) * pageSize;
-  return filtered.value.slice(start, start + pageSize);
-});
-
-const createColumns = computed(() => {
-  const keys =
-    props.createFields ?? props.columns.slice(0, 3).map((c) => c.key);
-  return props.columns.filter(
-    (c) => keys.includes(c.key) && c.key !== props.statusKey,
-  );
-});
-
-function search() {
-  pageNum.value = 1;
-}
-function reset() {
-  keyword.value = '';
-  filterValues.value = {};
-  pageNum.value = 1;
-}
-
-function toggle(id: string) {
-  const index = selected.value.indexOf(id);
-  if (index !== -1) selected.value.splice(index, 1);
-  else selected.value.push(id);
-}
-const allChecked = computed(
-  () =>
-    paged.value.length > 0 &&
-    paged.value.every((r) =>
-      selected.value.includes(String(r[props.primaryKey])),
-    ),
-);
-function toggleAll() {
-  const ids = paged.value.map((r) => String(r[props.primaryKey]));
-  selected.value = allChecked.value
-    ? selected.value.filter((id) => !ids.includes(id))
-    : [...new Set([...selected.value, ...ids])];
-}
-
 function openCreate() {
-  draft.value = Object.fromEntries(createColumns.value.map((c) => [c.key, '']));
-  createOpen.value = true;
+  editingKey.value = null;
+  void formMethods.resetFields();
+  formMethods.clearValidate();
+  modalMethods.openModal();
 }
-function submitCreate() {
-  const next: DataRow = { ...draft.value };
-  next[props.primaryKey] = `N${Date.now().toString().slice(-6)}`;
-  if (props.statusKey) next[props.statusKey] = '进行中';
-  rows.value.unshift(next);
-  createOpen.value = false;
-  pageNum.value = 1;
-  keyword.value = '';
-}
-function removeSelected() {
-  rows.value = rows.value.filter(
-    (r) => !selected.value.includes(String(r[props.primaryKey])),
+
+function openEdit(row: DataRow) {
+  editingKey.value = String(row[props.primaryKey]);
+  void formMethods.setFieldsValue(
+    Object.fromEntries(createColumns.value.map((c) => [c.key, row[c.key] ?? ''])),
   );
-  selected.value = [];
+  formMethods.clearValidate();
+  modalMethods.openModal();
+}
+
+async function submitCreate() {
+  const values = await formMethods.validate();
+  if (!values) return;
+
+  if (editingKey.value !== null) {
+    const index = rows.value.findIndex(
+      (r) => String(r[props.primaryKey]) === editingKey.value,
+    );
+    if (index !== -1) {
+      rows.value[index] = { ...rows.value[index], ...values };
+    }
+    message.success('保存成功');
+  } else {
+    const next: DataRow = { ...values };
+    next[props.primaryKey] = `N${Date.now().toString().slice(-6)}`;
+    if (props.statusKey) next[props.statusKey] = '进行中';
+    rows.value.unshift(next);
+    message.success('新建成功');
+  }
+  modalMethods.closeModal();
+  editingKey.value = null;
+  await tableMethods.value?.reload();
+}
+
+function openDetail(row: DataRow) {
+  detailRow.value = row;
+  detailMethods.openDrawer();
+}
+
+function removeRow(row: DataRow) {
+  const key = String(row[props.primaryKey]);
+  rows.value = rows.value.filter((r) => String(r[props.primaryKey]) !== key);
+  message.success('删除成功');
+  void tableMethods.value?.reload();
+}
+
+function removeSelected() {
+  if (!selectedCount.value) return;
+  const selectedRows = tableMethods.value?.getSelectRows?.() ?? [];
+  const keys = new Set(selectedRows.map((r) => String(r[props.primaryKey])));
+  rows.value = rows.value.filter((r) => !keys.has(String(r[props.primaryKey])));
+  tableMethods.value?.clearSelectedRowKeys?.();
+  selectedCount.value = 0;
+  message.success(`已删除 ${keys.size} 条记录`);
+  void tableMethods.value?.reload();
 }
 
 function cellColor(value: string): string {
@@ -142,7 +254,13 @@ function progressOf(row: DataRow): number | undefined {
 
 <template>
   <div class="space-y-4" data-page-view>
-    <PageHeader :description="description" :icon="icon" :title="title" />
+    <PageHeader :description="description" :icon="icon" :title="title">
+      <template #extra>
+        <Button @click="openCreate">
+          <Icon icon="carbon:add" /> {{ createLabel }}
+        </Button>
+      </template>
+    </PageHeader>
 
     <!-- 1. 统计卡 -->
     <div
@@ -173,205 +291,131 @@ function progressOf(row: DataRow): number | undefined {
       </Card>
     </div>
 
-    <!-- 2 + 3 + 4. 查询 / 工具栏 / 表格 -->
+    <!-- 2. 查询 / 工具栏 / 表格 / 分页，全部由 BasicTable 承载 -->
     <Card class="shadow-sm">
       <template #title>{{ title }}列表</template>
-      <template #extra>
-        <span class="text-xs text-muted-foreground">共 {{ filtered.length }} 条</span>
-      </template>
-
-      <div class="space-y-3">
-        <!-- 查询区 -->
-        <div class="flex flex-wrap items-center gap-2">
-          <Input
-            v-model="keyword"
-            class="w-full sm:w-56"
-            placeholder="输入关键字查询"
-            @keydown.enter="search"
-          />
-          <select
-            v-for="filter in filters"
-            :key="filter.key"
-            v-model="filterValues[filter.key]"
-            class="h-9 rounded-md border border-input bg-background px-2 text-sm"
-            :aria-label="filter.label"
-          >
-            <option value="">{{ filter.label }}</option>
-            <option
-              v-for="option in filter.options || []"
-              :key="option.value"
-              :value="option.value"
-            >
-              {{ option.label }}
-            </option>
-          </select>
-          <Button size="sm" @click="search">
-            <Icon icon="carbon:search" class="size-4" /> 查询
-          </Button>
-          <Button size="sm" variant="outline" @click="reset">
-            <Icon icon="carbon:renew" class="size-4" /> 重置
-          </Button>
-        </div>
-
-        <!-- 工具栏 -->
-        <div
-          class="flex flex-wrap items-center gap-2 border-t border-border pt-3"
-        >
-          <Button size="sm" @click="openCreate">
-            <Icon icon="carbon:add" class="size-4" /> {{ createLabel }}
-          </Button>
+      <BasicTable
+        :action-column="{ width: 200, title: '操作', fixed: 'right' }"
+        :api="listApi"
+        :columns="tableColumns"
+        :form-config="{ schemas: searchFormSchemas, labelWidth: 80 }"
+        :immediate="true"
+        :pagination="{
+          pageSize: 8,
+          pageSizeOptions: ['8', '10', '20', '50'],
+          showSizeChanger: true,
+        }"
+        :row-key="primaryKey"
+        :row-selection="{
+          type: 'checkbox',
+          onChange: handleSelectionChange,
+        }"
+        :scroll="{ x: 1000 }"
+        :use-search-form="true"
+        @register="tableRegister"
+      >
+        <template #toolbar-actions>
           <Button
             size="sm"
             variant="outline"
-            :disabled="!selected.length"
+            :disabled="!selectedCount"
             @click="removeSelected"
           >
-            <Icon icon="carbon:trash-can" class="size-4" /> 批量删除
+            <Icon icon="carbon:trash-can" /> 批量删除
           </Button>
-          <span class="ml-auto text-xs text-muted-foreground">
-            已选 {{ selected.length }} 项
-          </span>
-        </div>
+          <span class="text-xs text-muted-foreground">已选 {{ selectedCount }} 项</span>
+        </template>
 
-        <!-- 表格 -->
-        <div class="overflow-x-auto rounded-md border border-border">
-          <table class="w-full min-w-[640px] text-sm">
-            <thead class="bg-muted/50 text-xs text-muted-foreground">
-              <tr>
-                <th class="w-10 px-3 py-2 text-left">
-                  <input
-                    type="checkbox"
-                    :checked="allChecked"
-                    aria-label="全选"
-                    @change="toggleAll"
-                  />
-                </th>
-                <th
-                  v-for="column in columns"
-                  :key="column.key"
-                  class="px-3 py-2 text-left font-medium"
-                  :style="column.width ? { width: column.width } : undefined"
-                >
-                  {{ column.title }}
-                </th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-border">
-              <tr
-                v-for="row in paged"
-                :key="String(row[primaryKey])"
-                class="transition-colors hover:bg-muted/40"
+        <!-- 状态列（statusKey 由页面侧声明，动态插槽名） -->
+        <template #[statusCellSlot]="{ record }">
+          <Tag :color="cellColor(record[statusKey] || '')">
+            {{ record[statusKey] }}
+          </Tag>
+        </template>
+
+        <!-- 进度列 -->
+        <template #cell-progress="{ record }">
+          <div
+            v-if="progressOf(record) !== undefined"
+            class="flex items-center gap-2"
+          >
+            <Progress :model-value="progressOf(record)" class="h-1.5 w-20" />
+            <span class="text-xs tabular-nums text-muted-foreground">
+              {{ record.progress }}
+            </span>
+          </div>
+          <span v-else>{{ record.progress || '-' }}</span>
+        </template>
+
+        <!-- 操作列：详情 / 编辑 / 删除，样式参考 system/user 列表 -->
+        <template #action="{ record }">
+          <div :class="actionClassName">
+            <Button
+              variant="link"
+              :class="btnClassName"
+              @click="openDetail(record)"
+            >
+              <Icon icon="ant-design:eye-outlined" /> 详情
+            </Button>
+            <Divider type="vertical" :class="dividerClassName" />
+            <Button
+              variant="link"
+              :class="btnClassName"
+              @click="openEdit(record)"
+            >
+              <Icon icon="ant-design:edit-outlined" /> 编辑
+            </Button>
+            <Divider type="vertical" :class="dividerClassName" />
+            <Popconfirm
+              :title="`确定删除该记录吗？`"
+              danger
+              @confirm="removeRow(record)"
+            >
+              <Button
+                variant="link"
+                class="text-destructive hover:text-destructive"
+                :class="btnClassName"
               >
-                <td class="px-3 py-2.5">
-                  <input
-                    type="checkbox"
-                    :checked="selected.includes(String(row[primaryKey]))"
-                    :aria-label="`选择 ${String(row[primaryKey])}`"
-                    @change="toggle(String(row[primaryKey]))"
-                  />
-                </td>
-                <td
-                  v-for="column in columns"
-                  :key="column.key"
-                  class="px-3 py-2.5 align-middle"
-                >
-                  <Tag
-                    v-if="column.key === statusKey"
-                    :color="cellColor(row[column.key] || '')"
-                  >
-                    {{ row[column.key] }}
-                  </Tag>
-                  <div
-                    v-else-if="
-                      progressOf(row) !== undefined && column.key === 'progress'
-                    "
-                    class="flex items-center gap-2"
-                  >
-                    <Progress
-                      :model-value="progressOf(row)"
-                      class="h-1.5 w-20"
-                    />
-                    <span class="text-xs tabular-nums text-muted-foreground">
-                      {{ row[column.key] }}
-                    </span>
-                  </div>
-                  <span v-else class="text-foreground">{{
-                    row[column.key] || '-'
-                  }}</span>
-                </td>
-              </tr>
-              <tr v-if="!paged.length">
-                <td
-                  :colspan="columns.length + 1"
-                  class="px-3 py-12 text-center text-sm text-muted-foreground"
-                >
-                  暂无数据，试试调整查询条件
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <!-- 分页 -->
-        <div class="flex items-center justify-end gap-2 pt-1">
-          <span class="text-xs text-muted-foreground">
-            第 {{ Math.min(pageNum, totalPages) }} / {{ totalPages }} 页
-          </span>
-          <Button
-            size="sm"
-            variant="outline"
-            :disabled="pageNum <= 1"
-            @click="pageNum--"
-          >
-            上一页
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            :disabled="pageNum >= totalPages"
-            @click="pageNum++"
-          >
-            下一页
-          </Button>
-        </div>
-      </div>
+                <Icon icon="ant-design:delete-outlined" /> 删除
+              </Button>
+            </Popconfirm>
+          </div>
+        </template>
+      </BasicTable>
     </Card>
 
-    <!-- 新建面板：与参考 admin 的「新增」弹窗同一职责，用轻量内联卡片承接 -->
-    <Card v-if="createOpen" class="shadow-sm">
-      <template #title>{{ createLabel }}</template>
-      <template #extra>
-        <Button size="sm" variant="ghost" @click="createOpen = false">
-          <Icon icon="carbon:close" class="size-4" />
-        </Button>
-      </template>
-      <div class="space-y-3">
-        <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <label
-            v-for="column in createColumns"
-            :key="column.key"
-            class="flex flex-col gap-1 text-xs text-muted-foreground"
-          >
-            {{ column.title }}
-            <Input
-              v-model="draft[column.key]"
-              :placeholder="`请输入${column.title}`"
-            />
-          </label>
-        </div>
-        <div class="flex justify-end gap-2">
-          <Button size="sm" variant="outline" @click="createOpen = false">
-取消
-</Button>
-          <Button
-            size="sm"
-            :disabled="createColumns.every((c) => !draft[c.key])"
-            @click="submitCreate"
-          >
-            <Icon icon="carbon:save" class="size-4" /> 保存
-          </Button>
-        </div>
-      </div>
-    </Card>
+    <!-- 新增 / 编辑统一走 Modal + BasicForm，不在页面里直接渲染表单 -->
+    <BasicModal
+      :title="editingKey !== null ? `编辑${title}` : createLabel"
+      :width="560"
+      @ok="submitCreate"
+      @register="modalRegister"
+    >
+      <BasicForm
+        :grid="{ cols: 2, gutter: 16 }"
+        :label-width="80"
+        :schemas="modalFormSchemas"
+        :show-action-button-group="false"
+        @register="formRegister"
+      />
+    </BasicModal>
+
+    <!-- 详情走抽屉：只读展示整行字段，不跳出当前页 -->
+    <BasicDrawer
+      :show-footer="false"
+      :title="`${title}详情`"
+      :width="480"
+      @register="detailRegister"
+    >
+      <Descriptions v-if="detailRow" :column="1" bordered size="middle">
+        <DescriptionsItem
+          v-for="column in columns"
+          :key="column.key"
+          :label="column.title"
+        >
+          {{ detailRow[column.key] || '-' }}
+        </DescriptionsItem>
+      </Descriptions>
+    </BasicDrawer>
   </div>
 </template>

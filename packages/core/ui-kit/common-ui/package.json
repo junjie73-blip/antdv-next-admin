@@ -34,12 +34,14 @@
     "./style.css": "./src/index.css"
   },
   "dependencies": {
+    "@antdv/form-ui": "workspace:*",
     "@antdv/graph": "workspace:*",
     "@antdv/icons": "workspace:*",
     "@antdv/popup-ui": "workspace:*",
     "@antdv/request": "workspace:*",
     "@antdv/shadcn-ui": "workspace:*",
     "@antdv/shared": "workspace:*",
+    "@antdv/table-ui": "workspace:*",
     "@iconify/vue": "catalog:",
     "@lucide/vue": "catalog:",
     "@tanstack/vue-virtual": "catalog:",

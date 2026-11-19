@@ -74,7 +74,6 @@ async function getList(query: Record<string, string> = {}): Promise<Envelope<Lis
 
 beforeEach(async () => {
   workDir = mkdtempSync(join(tmpdir(), 'antdv-mock-e2e-'));
-  process.env.MOCK_STORE = 'sqlite';
   process.env.MOCK_DB_FILE = join(workDir, 'mock.sqlite');
   await loadFresh();
 });
@@ -83,7 +82,6 @@ afterEach(() => {
   // Windows 上 SQLite 句柄未关时删库会 EBUSY，必须先关连接再删临时目录
   closeDb();
   resetStoreForTest();
-  delete process.env.MOCK_STORE;
   delete process.env.MOCK_DB_FILE;
   if (existsSync(workDir)) rmSync(workDir, { force: true, recursive: true });
 });

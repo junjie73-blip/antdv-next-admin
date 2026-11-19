@@ -25,8 +25,7 @@ interface ImportMetaEnv {
    */
   readonly VITE_MICRO_APP: boolean
   /**
-   * 本地后端服务：把 /api 透传到 apps/backend-mock 的 Nitro 服务。
-   * 该服务现已改为基于 SQLite 的真实业务逻辑处理，不再是模拟数据生成。
+   * 本地后端服务开关（dev 环境在 .env.development 覆盖为 true）
    */
   readonly VITE_MOCK: boolean
   readonly VITE_NAMESPACE: string
@@ -37,11 +36,6 @@ interface ImportMetaEnv {
    * 接真实后端时填完整地址，例如 ws://localhost:8080/ws，token 由前端自动附加。
    */
   readonly VITE_WS_URL: string
-  readonly VITE_APP_BASE_API: string
-  readonly VITE_DEVTOOLS: boolean
-  readonly VITE_INJECT_APP_LOADING: boolean
-  readonly VITE_MOCK_SERVER: string
-  readonly VITE_PORT: number
 }
 
 interface ImportMeta {

@@ -3,7 +3,7 @@
  */
 
 import { BUILTIN_NOW, builtin } from '../builtin-data';
-import { defineCollection, isSqliteEnabled, nextBizId } from './sqlite';
+import { defineCollection, nextBizId } from './sqlite';
 import dayjs from 'dayjs';
 
 
@@ -23,8 +23,6 @@ export interface SettingItem {
 }
 
 export const SETTINGS_DB: SettingItem[] = defineCollection<SettingItem>({ seed: () => [], table: 'tb_settings' });
-let autoIncrementId = 16;
-
 function initSettingsDB() {
   if (SETTINGS_DB.length > 0) return;
   const baseDate = dayjs('2024-01-01');
@@ -179,5 +177,5 @@ initSettingsDB();
 
 /** 新增配置自增 id */
 export function nextSettingId(): number {
-  return isSqliteEnabled() ? nextBizId('tb_settings') : autoIncrementId++;
+  return nextBizId('tb_settings');
 }

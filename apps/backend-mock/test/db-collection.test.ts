@@ -34,7 +34,6 @@ async function loadFresh(): Promise<void> {
 beforeEach(async () => {
   workDir = mkdtempSync(join(tmpdir(), 'antdv-mock-db-'));
   dbFile = join(workDir, 'mock.sqlite');
-  process.env.MOCK_STORE = 'sqlite';
   process.env.MOCK_DB_FILE = dbFile;
   await loadFresh();
 });
@@ -42,7 +41,6 @@ beforeEach(async () => {
 afterEach(() => {
   closeDb();
   resetStoreForTest();
-  delete process.env.MOCK_STORE;
   delete process.env.MOCK_DB_FILE;
   if (existsSync(workDir)) rmSync(workDir, { force: true, recursive: true });
 });
@@ -145,27 +143,23 @@ describe('defineCollection · 写操作落库', () => {
   });
 });
 
-describe('MOCK_STORE=memory 回滚', () => {
-  it('切回内存实现后是普通数组，行为与改造前一致', async () => {
-    delete process.env.MOCK_STORE;
-    // 先删掉 beforeEach 里 sqlite 用例建的库，确认内存实现不会重新创建它
-    closeDb();
-    rmSync(workDir, { force: true, recursive: true });
-    await loadFresh();
-    expect(Array.isArray(ROLE_DB)).toBe(true);
-    expect(ROLE_DB.length).toBe(6);
-    ROLE_DB.push({
-      id: nextRoleId(),
-      name: '内存角色',
-      code: 'mem',
-      description: '',
-      sort: 7,
-      status: 1,
-      menuIds: [],
-      createdAt: '',
-    });
-    expect(ROLE_DB.length).toBe(7);
-    // 内存实现完全不碰 SQLite：连库文件都不会创建
-    expect(existsSync(dbFile)).toBe(false);
+describe('生产环境：只建表不播种', () => {
+  it('MOCK_ENV=production 时集合为空，且库文件被创建', async () => {
+    process.env.MOCK_ENV = 'production';
+    try {
+      // 清掉 beforeEach 的库，模拟生产环境首次启动
+      closeDb();
+      rmSync(workDir, { force: true, recursive: true });
+      await loadFresh();
+      expect(Array.isArray(ROLE_DB)).toBe(true);
+      expect(ROLE_DB.length).toBe(0);
+      expect(nextRoleId()).toBe(1);
+      // 生产仍走 SQLite：库文件由 getDb() 建好，只是没有种子行
+      expect(existsSync(dbFile)).toBe(true);
+      const { getStore } = await import('../server/utils/db/sqlite');
+      expect(getStore().list('tb_role').total).toBe(0);
+    } finally {
+      delete process.env.MOCK_ENV;
+    }
   });
 });

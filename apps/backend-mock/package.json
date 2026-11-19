@@ -6,9 +6,9 @@
   "type": "module",
   "scripts": {
     "build": "nitro build",
-    "dev": "nitro dev",
-    "preview": "node .output/server/index.mjs",
-    "start": "node .output/server/index.mjs",
+    "dev": "cross-env MOCK_ENV=development nitro dev",
+    "preview": "cross-env NODE_ENV=production MOCK_ENV=production node .output/server/index.mjs",
+    "start": "cross-env NODE_ENV=production MOCK_ENV=production node .output/server/index.mjs",
     "mock:seed": "node --experimental-strip-types scripts/mock-db.mjs seed",
     "mock:reset": "node --experimental-strip-types scripts/mock-db.mjs reset",
     "mock:db:info": "node --experimental-strip-types scripts/mock-db.mjs info",
@@ -26,6 +26,7 @@
   "devDependencies": {
     "@antdv/tsconfig": "workspace:*",
     "@types/better-sqlite3": "^9.6.0",
+    "cross-env": "catalog:",
     "h3": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"

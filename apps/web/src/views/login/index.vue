@@ -21,7 +21,7 @@ import {
   LayoutWidgetColorToggle,
   LayoutWidgetLanguageToggle,
 } from '@antdv/layouts';
-import { message } from '@antdv/popup-ui';
+import { message, notification } from '@antdv/popup-ui';
 import {
   Button as AButton,
   Checkbox as ACheckbox,
@@ -158,6 +158,19 @@ watch(loginType, () => {
   for (const name of Object.keys(errors)) errors[name] = '';
 });
 
+/**
+ * 按本地时段返回问候提示：登录成功后在右下角 notification 里展示。
+ * 分界：0-5 深夜 / 6-10 早上 / 11-13 中午 / 14-17 下午 / 18-23 晚上。
+ */
+function greetingKey(): string {
+  const hour = new Date().getHours();
+  if (hour < 6) return 'login.greetingLateNight';
+  if (hour < 11) return 'login.greetingMorning';
+  if (hour < 14) return 'login.greetingNoon';
+  if (hour < 18) return 'login.greetingAfternoon';
+  return 'login.greetingEvening';
+}
+
 async function handleLogin() {
   try {
     await validate();
@@ -169,7 +182,12 @@ async function handleLogin() {
     );
 
     if (result.success) {
-      message.success(t('login.loginSuccess'));
+      // 右下角通知（notification 走独立 toaster，默认 bottom-right），按当前时段问候；
+      // 登录成功这层语义仍明确写在 description 里。
+      notification.success(t(greetingKey()), {
+        description: t('login.loginSuccess'),
+        closeButton: true,
+      });
       // 优先回到被拦截前的页面；没有则回首页常量。
       // 不能写死 `/dashboard`：那是菜单目录，本身没有页面组件，跳过去是空白内容区。
       const redirect = (route.query.redirect as string) || HOME_PATH;

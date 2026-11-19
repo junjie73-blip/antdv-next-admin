@@ -1,15 +1,23 @@
 /**
- * 仓储单例与开关（独立文件，避免 index.ts 与 collection.ts 循环依赖）。
+ * 仓储单例（SQLite 唯一实现）。
  *
- * `MOCK_STORE=memory`（默认）完全不加载 better-sqlite3 原生模块，
- * 因此即使本机预编译二进制缺失，回滚路径也一定能跑起来。
+ * 存储只有一个实现：`SqliteStore`。`MOCK_STORE` / `MemoryStore` 已下线，
+ * 所有接口无论环境都走 SQLite 真实读写。
+ *
+ * 环境差异只体现在「是否自动播种业务内置数据」：
+ * - dev / test：库为空或 seed 版本变更时清空并按内置数据重新播种；
+ * - production：不写 seed 版本戳、不清空、不播种，表由 DDL 建好但保持空，
+ *   业务数据只能由显式运维初始化（mock:seed）或接口写入产生。
+ *
+ * 单例挂在 globalThis[Symbol]，跨 Nitro dev 热重载保持同一连接与数据视图。
  */
 
 import type { DataStore } from './store';
 
 import { getDb } from './connection';
+import { shouldSeedBuiltinData } from './env';
 import { ensureSeedVersion } from './seed';
-import { MemoryStore, SqliteStore } from './store';
+import { SqliteStore } from './store';
 
 const STORE_KEY = Symbol.for('antdv.backend-mock.sqlite.store');
 
@@ -23,23 +31,14 @@ function globalRef(): GlobalWithStore {
 export function getStore(): DataStore {
   const g = globalRef();
   if (g[STORE_KEY]) return g[STORE_KEY]!;
-
-  const useSqlite = process.env.MOCK_STORE === 'sqlite';
-  if (useSqlite) {
-    ensureSeedVersion();
-    g[STORE_KEY] = new SqliteStore(getDb());
-  } else {
-    g[STORE_KEY] = new MemoryStore();
-  }
+  // 开发/测试才做「版本变更 → 清库 → 重新播种」；生产绝不触碰已有数据
+  if (shouldSeedBuiltinData()) ensureSeedVersion();
+  g[STORE_KEY] = new SqliteStore(getDb());
   return g[STORE_KEY]!;
 }
 
-export function isSqliteEnabled(): boolean {
-  return getStore().kind === 'sqlite';
-}
-
 /**
- * 测试辅助：丢弃仓储单例。切换 MOCK_STORE / MOCK_DB_FILE 后调用，
+ * 测试辅助：丢弃仓储单例。切换 MOCK_DB_FILE / MOCK_ENV 后调用，
  * 再配合 closeDb() 关闭旧连接。
  */
 export function resetStoreForTest(): void {

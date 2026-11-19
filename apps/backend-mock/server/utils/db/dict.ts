@@ -25,7 +25,6 @@ export interface DictType {
 }
 
 export const DICT_TYPE_DB: DictType[] = defineCollection<DictType>({ seed: () => [], table: 'tb_dict_type' });
-let autoIncrementTypeId = 7;
 let autoIncrementItemId = 19;
 
 function initDictDB() {
@@ -231,16 +230,14 @@ initDictDB();
 
 /** 新增字典类型自增 id */
 export function nextDictTypeId(): number {
-  return isSqliteEnabled() ? nextBizId('tb_dict_type') : autoIncrementTypeId++;
+  return nextBizId('tb_dict_type');
 }
 
 /**
  * 新增字典项 id。字典项嵌在各类型的 `items` 里（`tb_dict_item` 未独立接入），
- * 内存实现沿用原自增变量；SQLite 实现遍历全部内嵌 items 取 max+1，
- * 避免重启后 autoIncrementItemId 归位导致撞号。
+ * 遍历全部内嵌 items 取 max+1，保证重启后不撞号。
  */
 export function nextDictItemId(): number {
-  if (!isSqliteEnabled()) return autoIncrementItemId++;
   let max = 0;
   for (const type of DICT_TYPE_DB) {
     for (const item of type.items ?? []) {

@@ -12,7 +12,7 @@
  */
 
 import { BUILTIN_NOW, builtin } from '../builtin-data';
-import { defineCollection, isSqliteEnabled, nextBizId } from './sqlite';
+import { defineCollection, nextBizId } from './sqlite';
 import dayjs from 'dayjs';
 
 
@@ -62,9 +62,8 @@ const TITLE_TEMPLATES = [
 ];
 
 export const TASK_DB: TaskRecord[] = defineCollection<TaskRecord>({ seed: () => [], table: 'tb_task' });
-/** 起始 id 基线：保证 sqlite（库内 max+1）与 memory（自增变量）两实现起点一致 */
+/** 起始 id 基线：保证库内 max+1 不会低于种子 id 上界 */
 const TASK_ID_START = 101;
-let autoIncrementId = TASK_ID_START;
 
 function initTaskDB() {
   if (TASK_DB.length > 0) return;
@@ -100,9 +99,7 @@ initTaskDB();
 
 /** 新增任务自增 id（与 `db/user.ts` 的 `nextUserId` 同法） */
 export function nextTaskId(): number {
-  return isSqliteEnabled()
-    ? Math.max(TASK_ID_START, nextBizId('tb_task'))
-    : autoIncrementId++;
+  return Math.max(TASK_ID_START, nextBizId('tb_task'));
 }
 
 /** 表单值 → 记录字段：只收白名单，避免把 `id`/`createdAt` 之类的服务端字段写进去 */

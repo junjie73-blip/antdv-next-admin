@@ -149,12 +149,6 @@ const list: BackendMenu[] = [
         path: '/system/org-chart',
       },
       {
-        menuName: '记录详情',
-        name: 'SystemRecordDetail',
-        icon: 'carbon:document',
-        path: '/system/record-detail',
-      },
-      {
         menuName: '数据字典',
         name: 'ToolDict',
         icon: 'carbon:book',
@@ -219,7 +213,7 @@ const list: BackendMenu[] = [
       //
       // 原来这里套了「组件画廊 → 分类 → 页面」，侧栏要点开两层才看到内容，
       // 手风琴一次只允许展开一个分类，"看看都有什么"只能一个个点。
-      // 分类信息没有丢：`views/components/overview` 的卡片墙读的就是这棵树的叶子。
+      // 层级仍是「分组 → 叶子」，侧栏手风琴按分组折叠，点开分组即可看到全部叶子。
       //
       // 这一节只放**本项目自己写的组件**（`src/components/business|common`、`@antdv/icons`、
       // `@antdv/directives`）。原来混在里面的纯 antd 展示页（通用 / 卡片列表 / 详情页 /
@@ -231,12 +225,6 @@ const list: BackendMenu[] = [
       // 相对时间原先挂在表格下面，现在各自升成二级 —— 它们演示的是 CountTo、裁剪器、
       // RelativeTime，跟表格没关系。Markdown 与富文本合并成「编辑器」一页（同一个包装器
       // 的两种模式），抽屉内滚动/弹窗内滚动并进「弹窗与抽屉」。
-      {
-        menuName: '示例总览',
-        name: 'DemoComponentsOverview',
-        icon: 'carbon:catalog',
-        path: '/components/overview',
-      },
       {
         menuName: '表格',
         name: 'DemoGalleryTable',

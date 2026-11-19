@@ -7,7 +7,7 @@
  */
 
 import { BUILTIN_NOW, builtin } from '../builtin-data';
-import { defineCollection, isSqliteEnabled, nextBizId } from './sqlite';
+import { defineCollection, nextBizId } from './sqlite';
 import dayjs from 'dayjs';
 
 export interface UserRecord {
@@ -48,8 +48,6 @@ export const ROLE_OPTIONS = [
 ];
 // 预生成 50 条用户数据，确保分页和筛选一致性
 export const USER_DB: UserRecord[] = defineCollection<UserRecord>({ seed: () => [], table: 'tb_user' });
-let autoIncrementId = 51;
-
 // 初始化用户数据库
 function initUserDB() {
   if (USER_DB.length > 0) return;
@@ -102,5 +100,5 @@ initUserDB();
 
 /** 新增用户自增 id（legacy 中 POST handler 直接自增模块变量） */
 export function nextUserId(): number {
-  return isSqliteEnabled() ? nextBizId('tb_user') : autoIncrementId++;
+  return nextBizId('tb_user');
 }

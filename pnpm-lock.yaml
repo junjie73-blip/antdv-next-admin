@@ -789,6 +789,9 @@ importers:
       '@types/better-sqlite3':
         specifier: ^9.6.0
         version: 9.6.0
+      cross-env:
+        specifier: 'catalog:'
+        version: 10.1.0
       h3:
         specifier: 'catalog:'
         version: 1.15.11
@@ -1884,6 +1887,9 @@ importers:
 
   packages/core/ui-kit/common-ui:
     dependencies:
+      '@antdv/form-ui':
+        specifier: workspace:*
+        version: link:../form-ui
       '@antdv/graph':
         specifier: workspace:*
         version: link:../../base/graph
@@ -1902,6 +1908,9 @@ importers:
       '@antdv/shared':
         specifier: workspace:*
         version: link:../../base/shared
+      '@antdv/table-ui':
+        specifier: workspace:*
+        version: link:../table-ui
       '@iconify/vue':
         specifier: 'catalog:'
         version: 5.0.5(vue@3.5.43(typescript@6.0.3))

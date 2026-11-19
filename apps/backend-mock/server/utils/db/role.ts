@@ -13,7 +13,7 @@
  */
 
 
-import { defineCollection, getStore, isSqliteEnabled, nextBizId } from './sqlite';
+import { defineCollection, getStore, nextBizId } from './sqlite';
 
 // 内置角色数据为确定性常量，不受装载顺序影响
 
@@ -101,14 +101,11 @@ export const ROLE_DB: RoleItem[] = defineCollection<RoleItem>({
   table: 'tb_role',
 });
 
-let autoIncrementId = 7;
-
 /**
- * 新增角色 id。内存实现沿用原自增变量（逐字兼容）；
- * SQLite 实现取库内 max+1 —— 不再有模块级自增状态，重启也不会撞号。
+ * 新增角色 id：取库内 max+1，无模块级自增状态，重启也不会撞号。
  */
 export function nextRoleId(): number {
-  return isSqliteEnabled() ? nextBizId('tb_role') : autoIncrementId++;
+  return nextBizId('tb_role');
 }
 
 /**
@@ -117,7 +114,6 @@ export function nextRoleId(): number {
  * 待 P2 全量迁移完成后改为以关联表为唯一真源。
  */
 export function syncRoleMenuLinks(roleId: number, menuIds: number[]): void {
-  if (!isSqliteEnabled()) return;
   const store = getStore();
   const active = store.links('tb_role_menu', roleId).map((link) => String(link.menu_id));
   const wanted = menuIds.map(String);

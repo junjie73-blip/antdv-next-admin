@@ -3,7 +3,7 @@
  */
 
 import { builtin } from '../builtin-data';
-import { defineCollection, isSqliteEnabled, nextBizId } from './sqlite';
+import { defineCollection, nextBizId } from './sqlite';
 import dayjs from 'dayjs';
 
 
@@ -271,9 +271,7 @@ function generateFileData(): FileRecord[] {
 }
 
 export const FILE_DB = defineCollection({ seed: generateFileData, table: 'tb_file' });
-let autoIncrementId = fileIdCounter + 1;
-
-/** 新文件/文件夹自增 id（legacy 在上传与建目录 handler 中直接自增模块变量） */
+/** 新文件/文件夹自增 id（取库内 max+1，重启不撞号） */
 export function nextFileId(): number {
-  return isSqliteEnabled() ? nextBizId('tb_file') : autoIncrementId++;
+  return nextBizId('tb_file');
 }

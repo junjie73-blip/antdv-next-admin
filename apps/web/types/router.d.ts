@@ -220,13 +220,6 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
-    '/components/overview/': RouteRecordInfo<
-      '/components/overview/',
-      '/components/overview',
-      Record<never, never>,
-      Record<never, never>,
-      | never
-    >,
     '/components/relative-time/': RouteRecordInfo<
       '/components/relative-time/',
       '/components/relative-time',
@@ -584,13 +577,6 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
-    '/system/record-detail/': RouteRecordInfo<
-      '/system/record-detail/',
-      '/system/record-detail',
-      Record<never, never>,
-      Record<never, never>,
-      | never
-    >,
     '/system/role/': RouteRecordInfo<
       '/system/role/',
       '/system/role',
@@ -608,55 +594,6 @@ declare module 'vue-router/auto-routes' {
     '/system/user/': RouteRecordInfo<
       '/system/user/',
       '/system/user',
-      Record<never, never>,
-      Record<never, never>,
-      | never
-    >,
-    '/template/article/': RouteRecordInfo<
-      '/template/article/',
-      '/template/article',
-      Record<never, never>,
-      Record<never, never>,
-      | never
-    >,
-    '/template/calendar/': RouteRecordInfo<
-      '/template/calendar/',
-      '/template/calendar',
-      Record<never, never>,
-      Record<never, never>,
-      | never
-    >,
-    '/template/chart/': RouteRecordInfo<
-      '/template/chart/',
-      '/template/chart',
-      Record<never, never>,
-      Record<never, never>,
-      | never
-    >,
-    '/template/chat/': RouteRecordInfo<
-      '/template/chat/',
-      '/template/chat',
-      Record<never, never>,
-      Record<never, never>,
-      | never
-    >,
-    '/template/doc/': RouteRecordInfo<
-      '/template/doc/',
-      '/template/doc',
-      Record<never, never>,
-      Record<never, never>,
-      | never
-    >,
-    '/template/masonry/': RouteRecordInfo<
-      '/template/masonry/',
-      '/template/masonry',
-      Record<never, never>,
-      Record<never, never>,
-      | never
-    >,
-    '/template/pricing/': RouteRecordInfo<
-      '/template/pricing/',
-      '/template/pricing',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -885,14 +822,6 @@ declare module 'vue-router/auto-routes' {
     'src/views/components/modal-drawer/index.vue': {
       routes:
         | '/components/modal-drawer/'
-      views:
-        | never
-      pathParamNames:
-        | never
-    }
-    'src/views/components/overview/index.vue': {
-      routes:
-        | '/components/overview/'
       views:
         | never
       pathParamNames:
@@ -1306,14 +1235,6 @@ declare module 'vue-router/auto-routes' {
       pathParamNames:
         | never
     }
-    'src/views/system/record-detail/index.vue': {
-      routes:
-        | '/system/record-detail/'
-      views:
-        | never
-      pathParamNames:
-        | never
-    }
     'src/views/system/role/index.vue': {
       routes:
         | '/system/role/'
@@ -1333,62 +1254,6 @@ declare module 'vue-router/auto-routes' {
     'src/views/system/user/index.vue': {
       routes:
         | '/system/user/'
-      views:
-        | never
-      pathParamNames:
-        | never
-    }
-    'src/views/template/article/index.vue': {
-      routes:
-        | '/template/article/'
-      views:
-        | never
-      pathParamNames:
-        | never
-    }
-    'src/views/template/calendar/index.vue': {
-      routes:
-        | '/template/calendar/'
-      views:
-        | never
-      pathParamNames:
-        | never
-    }
-    'src/views/template/chart/index.vue': {
-      routes:
-        | '/template/chart/'
-      views:
-        | never
-      pathParamNames:
-        | never
-    }
-    'src/views/template/chat/index.vue': {
-      routes:
-        | '/template/chat/'
-      views:
-        | never
-      pathParamNames:
-        | never
-    }
-    'src/views/template/doc/index.vue': {
-      routes:
-        | '/template/doc/'
-      views:
-        | never
-      pathParamNames:
-        | never
-    }
-    'src/views/template/masonry/index.vue': {
-      routes:
-        | '/template/masonry/'
-      views:
-        | never
-      pathParamNames:
-        | never
-    }
-    'src/views/template/pricing/index.vue': {
-      routes:
-        | '/template/pricing/'
       views:
         | never
       pathParamNames:

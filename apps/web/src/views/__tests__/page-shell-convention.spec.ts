@@ -51,7 +51,6 @@ const PAGES = [
   'src/views/system/client-log/index.vue',
   'src/views/system/captcha-log/index.vue',
   'src/views/system/config/index.vue',
-  'src/views/system/record-detail/index.vue',
   'src/views/system/org-chart/index.vue',
   'src/views/security/dashboard/index.vue',
   'src/views/account/center/index.vue',

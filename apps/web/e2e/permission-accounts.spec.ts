@@ -100,8 +100,9 @@ test.describe('两种权限账号的授权生成', () => {
     await expect(
       sidebar.locator('[data-menu-label]', { hasText: '表单' }),
     ).toHaveCount(0);
+    // 「表格」分组的子项仍在 custom 白名单里，展开「组件示例」后应可见
     await expect(
-      sidebar.locator('[data-menu-label]', { hasText: '示例总览' }).first(),
+      sidebar.locator('[data-menu-label]', { hasText: '表格' }).first(),
     ).toBeVisible();
   });
 
