@@ -6,9 +6,10 @@
  * （同一进程内新增/更新/删除对所有接口可见，行为与面板预期一致）。
  */
 
-import { BUILTIN_NOW, builtin } from '../builtin-data';
-import { defineCollection, nextBizId } from './sqlite';
 import dayjs from 'dayjs';
+
+import { builtin, BUILTIN_NOW } from '../builtin-data';
+import { defineCollection, nextBizId } from './sqlite';
 
 export interface UserRecord {
   avatar: string;
@@ -47,7 +48,10 @@ export const ROLE_OPTIONS = [
   { label: '运维人员', value: 4 },
 ];
 // 预生成 50 条用户数据，确保分页和筛选一致性
-export const USER_DB: UserRecord[] = defineCollection<UserRecord>({ seed: () => [], table: 'tb_user' });
+export const USER_DB: UserRecord[] = defineCollection<UserRecord>({
+  seed: () => [],
+  table: 'tb_user',
+});
 // 初始化用户数据库
 function initUserDB() {
   if (USER_DB.length > 0) return;
@@ -73,7 +77,9 @@ function initUserDB() {
     const dept =
       DEPT_LIST[builtin.number.int({ min: 0, max: DEPT_LIST.length - 1 })]!;
     const role =
-      ROLE_OPTIONS[builtin.number.int({ min: 0, max: ROLE_OPTIONS.length - 1 })]!;
+      ROLE_OPTIONS[
+        builtin.number.int({ min: 0, max: ROLE_OPTIONS.length - 1 })
+      ]!;
     const baseDate = dayjs('2024-01-01');
     USER_DB.push({
       id: i,
@@ -88,7 +94,9 @@ function initUserDB() {
       deptId: dept.id,
       deptName: dept.name,
       roles: [role.label],
-      remark: builtin.datatype.boolean(0.3) ? builtin.company.catchPhrase() : '',
+      remark: builtin.datatype.boolean(0.3)
+        ? builtin.company.catchPhrase()
+        : '',
       createdAt: baseDate
         .add(builtin.number.int({ min: 0, max: 365 }), 'day')
         .format('YYYY-MM-DD HH:mm:ss'),

@@ -17,11 +17,15 @@
 export const PROD_DB_NAME = 'mock.production.sqlite';
 export const DEV_DB_NAME = 'mock.sqlite';
 
-export type MockEnv = 'production' | 'development' | 'test';
+export type MockEnv = 'development' | 'production' | 'test';
 
 /** 当前运行环境 */
 export function getMockEnv(): MockEnv {
-  const raw = (process.env.MOCK_ENV ?? process.env.NODE_ENV ?? 'development').toLowerCase();
+  const raw = (
+    process.env.MOCK_ENV ??
+    process.env.NODE_ENV ??
+    'development'
+  ).toLowerCase();
   if (raw === 'production' || raw === 'prod') return 'production';
   if (raw === 'test') return 'test';
   return 'development';

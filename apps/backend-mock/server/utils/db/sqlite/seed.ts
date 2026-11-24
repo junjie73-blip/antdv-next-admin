@@ -15,10 +15,10 @@ import { ENTITY_TABLES, LINK_TABLES, META_TABLE, SEED_VERSION } from './schema';
 const VERSION_KEY = 'seed_version';
 
 /** 当前库内的版本戳（库不存在/未初始化时返回 null） */
-export function readSeedVersion(): number | null {
+export function readSeedVersion(): null | number {
   const row = getDb()
     .prepare(`SELECT value FROM ${META_TABLE} WHERE key = ?`)
-    .get(VERSION_KEY) as { value: string } | undefined;
+    .get(VERSION_KEY) as undefined | { value: string };
   if (!row) return null;
   const n = Number(row.value);
   return Number.isFinite(n) ? n : null;

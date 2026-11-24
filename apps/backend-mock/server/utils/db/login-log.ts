@@ -5,10 +5,10 @@
  * 等价于真实后端的初始日志数据，后续由真实登录行为累积。
  */
 
-import { BUILTIN_NOW, builtin } from '../builtin-data';
-import { defineCollection } from './sqlite';
 import dayjs from 'dayjs';
 
+import { builtin, BUILTIN_NOW } from '../builtin-data';
+import { defineCollection } from './sqlite';
 
 export interface LoginLogRecord {
   browser: string;
@@ -88,7 +88,11 @@ function weightedRandom<T extends { name: string; weight: number }>(
   items: T[],
 ): string {
   const totalWeight = items.reduce((sum, item) => sum + item.weight, 0);
-  let random = builtin.number.float({ min: 0, max: totalWeight, fractionDigits: 4 });
+  let random = builtin.number.float({
+    min: 0,
+    max: totalWeight,
+    fractionDigits: 4,
+  });
   for (const item of items) {
     random -= item.weight;
     if (random <= 0) return item.name;
@@ -176,8 +180,7 @@ function generateLoginLogs(count = 35): LoginLogRecord[] {
       username: user.username,
       loginAccount: user.username,
       ip: builtin.internet.ipv4(),
-      location:
-        builtin.helpers.arrayElement(CHINESE_CITIES),
+      location: builtin.helpers.arrayElement(CHINESE_CITIES),
       browser,
       os,
       status,
@@ -192,4 +195,7 @@ function generateLoginLogs(count = 35): LoginLogRecord[] {
   return records;
 }
 
-export const LOGIN_LOG_DB = defineCollection({ seed: generateLoginLogs, table: 'tb_login_log' });
+export const LOGIN_LOG_DB = defineCollection({
+  seed: generateLoginLogs,
+  table: 'tb_login_log',
+});

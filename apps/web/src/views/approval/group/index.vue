@@ -1,157 +1,219 @@
 <script setup lang="ts">
-import type { DataPageProps } from '@antdv/common-ui';
+import type {
+  DataColumn,
+  DataFilter,
+  DataPageProps,
+  DataRow,
+  DataStat,
+} from '@antdv/common-ui';
+import type { FormSchema } from '@antdv/form-ui';
+import type { ApprovalGroupStats } from '~/api/approval';
+
+import { computed, onMounted, ref } from 'vue';
 
 import { DataPage } from '@antdv/common-ui';
+import { message } from '@antdv/popup-ui';
+import { Button } from '@antdv/shadcn-ui';
+import { Icon } from '@iconify/vue';
+import {
+  deleteApprovalGroup,
+  getApprovalGroupList,
+  saveApprovalGroup,
+} from '~/api/approval';
 
 defineOptions({ name: 'ApprovalGroup' });
 
-/** 数据按参考 admin 的字段组织；这里用静态种子数据演示完整查询/选择/分页/新建闭环。 */
-const config: DataPageProps = {
-  title: '流程分组',
-  description: '审批流程的分组与分类维护，控制可见范围与启用状态。',
-  icon: 'carbon:category',
-  stats: [
-    {
-      label: '分组总数',
-      value: '8',
-      icon: 'carbon:category',
-      tone: 'blue',
-    },
-    {
-      label: '启用',
-      value: '7',
-      icon: 'carbon:checkmark',
-      tone: 'green',
-    },
-    {
-      label: '流程定义',
-      value: '24',
-      icon: 'carbon:flow',
-      tone: 'violet',
-    },
-    {
-      label: '停用',
-      value: '1',
-      icon: 'carbon:warning-alt',
-      tone: 'amber',
-    },
-  ],
-  columns: [
-    {
-      key: 'id',
-      title: '编号',
-    },
-    {
-      key: 'name',
-      title: '分组名称',
-    },
-    {
-      key: 'flows',
-      title: '流程数',
-    },
-    {
-      key: 'scope',
-      title: '适用范围',
-    },
-    {
-      key: 'owner',
-      title: '维护人',
-    },
-    {
-      key: 'status',
-      title: '状态',
-    },
-  ],
-  rows: [
-    {
-      id: 'G-01',
-      name: '人事类',
-      flows: '6',
-      scope: '全员',
-      owner: '林晓',
-      status: '启用',
-    },
-    {
-      id: 'G-02',
-      name: '财务类',
-      flows: '8',
-      scope: '财务/管理',
-      owner: '周珂',
-      status: '启用',
-    },
-    {
-      id: 'G-03',
-      name: '采购类',
-      flows: '4',
-      scope: '采购/管理',
-      owner: '陈默',
-      status: '启用',
-    },
-    {
-      id: 'G-04',
-      name: '权限类',
-      flows: '3',
-      scope: '研发',
-      owner: '苏叶',
-      status: '启用',
-    },
-    {
-      id: 'G-05',
-      name: '历史归档',
-      flows: '3',
-      scope: '管理员',
-      owner: '林晓',
-      status: '停用',
-    },
-  ],
-  filters: [
-    {
-      key: 'status',
-      label: '启用状态',
+const pageRef = ref<{ reload: () => Promise<void> | void }>();
+const stats = ref<ApprovalGroupStats | null>(null);
+
+const STATUS_LABELS: Record<string, string> = {
+  disabled: '停用',
+  enabled: '启用',
+};
+const STATUS_COLORS: Record<string, string> = {
+  disabled: 'default',
+  enabled: 'green',
+};
+
+const columns = computed<DataColumn[]>(() => [
+  { key: 'code', title: '编号', width: '110px' },
+  { key: 'name', title: '分组名称', width: '160px' },
+  { key: 'processCount', title: '流程数', width: '90px' },
+  { key: 'description', title: '适用范围', width: '140px' },
+  { key: 'owner', title: '维护人', width: '100px' },
+  { key: 'status', title: '状态', width: '100px' },
+  { key: 'updatedAt', title: '更新时间', width: '160px' },
+]);
+
+const filters = computed<DataFilter[]>(() => [
+  {
+    key: 'status',
+    label: '启用状态',
+    options: [
+      { label: '启用', value: 'enabled' },
+      { label: '停用', value: 'disabled' },
+    ],
+  },
+]);
+
+const statsCards = computed<DataStat[]>(() => [
+  {
+    icon: 'carbon:category',
+    label: '分组总数',
+    tone: 'blue',
+    value: String(stats.value?.total ?? 0),
+  },
+  {
+    icon: 'carbon:checkmark',
+    label: '启用',
+    tone: 'green',
+    value: String(stats.value?.enabled ?? 0),
+  },
+  {
+    icon: 'carbon:flow',
+    label: '流程定义',
+    tone: 'violet',
+    value: String(stats.value?.processCount ?? 0),
+  },
+  {
+    icon: 'carbon:warning-alt',
+    label: '停用',
+    tone: 'amber',
+    value: String(stats.value?.disabled ?? 0),
+  },
+]);
+
+const createSchemas = computed<FormSchema[]>(() => [
+  { component: 'Input', field: 'code', label: '分组编号' },
+  {
+    component: 'Input',
+    field: 'name',
+    label: '分组名称',
+    required: true,
+  },
+  {
+    component: 'Input',
+    field: 'owner',
+    label: '维护人',
+    required: true,
+  },
+  { component: 'Input', field: 'processCount', label: '流程数' },
+  {
+    component: 'Select',
+    componentProps: {
       options: [
-        {
-          label: '启用',
-          value: '启用',
-        },
-        {
-          label: '停用',
-          value: '停用',
-        },
+        { label: '启用', value: 'enabled' },
+        { label: '停用', value: 'disabled' },
       ],
     },
-  ],
-  statusKey: 'status',
-  statusColors: {
-    进行中: 'blue',
-    已完成: 'green',
-    已暂停: 'default',
-    待开始: 'gold',
-    已逾期: 'red',
-    待审批: 'gold',
-    已通过: 'green',
-    已驳回: 'red',
-    草稿: 'default',
-    启用: 'green',
-    停用: 'default',
-    在线: 'green',
-    离线: 'red',
-    维护中: 'gold',
-    高: 'red',
-    中: 'gold',
-    低: 'green',
-    紧急: 'red',
-    待处理: 'gold',
-    处理中: 'blue',
-    已解决: 'green',
-    已关闭: 'default',
-    已发布: 'green',
-    草稿箱: 'default',
-    审核中: 'blue',
+    field: 'status',
+    label: '状态',
   },
+  { component: 'Input', field: 'description', label: '适用范围' },
+]);
+
+async function listApi(params: Record<string, any>) {
+  const result = await getApprovalGroupList(params);
+  return { list: result.list, total: result.total };
+}
+
+function handleError(error: unknown): void {
+  message.error(error instanceof Error ? error.message : '操作失败');
+}
+
+async function loadStats() {
+  try {
+    const result = await getApprovalGroupList({ pageNum: 1, pageSize: 1 });
+    stats.value = result.stats;
+  } catch (error) {
+    handleError(error);
+  }
+}
+
+async function onSubmit(
+  values: Record<string, any>,
+  editingKey: null | string,
+) {
+  try {
+    await saveApprovalGroup(
+      editingKey ? { ...values, id: Number(editingKey) } : values,
+    );
+    message.success(editingKey ? '保存成功' : '新建成功');
+    await loadStats();
+    return true;
+  } catch (error) {
+    handleError(error);
+    return false;
+  }
+}
+
+async function onRemove(row: DataRow) {
+  try {
+    await deleteApprovalGroup(Number(row.id));
+    message.success('删除成功');
+    await loadStats();
+    return true;
+  } catch (error) {
+    handleError(error);
+    return false;
+  }
+}
+
+/** 列表内快捷启停：编辑路径只回传 id + status，其余字段由 db 层保留 */
+async function toggleStatus(row: DataRow) {
+  try {
+    await saveApprovalGroup({
+      id: Number(row.id),
+      status: row.status === 'enabled' ? 'disabled' : 'enabled',
+    });
+    message.success('状态已更新');
+    await loadStats();
+    await pageRef.value?.reload();
+  } catch (error) {
+    handleError(error);
+  }
+}
+
+const config = computed<DataPageProps>(() => ({
+  actionWidth: 280,
+  api: listApi,
+  columns: columns.value,
   createLabel: '新增分组',
-};
+  createSchemas: createSchemas.value,
+  description: '审批流程的分组与分类维护，控制可见范围与启用状态。',
+  filters: filters.value,
+  icon: 'carbon:category',
+  onSubmit,
+  onRemove,
+  primaryKey: 'id',
+  showDelete: true,
+  stats: statsCards.value,
+  statusColors: STATUS_COLORS,
+  statusLabels: STATUS_LABELS,
+  statusKey: 'status',
+  title: '流程分组',
+}));
+
+onMounted(loadStats);
 </script>
 
 <template>
-  <DataPage v-bind="config" />
+  <DataPage v-bind="config" ref="pageRef">
+    <template #action-extra="{ record }">
+      <Button
+        variant="link"
+        class="h-auto px-0.5!"
+        @click="toggleStatus(record)"
+      >
+        <Icon
+          :icon="
+            record.status === 'enabled'
+              ? 'carbon:warning-alt'
+              : 'carbon:checkmark'
+          "
+        />
+        {{ record.status === 'enabled' ? '停用' : '启用' }}
+      </Button>
+    </template>
+  </DataPage>
 </template>

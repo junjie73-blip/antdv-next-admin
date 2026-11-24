@@ -2,10 +2,10 @@
  * 操作日志内存库（legacy mock/log.fake.ts 的数据层）
  */
 
-import { BUILTIN_NOW, builtin } from '../builtin-data';
-import { defineCollection } from './sqlite';
 import dayjs from 'dayjs';
 
+import { builtin, BUILTIN_NOW } from '../builtin-data';
+import { defineCollection } from './sqlite';
 
 const OPER_TYPES = [
   '登录',
@@ -40,7 +40,10 @@ export interface OperLog {
   title: string;
 }
 
-export const OPER_LOG_DB: OperLog[] = defineCollection<OperLog>({ seed: () => [], table: 'tb_oper_log' });
+export const OPER_LOG_DB: OperLog[] = defineCollection<OperLog>({
+  seed: () => [],
+  table: 'tb_oper_log',
+});
 
 function initLogDB() {
   if (OPER_LOG_DB.length > 0) return;

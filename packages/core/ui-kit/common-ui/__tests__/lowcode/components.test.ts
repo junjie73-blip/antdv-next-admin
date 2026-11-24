@@ -759,11 +759,9 @@ describe('lowCodeOutline', () => {
     const wrapper = mount(LowCodeOutline, {
       props: { context: ctx([probeEntry()]), nodes: tree },
     });
-    await wrapper
-      .get('[data-action="drop-root"]')
-      .trigger('drop', {
-        dataTransfer: carrier({ kind: 'material', type: 'probe.box' }),
-      });
+    await wrapper.get('[data-action="drop-root"]').trigger('drop', {
+      dataTransfer: carrier({ kind: 'material', type: 'probe.box' }),
+    });
     expect(wrapper.emitted('drop')?.at(-1)?.[0]).toEqual({
       materialType: 'probe.box',
       nodeId: undefined,

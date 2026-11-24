@@ -16,7 +16,7 @@ import Tree from '../src/components/tree/Tree.vue';
 const item = DescriptionsItem;
 
 describe('descriptions', () => {
-  it('栅格列数跟随 column，条目按 span 占列', () => {
+  it('24 栅格列宽跟随 column，span 通过 --desc-span 表达', () => {
     const wrapper = mount(
       h(Descriptions, { column: 2, title: '基础信息' }, () => [
         h(item, { label: '用户名' }, () => 'zhang'),
@@ -25,12 +25,13 @@ describe('descriptions', () => {
     );
 
     expect(wrapper.text()).toContain('基础信息');
-    const grid = wrapper.find('[style*="grid-template-columns"]');
-    expect(grid.attributes('style')).toContain('repeat(2');
+    // column=2 → 每项 12 col；栅格规则以 CSS 变量下发给 row 容器
+    expect(wrapper.find('style').text()).toContain('--desc-cols: 12');
 
     const cells = wrapper.findAll('[data-common-descriptions-item]');
     expect(cells).toHaveLength(2);
-    expect(cells[1]!.attributes('style')).toContain('span 2');
+    expect(cells[0]!.attributes('style')).toContain('--desc-span: 1');
+    expect(cells[1]!.attributes('style')).toContain('--desc-span: 2');
     expect(wrapper.text()).toContain('zhang');
   });
 
@@ -40,7 +41,7 @@ describe('descriptions', () => {
         h(item, { label: '用户名' }, () => 'zhang'),
       ),
     );
-    const label = wrapper.find('[data-common-descriptions-item] div');
+    const label = wrapper.find('[data-common-descriptions-label]');
     expect(label.classes().join(' ')).toContain('bg-muted/40');
   });
 });

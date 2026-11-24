@@ -48,7 +48,7 @@ const iconClassName = cn('text-primary text-lg');
 const titleClassName = cn('text-foreground truncate text-sm font-medium');
 const eyebrowClassName = cn('text-muted-foreground mt-1 text-xs');
 const descClassName = cn(
-  'text-muted-foreground mt-3 line-clamp-2 min-h-10 text-xs leading-5',
+  'text-muted-foreground mt-3 line-clamp-2 min-h-10 text-xs/5 ',
 );
 const tagsClassName = cn('mt-3 flex flex-wrap gap-1');
 const metricsClassName = cn(
@@ -74,10 +74,8 @@ const footerClassName = cn(
         <p v-if="eyebrow" :class="eyebrowClassName">{{ eyebrow }}</p>
       </div>
       <Tag v-if="statusLabel" :color="STATUS_COLOR[statusTone]">
-{{
-        statusLabel
-      }}
-</Tag>
+        {{ statusLabel }}
+      </Tag>
     </div>
 
     <p v-if="description" :class="descClassName" :title="description">

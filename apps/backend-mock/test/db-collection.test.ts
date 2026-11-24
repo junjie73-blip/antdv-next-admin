@@ -6,16 +6,16 @@
  * 在 SQLite 实现下都能正确落库，且重启后数据仍在。
  */
 
+import type { RoleItem } from '../server/utils/db/role';
+
 import { existsSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { closeDb } from '../server/utils/db/sqlite/connection';
 import { resetStoreForTest } from '../server/utils/db/sqlite';
-
-import type { RoleItem } from '../server/utils/db/role';
+import { closeDb } from '../server/utils/db/sqlite/connection';
 
 let workDir: string;
 let dbFile: string;
@@ -50,12 +50,14 @@ describe('defineCollection · 种子与数组语义', () => {
     expect(Array.isArray(ROLE_DB)).toBe(true);
     expect(ROLE_DB.length).toBe(6);
     expect([...ROLE_DB].map((r) => r.id)).toEqual([1, 2, 3, 4, 5, 6]);
-    expect(ROLE_DB.find((r) => r.code === 'super_admin')?.name).toBe('超级管理员');
+    expect(ROLE_DB.find((r) => r.code === 'super_admin')?.name).toBe(
+      '超级管理员',
+    );
     expect(ROLE_DB.filter((r) => r.status === 1)).toHaveLength(5);
     expect(ROLE_DB[0]?.menuIds).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
   });
 
-  it('Object.keys 只暴露业务字段，不泄漏内部列', () => {
+  it('object.keys 只暴露业务字段，不泄漏内部列', () => {
     const keys = Object.keys(ROLE_DB[0]!);
     expect(keys).toContain('id');
     expect(keys).not.toContain('_pk');
@@ -64,7 +66,7 @@ describe('defineCollection · 种子与数组语义', () => {
     expect(keys).not.toContain('created_at');
   });
 
-  it('JSON 序列化与旧数组一致（响应信封形态不变）', () => {
+  it('jSON 序列化与旧数组一致（响应信封形态不变）', () => {
     const json = JSON.parse(JSON.stringify([...ROLE_DB])) as RoleItem[];
     expect(json[0]).toMatchObject({
       id: 1,
@@ -144,7 +146,7 @@ describe('defineCollection · 写操作落库', () => {
 });
 
 describe('生产环境：只建表不播种', () => {
-  it('MOCK_ENV=production 时集合为空，且库文件被创建', async () => {
+  it('mOCK_ENV=production 时集合为空，且库文件被创建', async () => {
     process.env.MOCK_ENV = 'production';
     try {
       // 清掉 beforeEach 的库，模拟生产环境首次启动

@@ -270,17 +270,17 @@ const codeClassName = cn(
           :disabled="!ai.running.value"
           variant="outline"
           @click="ai.cancel()"
-          >
-取消
-</Button>
+        >
+          取消
+        </Button>
         <Badge variant="outline">{{ ai.status.value ?? '未运行' }}</Badge>
         <Badge variant="secondary">
           token {{ ai.usage.value.total }}（入 {{ ai.usage.value.prompt }} / 出
           {{ ai.usage.value.completion }}）
         </Badge>
         <Button size="sm" variant="ghost" @click="resetRuntime">
-清空注入的运行时
-</Button>
+          清空注入的运行时
+        </Button>
       </Space>
       <Alert
         v-if="issues.length > 0"

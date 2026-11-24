@@ -423,6 +423,20 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/project/progress/': RouteRecordInfo<
+      '/project/progress/',
+      '/project/progress',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/project/schedule/': RouteRecordInfo<
+      '/project/schedule/',
+      '/project/schedule',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/project/task-manage/': RouteRecordInfo<
       '/project/task-manage/',
       '/project/task-manage',
@@ -1054,6 +1068,22 @@ declare module 'vue-router/auto-routes' {
     'src/views/project/my/index.vue': {
       routes:
         | '/project/my/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
+    'src/views/project/progress/index.vue': {
+      routes:
+        | '/project/progress/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
+    'src/views/project/schedule/index.vue': {
+      routes:
+        | '/project/schedule/'
       views:
         | never
       pathParamNames:

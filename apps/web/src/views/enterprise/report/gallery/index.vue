@@ -76,9 +76,9 @@ async function load() {
   try {
     const res = await getReportDatasets();
     data.value = unwrapApi<null | ReportResourcesData>(res) ?? null;
-  } catch (cause) {
+  } catch (error) {
     error.value =
-      cause instanceof Error ? cause.message : '报表资源接口暂不可用';
+      error instanceof Error ? error.message : '报表资源接口暂不可用';
   } finally {
     loading.value = false;
   }
@@ -115,10 +115,8 @@ function openPreview(widget: Widget) {
     >
       <Card title="数据集" :class="cardClassName">
         <template #extra>
-<Tag color="blue">
-{{ data?.datasets.length ?? 0 }} 个数据集
-</Tag>
-</template>
+          <Tag color="blue"> {{ data?.datasets.length ?? 0 }} 个数据集 </Tag>
+        </template>
         <div class="overflow-x-auto">
           <table :class="tableClassName">
             <thead>
@@ -135,10 +133,8 @@ function openPreview(widget: Widget) {
                 <td :class="bodyCellClassName">{{ dataset.name }}</td>
                 <td :class="bodyCellClassName">
                   <Tag color="blue">
-{{
-                    TYPE_LABELS[dataset.type] || dataset.type
-                  }}
-</Tag>
+                    {{ TYPE_LABELS[dataset.type] || dataset.type }}
+                  </Tag>
                 </td>
                 <td :class="bodyCellClassName" class="tabular-nums">
                   {{ formatCount(dataset.rows) }}
@@ -159,10 +155,8 @@ function openPreview(widget: Widget) {
 
       <Card title="图表组件" :class="cardClassName">
         <template #extra>
-<Tag color="green">
-{{ data?.widgets.length ?? 0 }} 个组件
-</Tag>
-</template>
+          <Tag color="green"> {{ data?.widgets.length ?? 0 }} 个组件 </Tag>
+        </template>
         <div :class="gridClassName">
           <ResourceCard
             v-for="widget in data?.widgets ?? []"
@@ -174,12 +168,12 @@ function openPreview(widget: Widget) {
             :tags="[widget.kind]"
           >
             <template #meta>
-<span :class="metaClassName">数据源：{{ widget.source }}</span>
-</template>
+              <span :class="metaClassName">数据源：{{ widget.source }}</span>
+            </template>
             <template #actions>
               <Button variant="link" size="sm" @click="openPreview(widget)">
-预览
-</Button>
+                预览
+              </Button>
             </template>
           </ResourceCard>
         </div>
@@ -198,25 +192,17 @@ function openPreview(widget: Widget) {
       <template v-if="viewing">
         <Descriptions :column="1" bordered size="middle">
           <DescriptionsItem label="组件名称">
-{{
-            viewing.title
-          }}
-</DescriptionsItem>
+            {{ viewing.title }}
+          </DescriptionsItem>
           <DescriptionsItem label="组件类型">
-{{
-            viewing.kind
-          }}
-</DescriptionsItem>
+            {{ viewing.kind }}
+          </DescriptionsItem>
           <DescriptionsItem label="绑定数据源">
-{{
-            viewing.source
-          }}
-</DescriptionsItem>
+            {{ viewing.source }}
+          </DescriptionsItem>
           <DescriptionsItem label="业务洞察">
-{{
-            viewing.insight
-          }}
-</DescriptionsItem>
+            {{ viewing.insight }}
+          </DescriptionsItem>
         </Descriptions>
       </template>
       <p v-else :class="hintClassName">暂无组件详情</p>

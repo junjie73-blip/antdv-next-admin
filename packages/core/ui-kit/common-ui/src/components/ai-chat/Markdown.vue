@@ -29,7 +29,7 @@ const html = computed(() => {
   blocks.forEach((block, index) => {
     if (index % 2 === 1) {
       const firstNewline = block.indexOf('\n');
-      const code = firstNewline !== -1 ? block.slice(firstNewline + 1) : block;
+      const code = firstNewline === -1 ? block : block.slice(firstNewline + 1);
       out += `<pre class="ai-chat-pre"><code>${escapeHtml(code.trim())}</code></pre>`;
       return;
     }

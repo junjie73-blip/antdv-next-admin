@@ -124,9 +124,9 @@ onMounted(async () => {
       label: item.label,
       value: item.value,
     }));
-  } catch (cause) {
-    const detail = cause instanceof Error ? cause.message : '未知错误';
-    console.error('获取基础数据失败', cause);
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : '未知错误';
+    console.error('获取基础数据失败', error);
     message.error(`部门/角色选项加载失败：${detail}，请刷新页面重试`);
   }
 });
@@ -151,10 +151,10 @@ async function listApi(params: Record<string, any>) {
   try {
     const res = await getUserList(requestParams);
     const data = (res as { data?: unknown })?.data ?? res;
-    const payload = data as { list?: unknown[]; total?: number } | undefined;
+    const payload = data as undefined | { list?: unknown[]; total?: number };
     return { items: payload?.list ?? [], total: payload?.total ?? 0 };
-  } catch (cause) {
-    const detail = cause instanceof Error ? cause.message : '未知错误';
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : '未知错误';
     message.error(`用户列表加载失败：${detail}`);
     return { items: [], total: 0 };
   }

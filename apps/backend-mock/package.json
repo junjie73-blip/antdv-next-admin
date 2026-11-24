@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "@antdv/types": "workspace:*",
-    "@paralleldrive/cuid2": "^3.3.0",
+    "@paralleldrive/cuid2": "catalog:",
     "better-sqlite3": "catalog:",
     "dayjs": "catalog:",
     "jose": "catalog:",
@@ -25,7 +25,7 @@
   },
   "devDependencies": {
     "@antdv/tsconfig": "workspace:*",
-    "@types/better-sqlite3": "^9.6.0",
+    "@types/better-sqlite3": "catalog:",
     "cross-env": "catalog:",
     "h3": "catalog:",
     "typescript": "catalog:",

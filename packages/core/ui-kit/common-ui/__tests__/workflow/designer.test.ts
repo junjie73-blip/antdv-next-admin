@@ -546,13 +546,11 @@ describe('autoLayout', () => {
   it('长链折成四列一段：横向不超过一屏，段与段往下走且坐标互不重合', () => {
     const ids = ['n0', 'n1', 'n2', 'n3', 'n4', 'n5', 'n6', 'n7'];
     const chain = def({
-      edges: ids
-        .slice(1)
-        .map((id, index) => ({
-          id: `e${index}`,
-          source: ids[index]!,
-          target: id,
-        })),
+      edges: ids.slice(1).map((id, index) => ({
+        id: `e${index}`,
+        source: ids[index]!,
+        target: id,
+      })),
       nodes: ids.map((id, index) => ({
         data: {},
         id,

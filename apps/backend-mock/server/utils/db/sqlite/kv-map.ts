@@ -43,7 +43,8 @@ export function defineKVMap<T extends object>(
     },
     set(target, prop, value) {
       if (typeof prop === 'symbol') return Reflect.set(target, prop, value);
-      if (store.getById(table, prop)) store.update(table, prop, { values: value });
+      if (store.getById(table, prop))
+        store.update(table, prop, { values: value });
       else store.insert(table, { id: prop, values: value });
       return true;
     },

@@ -144,9 +144,9 @@ async function fetchData(params: Record<string, unknown> = {}) {
     const payload = unwrapApi<null | WorkflowMonitorData>(res);
     data.value = payload ?? null;
     return { items: payload?.list ?? [], total: payload?.total ?? 0 };
-  } catch (cause) {
+  } catch (error) {
     error.value =
-      cause instanceof Error ? cause.message : '流程监控接口暂不可用';
+      error instanceof Error ? error.message : '流程监控接口暂不可用';
     return { items: [], total: 0 };
   } finally {
     loading.value = false;
@@ -315,8 +315,8 @@ const columns: BasicColumn[] = [
 
           <Card title="告警中心" :class="cardClassName">
             <template #extra>
-<span :class="hintClassName">{{ pendingAlerts.length }} 待处理</span>
-</template>
+              <span :class="hintClassName">{{ pendingAlerts.length }} 待处理</span>
+            </template>
             <div class="space-y-2">
               <div
                 v-for="alert in data.alerts"
@@ -398,8 +398,8 @@ const columns: BasicColumn[] = [
             </template>
             <template #action="{ record }">
               <Button variant="link" size="sm" @click="openDetail(record)">
-查看详情
-</Button>
+                查看详情
+              </Button>
             </template>
           </BasicTable>
         </Card>
@@ -415,20 +415,14 @@ const columns: BasicColumn[] = [
       <template v-if="viewingRecord">
         <Descriptions :column="2" bordered size="middle">
           <DescriptionsItem label="实例 ID" :span="2">
-{{
-            viewingRecord.id
-          }}
-</DescriptionsItem>
+            {{ viewingRecord.id }}
+          </DescriptionsItem>
           <DescriptionsItem label="流程名称">
-{{
-            viewingRecord.name
-          }}
-</DescriptionsItem>
+            {{ viewingRecord.name }}
+          </DescriptionsItem>
           <DescriptionsItem label="当前节点">
-{{
-            viewingRecord.currentNode
-          }}
-</DescriptionsItem>
+            {{ viewingRecord.currentNode }}
+          </DescriptionsItem>
           <DescriptionsItem label="执行状态">
             <StatusPill
               :label="
@@ -438,38 +432,26 @@ const columns: BasicColumn[] = [
             />
           </DescriptionsItem>
           <DescriptionsItem label="执行进度">
-{{ viewingRecord.progress }}%
-</DescriptionsItem>
+            {{ viewingRecord.progress }}%
+          </DescriptionsItem>
           <DescriptionsItem label="触发方式">
-{{
-            viewingRecord.trigger
-          }}
-</DescriptionsItem>
+            {{ viewingRecord.trigger }}
+          </DescriptionsItem>
           <DescriptionsItem label="运行环境">
-{{
-            viewingRecord.environment
-          }}
-</DescriptionsItem>
+            {{ viewingRecord.environment }}
+          </DescriptionsItem>
           <DescriptionsItem label="开始时间" :span="2">
-{{
-            viewingRecord.startTime
-          }}
-</DescriptionsItem>
+            {{ viewingRecord.startTime }}
+          </DescriptionsItem>
           <DescriptionsItem label="耗时">
-{{
-            viewingRecord.duration
-          }}
-</DescriptionsItem>
+            {{ viewingRecord.duration }}
+          </DescriptionsItem>
           <DescriptionsItem label="发起人">
-{{
-            viewingRecord.initiator
-          }}
-</DescriptionsItem>
+            {{ viewingRecord.initiator }}
+          </DescriptionsItem>
           <DescriptionsItem label="Trace ID" :span="2">
-{{
-            viewingRecord.traceId
-          }}
-</DescriptionsItem>
+            {{ viewingRecord.traceId }}
+          </DescriptionsItem>
         </Descriptions>
       </template>
       <p v-else :class="hintClassName">暂无执行详情</p>

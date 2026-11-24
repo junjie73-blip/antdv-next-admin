@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { deterministicRatio } from '~/utils/deterministic';
 
 import { Alert, Card, Divider, Scrollbar, Space, Tag } from '@antdv/common-ui';
 import {
@@ -19,6 +18,7 @@ import {
   Textarea,
 } from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/utils/cn';
+import { deterministicRatio } from '~/utils/deterministic';
 
 import InnerForm from './components/InnerForm.vue';
 

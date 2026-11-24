@@ -68,10 +68,8 @@ function time(at: number): string {
                 props.labelOf?.(task.nodeId) ?? task.nodeId
               }}</span>
               <Badge :variant="TASK_STATUS_VARIANTS[task.status]">
-{{
-                TASK_STATUS_LABELS[task.status]
-              }}
-</Badge>
+                {{ TASK_STATUS_LABELS[task.status] }}
+              </Badge>
             </div>
             <div class="mt-1 text-muted-foreground text-xs">
               <span>{{ task.assignee }}</span>
@@ -89,8 +87,8 @@ function time(at: number): string {
       <EmptyHeader>
         <EmptyTitle>{{ props.emptyText ?? '没有待办' }}</EmptyTitle>
         <EmptyDescription>
-流程办结后这里就空了，去「我发起的」看历史单据。
-</EmptyDescription>
+          流程办结后这里就空了，去「我发起的」看历史单据。
+        </EmptyDescription>
       </EmptyHeader>
     </Empty>
     <p v-else class="py-6 text-center text-muted-foreground text-sm">加载中…</p>

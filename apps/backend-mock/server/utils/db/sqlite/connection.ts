@@ -60,7 +60,9 @@ function resolvePackageRoot(): string {
     const manifest = join(dir, 'package.json');
     if (existsSync(manifest)) {
       try {
-        const pkg = JSON.parse(readFileSync(manifest, 'utf8')) as { name?: string };
+        const pkg = JSON.parse(readFileSync(manifest, 'utf8')) as {
+          name?: string;
+        };
         if (pkg.name === '@antdv/backend-mock') return dir;
       } catch {
         // 损坏的 manifest 不当作包根，继续向上
@@ -96,7 +98,9 @@ function createConnection(file: string): DbConnection {
     return new NodeDatabaseSync(file);
   }
 
-  const Database = require('better-sqlite3') as new (file: string) => DbConnection;
+  const Database = require('better-sqlite3') as new (
+    file: string,
+  ) => DbConnection;
   globalRef()[DRIVER_KEY] = 'better-sqlite3';
   return new Database(file);
 }
@@ -127,7 +131,10 @@ export function getDb(): DbConnection {
 
 /** 当前驱动名，供诊断面板/日志使用 */
 export function currentDriver(): string {
-  return globalRef()[DRIVER_KEY] ?? (process.env.MOCK_SQLITE_DRIVER === 'node' ? 'node' : 'better-sqlite3');
+  return (
+    globalRef()[DRIVER_KEY] ??
+    (process.env.MOCK_SQLITE_DRIVER === 'node' ? 'node' : 'better-sqlite3')
+  );
 }
 
 /**

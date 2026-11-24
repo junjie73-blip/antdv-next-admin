@@ -19,8 +19,8 @@
  * 运行依赖 Node >= 22 的 `--experimental-strip-types`（直接 import schema.ts / env.ts）。
  */
 
-import { createRequire } from 'node:module';
 import { existsSync, mkdirSync, readdirSync, rmSync, statSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -33,7 +33,8 @@ const args = process.argv.slice(2);
 const command = args.find((a) => !a.startsWith('--')) ?? 'info';
 const force = args.includes('--force');
 
-const { isProduction, dbFileName } = await import('../server/utils/db/sqlite/env.ts');
+const { isProduction, dbFileName } =
+  await import('../server/utils/db/sqlite/env.ts');
 const DB_FILE = join(DATA_DIR, dbFileName());
 const PRODUCTION = isProduction();
 
@@ -103,7 +104,9 @@ function reset() {
 
 async function info() {
   const { ENTITY_TABLES, LINK_TABLES, SEED_VERSION } = await loadSchema();
-  console.log(`[mock-db] 环境 = ${PRODUCTION ? 'production' : 'development/test'}`);
+  console.log(
+    `[mock-db] 环境 = ${PRODUCTION ? 'production' : 'development/test'}`,
+  );
   console.log(`[mock-db] 库文件 = ${DB_FILE}`);
   console.log(`[mock-db] 期望 seed_version = ${SEED_VERSION}`);
   if (!existsSync(DB_FILE)) {
@@ -111,9 +114,13 @@ async function info() {
     return;
   }
   const db = openDb();
-  const version = db.prepare("SELECT value FROM __meta WHERE key = 'seed_version'").get();
+  const version = db
+    .prepare("SELECT value FROM __meta WHERE key = 'seed_version'")
+    .get();
   console.log(`[mock-db] 当前 seed_version = ${version?.value ?? '(未写入)'}`);
-  console.log(`[mock-db] 文件大小 = ${(statSync(DB_FILE).size / 1024).toFixed(1)} KB`);
+  console.log(
+    `[mock-db] 文件大小 = ${(statSync(DB_FILE).size / 1024).toFixed(1)} KB`,
+  );
   for (const table of [...ENTITY_TABLES, ...LINK_TABLES.map((d) => d.table)]) {
     const row = db.prepare(`SELECT COUNT(*) AS n FROM ${table}`).get();
     if (row.n > 0) console.log(`  ${table.padEnd(20)} ${row.n} 行`);
@@ -122,16 +129,20 @@ async function info() {
 }
 
 switch (command) {
-  case 'seed':
+  case 'seed': {
     await seed();
     break;
-  case 'reset':
+  }
+  case 'reset': {
     reset();
     break;
-  case 'info':
+  }
+  case 'info': {
     await info();
     break;
-  default:
+  }
+  default: {
     console.error(`[mock-db] 未知命令: ${command}（可用 seed / reset / info）`);
     process.exitCode = 1;
+  }
 }

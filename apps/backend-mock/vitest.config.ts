@@ -24,9 +24,6 @@ export default defineConfig({
     // 读写 `*_DB` 数组时污染真实 .data/mock.sqlite 或依赖历史脏数据，
     // 保证验收可重复。db-* 域 e2e 测试在 beforeEach 里自行覆盖为临时文件，
     // 不受此项影响。MOCK_ENV 未设置时 env.ts 判定为 development（会播种）。
-    env:
-      !process.env.MOCK_DB_FILE
-        ? { MOCK_DB_FILE: ':memory:' }
-        : {},
+    env: process.env.MOCK_DB_FILE ? {} : { MOCK_DB_FILE: ':memory:' },
   },
 });

@@ -442,15 +442,11 @@ defineExpose({ edges, nodes, onAutoLayout, selectedEdgeId, selectedNodeId });
           data-testid="designer-issue"
         >
           <AlertTitle class="text-xs">
-{{
-            issue.level === 'error' ? '错误' : '提醒'
-          }}
-</AlertTitle>
+            {{ issue.level === 'error' ? '错误' : '提醒' }}
+          </AlertTitle>
           <AlertDescription class="text-xs">
-{{
-            issue.message
-          }}
-</AlertDescription>
+            {{ issue.message }}
+          </AlertDescription>
         </Alert>
       </div>
       <Separator />

@@ -2,10 +2,10 @@
  * 岗位内存库（legacy mock/post.fake.ts 的数据层）
  */
 
-import { builtin } from '../builtin-data';
-import { defineCollection, nextBizId } from './sqlite';
 import dayjs from 'dayjs';
 
+import { builtin } from '../builtin-data';
+import { defineCollection, nextBizId } from './sqlite';
 
 export interface PostRecord {
   code: string;
@@ -183,7 +183,10 @@ function generatePostData(): PostRecord[] {
   }));
 }
 
-export const POST_DB = defineCollection({ seed: generatePostData, table: 'tb_post' });
+export const POST_DB = defineCollection({
+  seed: generatePostData,
+  table: 'tb_post',
+});
 /** 新增岗位自增 id */
 export function nextPostId(): number {
   return nextBizId('tb_post');

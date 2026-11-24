@@ -16,11 +16,11 @@ import { bizError } from './response';
 
 /** 键形如 `${METHOD} ${path}`，path 与 server/api 下的路由一致（含 /api 前缀） */
 export const PROD_BLOCKED_OPS = new Set<string>([
-  'POST /api/mock-center/runtime',
-  'POST /api/mock-center/route-runtime',
   'POST /api/mock-center/logs/clear',
-  'POST /api/mock-center/routes/save',
+  'POST /api/mock-center/route-runtime',
   'POST /api/mock-center/routes/remove',
+  'POST /api/mock-center/routes/save',
+  'POST /api/mock-center/runtime',
   'PUT /api/system/config/reset',
 ]);
 
@@ -29,7 +29,10 @@ export function isProdBlockedOp(method: string, path: string): boolean {
 }
 
 /** 命中返回 403 业务信封，否则返回 null（放行） */
-export function guardProdOp(method: string, path: string): ApiEnvelope<null> | null {
+export function guardProdOp(
+  method: string,
+  path: string,
+): ApiEnvelope<null> | null {
   if (!isProduction()) return null;
   if (!isProdBlockedOp(method, path)) return null;
   return bizError(403, '生产环境已禁用该运维接口');

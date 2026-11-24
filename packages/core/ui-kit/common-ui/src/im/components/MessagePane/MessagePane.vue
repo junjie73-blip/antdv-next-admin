@@ -745,15 +745,11 @@ watch(
                           </AttachmentMedia>
                           <AttachmentContent>
                             <AttachmentTitle>
-{{
-                              attachment.name
-                            }}
-</AttachmentTitle>
+                              {{ attachment.name }}
+                            </AttachmentTitle>
                             <AttachmentDescription>
-{{
-                              attachment.type ?? '文件'
-                            }}
-</AttachmentDescription>
+                              {{ attachment.type ?? '文件' }}
+                            </AttachmentDescription>
                           </AttachmentContent>
                           <Button
                             size="icon-xs"

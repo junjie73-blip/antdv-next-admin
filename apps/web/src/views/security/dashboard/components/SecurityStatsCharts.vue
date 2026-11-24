@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
-import { deterministicRatio } from '~/utils/deterministic';
 
 import { cn } from '@antdv/shared/utils/cn';
 import { useAppStore } from '@antdv/stores';
 import * as echarts from 'echarts';
 import { getSecurityStats } from '~/api/security';
+import { deterministicRatio } from '~/utils/deterministic';
 
 defineOptions({ name: 'SecurityStatsCharts' });
 

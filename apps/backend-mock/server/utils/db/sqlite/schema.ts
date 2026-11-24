@@ -15,7 +15,7 @@
  */
 
 /** 播种版本戳：DDL 或种子规则变更后 +1，服务启动检测不匹配会自动重建 */
-export const SEED_VERSION = 2;
+export const SEED_VERSION = 3;
 
 /** 元数据表：存放 seed_version 等 */
 export const META_TABLE = '__meta';
@@ -39,6 +39,21 @@ export const ENTITY_TABLES = [
   'tb_config',
   'tb_task',
   'tb_workflow',
+  // 项目管理：项目 / 阶段(含里程碑) / 任务 / 成员 / 进度流水
+  'tb_project',
+  'tb_project_phase',
+  'tb_project_task',
+  'tb_project_member',
+  'tb_project_progress_log',
+  // 审批流：审批单据 / 流程分组 / 流程实例
+  'tb_approval',
+  'tb_approval_group',
+  'tb_approval_instance',
+  // AI 开发：供应商 / 模型 / 知识库 / 编排应用
+  'tb_ai_provider',
+  'tb_ai_model',
+  'tb_ai_knowledge',
+  'tb_ai_flow',
   // 演示表格 / 安全中心：原本每次请求现造，现改为持久化内置数据 + 真实查询
   'tb_table_demo',
   'tb_security_event',
@@ -126,6 +141,8 @@ export function assertTableName(table: string): void {
 }
 
 /** 关联表元数据查表 */
-export function linkDef(table: string): (typeof LINK_TABLES)[number] | undefined {
+export function linkDef(
+  table: string,
+): (typeof LINK_TABLES)[number] | undefined {
   return LINK_TABLES.find((item) => item.table === table);
 }

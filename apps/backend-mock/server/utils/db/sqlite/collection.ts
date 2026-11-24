@@ -13,18 +13,20 @@
 
 import type { DataStore, Row } from './store';
 
-import { getStore } from './runtime';
 import { shouldSeedBuiltinData } from './env';
 import { idKey } from './ids';
+import { getStore } from './runtime';
 
 /** 库内下一个业务 id（替代模块级 next*Id 自增变量，重启不撞号） */
 export function nextBizId(table: string): number {
   const store = getStore();
   const rows = store.list<Row>(table, { includeDeleted: true }).list;
-  return rows.reduce((max, row) => {
-    const n = Number(row.id);
-    return Number.isFinite(n) ? Math.max(max, n) : max;
-  }, 0) + 1;
+  return (
+    rows.reduce((max, row) => {
+      const n = Number(row.id);
+      return Number.isFinite(n) ? Math.max(max, n) : max;
+    }, 0) + 1
+  );
 }
 
 /** 写操作回调：把整行覆盖回仓储 */
@@ -39,7 +41,10 @@ function bizId(row: object): unknown {
  * 嵌套数组代理：`dictType.items.push(newItem)` / `items.splice(...)` / `items[0] = x`
  * 都会回写整行，避免「行对象里嵌的数组被改了但库里没变」。
  */
-function wrapNestedArray(source: unknown[], commitArray: (next: unknown[]) => void): unknown[] {
+function wrapNestedArray(
+  source: unknown[],
+  commitArray: (next: unknown[]) => void,
+): unknown[] {
   const target = [...source];
   const commit = () => commitArray([...target]);
   return new Proxy(target, {
@@ -60,7 +65,12 @@ function wrapNestedArray(source: unknown[], commitArray: (next: unknown[]) => vo
       }
       if (prop === 'splice') {
         return (start: number, deleteCount?: number, ...items: unknown[]) => {
-          const removed = Array.prototype.splice.call(t, start, deleteCount ?? 0, ...items);
+          const removed = Array.prototype.splice.call(
+            t,
+            start,
+            deleteCount ?? 0,
+            ...items,
+          );
           commit();
           return removed;
         };
@@ -148,7 +158,9 @@ export interface CollectionOptions<T extends object> {
 /**
  * 定义一个集合。返回类型仍是 `T[]`，所以所有既有 handler 的 import 与用法不变。
  */
-export function defineCollection<T extends object>(options: CollectionOptions<T>): T[] {
+export function defineCollection<T extends object>(
+  options: CollectionOptions<T>,
+): T[] {
   const { table, seed } = options;
   const store: DataStore = getStore();
 
@@ -168,11 +180,16 @@ function ensureSeed<T extends object>(
   for (const row of seed()) store.insert(table, row);
 }
 
-function createSqliteArray<T extends object>(table: string, store: DataStore): T[] {
+function createSqliteArray<T extends object>(
+  table: string,
+  store: DataStore,
+): T[] {
   /** 每次读取都拉最新快照，保证同一进程内多个 handler 看到一致数据 */
   const snapshot = (): T[] => {
     const rows = store.list<T>(table).list;
-    return rows.map((row) => wrapRow(row, (next) => store.update(table, idKey(bizId(row)), next)));
+    return rows.map((row) =>
+      wrapRow(row, (next) => store.update(table, idKey(bizId(row)), next)),
+    );
   };
 
   const target: T[] = [];
@@ -187,7 +204,8 @@ function createSqliteArray<T extends object>(table: string, store: DataStore): T
           yield* rows;
         };
       }
-      if (typeof prop === 'string' && /^\d+$/.test(prop)) return rows[Number(prop)];
+      if (typeof prop === 'string' && /^\d+$/.test(prop))
+        return rows[Number(prop)];
 
       if (prop === 'push') {
         return (...items: T[]) => {
@@ -220,7 +238,11 @@ function createSqliteArray<T extends object>(table: string, store: DataStore): T
       if (prop === 'sort' || prop === 'reverse') {
         // 排序只作用于临时快照（前端展示排序由 handler 自己的 filtered 数组承担），
         // 不改变库内物理顺序，避免意外把展示顺序持久化。
-        return (...args: unknown[]) => (Array.prototype as never as Record<string, Function>)[prop]!.apply(rows, args);
+        return (...args: unknown[]) =>
+          (Array.prototype as never as Record<string, Function>)[prop]!.apply(
+            rows,
+            args,
+          );
       }
       if (typeof prop === 'string' && PASSTHROUGH_METHODS.has(prop)) {
         const fn = (rows as unknown as Record<string, Function>)[prop];

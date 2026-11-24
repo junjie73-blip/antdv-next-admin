@@ -16,9 +16,24 @@ export const PRESET_TEMPLATES: MockTemplatePreset[] = [
     name: '分页列表',
     template: {
       list: [
-        { id: 1, name: '示例记录一', status: 1, createTime: '2026-11-01 09:00:00' },
-        { id: 2, name: '示例记录二', status: 0, createTime: '2026-11-01 09:05:00' },
-        { id: 3, name: '示例记录三', status: 1, createTime: '2026-11-01 09:10:00' },
+        {
+          id: 1,
+          name: '示例记录一',
+          status: 1,
+          createTime: '2026-11-01 09:00:00',
+        },
+        {
+          id: 2,
+          name: '示例记录二',
+          status: 0,
+          createTime: '2026-11-01 09:05:00',
+        },
+        {
+          id: 3,
+          name: '示例记录三',
+          status: 1,
+          createTime: '2026-11-01 09:10:00',
+        },
       ],
       total: 3,
     },
@@ -40,7 +55,11 @@ export const PRESET_TEMPLATES: MockTemplatePreset[] = [
     name: '树形结构',
     template: {
       items: [
-        { id: 'node-1', label: '一级', children: [{ id: 'node-1-1', label: '子节点' }] },
+        {
+          id: 'node-1',
+          label: '一级',
+          children: [{ id: 'node-1-1', label: '子节点' }],
+        },
         { id: 'node-2', label: '二级', children: [] },
         { id: 'node-3', label: '三级', children: [] },
       ],
@@ -52,8 +71,18 @@ export const PRESET_TEMPLATES: MockTemplatePreset[] = [
     name: '中文名单',
     template: {
       rows: [
-        { id: 1, name: '张伟', phone: '13800000001', address: '中关村大街 1 号' },
-        { id: 2, name: '王芳', phone: '13800000002', address: '科技园南路 28 号' },
+        {
+          id: 1,
+          name: '张伟',
+          phone: '13800000001',
+          address: '中关村大街 1 号',
+        },
+        {
+          id: 2,
+          name: '王芳',
+          phone: '13800000002',
+          address: '科技园南路 28 号',
+        },
       ],
     },
     key: '[GET]/demo/names',

@@ -1,18 +1,30 @@
-import { onScopeDispose, ref, watch } from 'vue';
+import { computed, onScopeDispose, ref, watch } from 'vue';
 
 import { useScrollLock } from '@vueuse/core';
 
+import {
+  hasLockPassword,
+  setLockPassword,
+  verifyLockPassword,
+} from './lock-password';
+
 /**
- * 锁屏的状态机：`lock()` 把屏幕钉住，`unlock()` 放行。
+ * 锁屏的状态机：`lock()` 把屏幕钉住，`submitPassword()` 校验通过才 `unlock()`。
  *
  * 触发点是头像下拉里的「锁屏」（见 `index.vue`），**不改动下拉本身的任何逻辑** ——
- * 这里只管"锁上之后发生了什么"，所以整块功能是新增的两个文件；解锁后监听器摘掉、
+ * 这里只管"锁上之后发生了什么"，所以整块功能是新增文件；解锁后监听器摘掉、
  * 滚动锁还原，不留副作用。
  *
- * 三条解锁路径都汇到同一个 `unlock()`：点「解锁屏幕」按钮、把把手向下拖过阈值
- * （阈值见 `lock-screen.vue` 的 `UNLOCK_PULL_THRESHOLD`）、按任意键 ——
- * 第三条与 `header.lockHint` 那句"请点击解锁按钮或按任意键继续"对齐。
+ * 密码流程（本次新增）：
+ * - 首次锁屏（未设密码）进入 `setup` 模式：设置成功**仍保持锁定**，
+ *   再切到 `unlock` 模式要求输入一次——对应「首次设置后也要校验才能解锁」；
+ * - 已有密码时直接进 `unlock` 模式；
+ * - 校验失败 / 空密码只更新 `errorMessageKey`，`locked` 一直是 true；
+ * - 原来的「按任意键解锁」已移除：它无法做密码校验，留着就是绕过保护的后门。
  */
+
+/** 锁屏面板当前处于「首次设置密码」还是「输入密码解锁」 */
+export type LockScreenMode = 'setup' | 'unlock';
 
 /**
  * 页面真正的滚动容器：外壳的内容区交给 reka 的 ScrollArea，
@@ -34,6 +46,14 @@ const SCROLL_VIEWPORT_SELECTORS = [
 
 export function useLockScreen() {
   const locked = ref(false);
+  const mode = ref<LockScreenMode>('unlock');
+  /** i18n key；为空表示当前没有错误。UI 用 `t(errorMessageKey.value)` 显示 */
+  const errorMessageKey = ref('');
+  /** 连续失败次数：给宿主做「记住我」/限流之类扩展留一个钩子，本实现不据此锁定 */
+  const failedAttempts = ref(0);
+
+  const needsSetup = computed(() => mode.value === 'setup');
+
   /**
    * 锁上那一刻才去取视口：组件挂载顺序不保证，提前查会拿到 null。
    * 每次锁都重新查一遍，不缓存 —— 换过路由以后内容区那枚滚动盒是新的节点，
@@ -49,11 +69,22 @@ export function useLockScreen() {
   const scrollLockViewport = useScrollLock(viewport);
   const scrollLockHtml = useScrollLock(document.documentElement);
 
-  /** 键盘：锁上期间吞掉第一次按键（不让它落进页面里的输入框），同时解锁 */
+  /**
+   * 键盘：锁上期间仍吞掉落不到密码框的按键（不让它们进页面里的输入框），
+   * 但**不再用按键解锁**——任何解锁都必须走密码校验。
+   * 密码框内的按键放行，否则用户根本输入不了密码。
+   */
   function onKeydown(event: KeyboardEvent) {
+    // 监听器挂在 window 的捕获阶段：直接 dispatch 到 window 时 target 就是 window，
+    // 它没有 closest()。只有真正的 Element 才可能是密码框，先判类型再查。
+    const target = event.target;
+    if (
+      target instanceof Element &&
+      target.closest('[data-lock-password-input]')
+    )
+      return;
     event.preventDefault();
     event.stopPropagation();
-    unlock();
   }
 
   watch(locked, (value) => {
@@ -73,11 +104,53 @@ export function useLockScreen() {
   });
 
   function lock() {
+    errorMessageKey.value = '';
+    failedAttempts.value = 0;
+    // 没设过密码：先进入设置模式；设置成功后仍回到解锁模式再校验一次
+    mode.value = hasLockPassword() ? 'unlock' : 'setup';
     locked.value = true;
   }
 
   function unlock() {
     locked.value = false;
+    errorMessageKey.value = '';
+    failedAttempts.value = 0;
+  }
+
+  /** 供外部（忘记密码后由宿主鉴权重置）主动放弃锁定，不经过密码校验 */
+  function forceUnlock() {
+    unlock();
+  }
+
+  /**
+   * 面板提交：setup 模式写入新密码并切到 unlock（保持锁定）；
+   * unlock 模式校验，成功才放行，失败只登记错误与次数。
+   */
+  function submitPassword(password: string, confirm = ''): boolean {
+    if (!locked.value) return true;
+
+    if (mode.value === 'setup') {
+      const result = setLockPassword(password, confirm);
+      if (!result.ok) {
+        errorMessageKey.value =
+          result.messageKey ?? 'header.lockPasswordRequired';
+        failedAttempts.value += 1;
+        return false;
+      }
+      errorMessageKey.value = '';
+      failedAttempts.value = 0;
+      // 设置成功不代表放行：仍需再输一次完成校验
+      mode.value = 'unlock';
+      return true;
+    }
+
+    if (!verifyLockPassword(password)) {
+      errorMessageKey.value = 'header.lockPasswordWrong';
+      failedAttempts.value += 1;
+      return false;
+    }
+    unlock();
+    return true;
   }
 
   // 宿主销毁时如果还锁着，监听器与滚动锁都要还原，不能留一把没人管的锁
@@ -85,5 +158,15 @@ export function useLockScreen() {
     window.removeEventListener('keydown', onKeydown, { capture: true });
   });
 
-  return { lock, locked, unlock };
+  return {
+    errorMessageKey,
+    failedAttempts,
+    forceUnlock,
+    lock,
+    locked,
+    mode,
+    needsSetup,
+    submitPassword,
+    unlock,
+  };
 }

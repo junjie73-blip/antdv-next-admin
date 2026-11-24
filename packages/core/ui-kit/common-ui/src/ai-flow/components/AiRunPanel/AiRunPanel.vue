@@ -206,15 +206,15 @@ const errorTextOf = computed(() =>
     <div class="flex flex-wrap items-center justify-between gap-2">
       <div class="flex items-center gap-2">
         <Badge v-if="!hasRun" data-slot="ai-run-panel-status" variant="outline">
-未运行
-</Badge>
+          未运行
+        </Badge>
         <Badge
           v-else
           data-slot="ai-run-panel-status"
           :variant="STATUS_VARIANT[status]"
-          >
-{{ STATUS_TEXT[status] }}
-</Badge>
+        >
+          {{ STATUS_TEXT[status] }}
+        </Badge>
         <span class="font-mono text-muted-foreground text-xs">{{
           state?.id ?? '-'
         }}</span>
@@ -302,8 +302,8 @@ const errorTextOf = computed(() =>
           按 JSON 解析
         </label>
         <Button data-action="resume" size="sm" @click="submitResume">
-提交并继续
-</Button>
+          提交并继续
+        </Button>
       </div>
     </div>
 

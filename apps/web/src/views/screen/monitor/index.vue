@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { Ref } from 'vue';
-import { deterministicRatio } from '~/utils/deterministic';
 
 import {
   computed,
@@ -17,6 +16,7 @@ import { useEventListener } from '@vueuse/core';
 import * as echarts from 'echarts';
 import { isPlainObject } from 'es-toolkit';
 import { getScreenMonitorData } from '~/api/screen';
+import { deterministicRatio } from '~/utils/deterministic';
 
 import MarqueeNotice from '../components/MarqueeNotice.vue';
 import RealtimeNumber from '../components/RealtimeNumber.vue';
@@ -901,13 +901,19 @@ onMounted(async () => {
     overview.value.cpuUsage = Number(
       Math.max(
         10,
-        Math.min(95, overview.value.cpuUsage + (deterministicRatio() - 0.5) * 5),
+        Math.min(
+          95,
+          overview.value.cpuUsage + (deterministicRatio() - 0.5) * 5,
+        ),
       ).toFixed(1),
     );
     overview.value.memUsage = Number(
       Math.max(
         30,
-        Math.min(90, overview.value.memUsage + (deterministicRatio() - 0.5) * 3),
+        Math.min(
+          90,
+          overview.value.memUsage + (deterministicRatio() - 0.5) * 3,
+        ),
       ).toFixed(1),
     );
     // 更新延迟数据
@@ -946,7 +952,9 @@ onMounted(async () => {
         { type: 'success', msg: '定时任务执行完成', level: 'success' },
       ];
       const evt =
-        eventTemplates[Math.floor(deterministicRatio() * eventTemplates.length)]!;
+        eventTemplates[
+          Math.floor(deterministicRatio() * eventTemplates.length)
+        ]!;
       realtimeEvents.value.unshift({
         time: new Date().toLocaleTimeString('zh-CN'),
         ...evt,
@@ -974,7 +982,9 @@ onMounted(async () => {
         },
       ];
       const sa =
-        alertTemplates[Math.floor(deterministicRatio() * alertTemplates.length)]!;
+        alertTemplates[
+          Math.floor(deterministicRatio() * alertTemplates.length)
+        ]!;
       securityAlerts.value.unshift({
         time: new Date().toLocaleTimeString('zh-CN'),
         ...sa,
@@ -985,7 +995,10 @@ onMounted(async () => {
     if (deterministicRatio() > 0.7) {
       attackSources.value = attackSources.value.map((s) => ({
         ...s,
-        value: Math.max(100, s.value + Math.floor(deterministicRatio() * 200 - 80)),
+        value: Math.max(
+          100,
+          s.value + Math.floor(deterministicRatio() * 200 - 80),
+        ),
       }));
       const attackChart = charts.get('attack');
       if (attackChart) attackChart.setOption(buildAttackSourceOption());

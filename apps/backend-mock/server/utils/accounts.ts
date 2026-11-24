@@ -94,6 +94,17 @@ export const accounts: [MockAccount, ...MockAccount[]] = [
       'DemoTableTree',
       'SystemRole',
       'SystemUser',
+      // 项目管理是本模板的核心演示模块，对演示账号开放导航，
+      // 避免访问项目页时被路由守卫判成 403。按钮级权限的演示仍由 demo:task 那组权限码承担。
+      // ProjectSchedule 不在菜单露出，白名单里也不保留。
+      'Project',
+      'ProjectMine',
+      'ProjectList',
+      'ProjectProgress',
+      'ProjectTasks',
+      'ProjectTaskManage',
+      'ProjectMilestone',
+      'ProjectMembers',
     ],
   },
 ];

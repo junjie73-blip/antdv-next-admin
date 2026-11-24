@@ -2,10 +2,10 @@
  * 在线用户内存库（legacy mock/online.fake.ts 的数据层）
  */
 
-import { BUILTIN_NOW, builtin } from '../builtin-data';
-import { defineCollection } from './sqlite';
 import dayjs from 'dayjs';
 
+import { builtin, BUILTIN_NOW } from '../builtin-data';
+import { defineCollection } from './sqlite';
 
 const BROWSERS = ['Chrome', 'Firefox', 'Safari', 'Edge'] as const;
 const OS_LIST = [
@@ -30,7 +30,10 @@ export interface OnlineUser {
   username: string;
 }
 
-export const ONLINE_DB: OnlineUser[] = defineCollection<OnlineUser>({ seed: () => [], table: 'tb_online' });
+export const ONLINE_DB: OnlineUser[] = defineCollection<OnlineUser>({
+  seed: () => [],
+  table: 'tb_online',
+});
 
 function initOnlineDB() {
   if (ONLINE_DB.length > 0) return;

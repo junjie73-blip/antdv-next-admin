@@ -146,10 +146,8 @@ function copy(content: string) {
                   <MessageAvatar>
                     <Avatar class="size-8">
                       <AvatarFallback>
-{{
-                        message.role === 'user' ? 'ME' : 'AI'
-                      }}
-</AvatarFallback>
+                        {{ message.role === 'user' ? 'ME' : 'AI' }}
+                      </AvatarFallback>
                     </Avatar>
                   </MessageAvatar>
                   <MessageContent>

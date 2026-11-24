@@ -8,13 +8,23 @@
  * 单例放在 runtime.ts，避免与 collection.ts 形成循环依赖。
  */
 
-export { getStore, resetStoreForTest } from './runtime';
-export { getMockEnv, isProduction, shouldSeedBuiltinData, dbFileName } from './env';
 export { defineCollection, nextBizId } from './collection';
-export { defineKVMap } from './kv-map';
+export {
+  closeDb,
+  currentDriver,
+  resetDbForTest,
+  resolveDbFile,
+} from './connection';
+export {
+  dbFileName,
+  getMockEnv,
+  isProduction,
+  shouldSeedBuiltinData,
+} from './env';
 export { genId, idKey, nowIso } from './ids';
-export { closeDb, currentDriver, resetDbForTest, resolveDbFile } from './connection';
+export { defineKVMap } from './kv-map';
+export { getStore, resetStoreForTest } from './runtime';
+export { ENTITY_TABLES, LINK_TABLES, SEED_VERSION } from './schema';
 export { ensureSeedVersion, readSeedVersion, writeSeedVersion } from './seed';
 export { SqliteStore, usedLinkTables } from './store';
 export type { DataStore, LinkRow, Paged, QueryOpts, Row } from './store';
-export { ENTITY_TABLES, LINK_TABLES, SEED_VERSION } from './schema';

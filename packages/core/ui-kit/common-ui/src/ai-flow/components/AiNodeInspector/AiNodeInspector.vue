@@ -199,10 +199,8 @@ function onKindChange(value: unknown): void {
         </SelectTrigger>
         <SelectContent>
           <SelectItem v-for="item in kinds" :key="item" :value="item">
-{{
-            item
-          }}
-</SelectItem>
+            {{ item }}
+          </SelectItem>
         </SelectContent>
       </Select>
     </div>
@@ -235,10 +233,8 @@ function onKindChange(value: unknown): void {
           </SelectTrigger>
           <SelectContent>
             <SelectItem v-for="item in models" :key="item" :value="item">
-{{
-              item
-            }}
-</SelectItem>
+              {{ item }}
+            </SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -312,9 +308,9 @@ function onKindChange(value: unknown): void {
               v-for="item in OUTPUT_FORMATS"
               :key="item"
               :value="item"
-              >
-{{ item }}
-</SelectItem>
+            >
+              {{ item }}
+            </SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -340,10 +336,8 @@ function onKindChange(value: unknown): void {
           </SelectTrigger>
           <SelectContent>
             <SelectItem v-for="item in toolNames" :key="item" :value="item">
-{{
-              item
-            }}
-</SelectItem>
+              {{ item }}
+            </SelectItem>
           </SelectContent>
         </Select>
       </div>

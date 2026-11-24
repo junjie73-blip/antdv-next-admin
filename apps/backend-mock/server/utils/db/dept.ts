@@ -2,10 +2,10 @@
  * 部门内存库（legacy mock/dept.fake.ts 的数据层）
  */
 
-import { builtin } from '../builtin-data';
-import { defineCollection, nextBizId } from './sqlite';
 import dayjs from 'dayjs';
 
+import { builtin } from '../builtin-data';
+import { defineCollection, nextBizId } from './sqlite';
 
 export interface DeptRecord {
   children?: DeptRecord[];

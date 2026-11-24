@@ -17,36 +17,108 @@
 /* -------------------------------------------------------------------------- */
 
 const NAMES = [
-  '张伟', '王芳', '李娜', '刘洋', '陈静', '杨帆', '赵磊', '黄敏',
-  '周涛', '吴倩', '徐鹏', '孙丽', '马超', '朱婷', '胡军', '林晓',
-  '何宇', '郭燕', '高远', '罗晨', '郑爽', '梁栋', '谢雯', '宋佳',
-  '唐辉', '许诺', '邓超', '冯莉', '韩雪', '曹阳',
+  '张伟',
+  '王芳',
+  '李娜',
+  '刘洋',
+  '陈静',
+  '杨帆',
+  '赵磊',
+  '黄敏',
+  '周涛',
+  '吴倩',
+  '徐鹏',
+  '孙丽',
+  '马超',
+  '朱婷',
+  '胡军',
+  '林晓',
+  '何宇',
+  '郭燕',
+  '高远',
+  '罗晨',
+  '郑爽',
+  '梁栋',
+  '谢雯',
+  '宋佳',
+  '唐辉',
+  '许诺',
+  '邓超',
+  '冯莉',
+  '韩雪',
+  '曹阳',
 ] as const;
 
 const CITIES = [
-  '北京', '上海', '广州', '深圳', '杭州', '成都', '南京', '武汉',
-  '西安', '苏州', '重庆', '天津', '长沙', '青岛', '厦门', '合肥',
+  '北京',
+  '上海',
+  '广州',
+  '深圳',
+  '杭州',
+  '成都',
+  '南京',
+  '武汉',
+  '西安',
+  '苏州',
+  '重庆',
+  '天津',
+  '长沙',
+  '青岛',
+  '厦门',
+  '合肥',
 ] as const;
 
 const PROVINCES = [
-  '北京市', '上海市', '广东省', '浙江省', '江苏省', '四川省', '湖北省',
-  '陕西省', '山东省', '福建省', '湖南省', '安徽省',
+  '北京市',
+  '上海市',
+  '广东省',
+  '浙江省',
+  '江苏省',
+  '四川省',
+  '湖北省',
+  '陕西省',
+  '山东省',
+  '福建省',
+  '湖南省',
+  '安徽省',
 ] as const;
 
 const STREETS = [
-  '中关村大街 1 号', '科技园南路 28 号', '人民路 168 号', '建设大道 56 号',
-  '解放路 200 号', '滨江路 88 号', '中山北路 32 号', '创业路 9 号',
+  '中关村大街 1 号',
+  '科技园南路 28 号',
+  '人民路 168 号',
+  '建设大道 56 号',
+  '解放路 200 号',
+  '滨江路 88 号',
+  '中山北路 32 号',
+  '创业路 9 号',
 ] as const;
 
 const CATCH_PHRASES = [
-  '以数据驱动业务增长', '构建可扩展的服务架构', '让协作更简单高效',
-  '稳定可靠的基础设施', '面向未来的数字化平台', '持续优化交付效率',
+  '以数据驱动业务增长',
+  '构建可扩展的服务架构',
+  '让协作更简单高效',
+  '稳定可靠的基础设施',
+  '面向未来的数字化平台',
+  '持续优化交付效率',
 ] as const;
 
-const HACKER_VERBS = ['query', 'parse', 'sync', 'compile', 'render', 'dispatch', 'resolve'] as const;
+const HACKER_VERBS = [
+  'query',
+  'parse',
+  'sync',
+  'compile',
+  'render',
+  'dispatch',
+  'resolve',
+] as const;
 const HACKER_PHRASES = [
-  '请求超时，请稍后重试', '连接池资源不足', '上游服务返回异常',
-  '权限校验未通过', '缓存未命中', '配置加载失败',
+  '请求超时，请稍后重试',
+  '连接池资源不足',
+  '上游服务返回异常',
+  '权限校验未通过',
+  '缓存未命中',
+  '配置加载失败',
 ] as const;
 const SENTENCES = [
   '系统按计划完成日常巡检，未发现异常。',
@@ -56,14 +128,27 @@ const SENTENCES = [
 ] as const;
 const ADJECTIVES = ['轻量', '高效', '稳定', '可靠', '灵活', '安全'] as const;
 const NOUNS = ['报表', '流程', '模型', '任务', '资源', '指标'] as const;
-const WORDS = ['analysis', 'service', 'gateway', 'dataset', 'workflow', 'cluster'] as const;
+const WORDS = [
+  'analysis',
+  'service',
+  'gateway',
+  'dataset',
+  'workflow',
+  'cluster',
+] as const;
 const DOMAINS = ['example.com', 'internal.local', 'corp.example.com'] as const;
-const AVATAR_SEEDS = ['admin', 'operator', 'auditor', 'developer', 'manager'] as const;
+const AVATAR_SEEDS = [
+  'admin',
+  'operator',
+  'auditor',
+  'developer',
+  'manager',
+] as const;
 
 /** 确定性小数序列（替代自研 LCG 伪随机）：手写常量，循环取值且每次调用从表头重置 */
 const FRACTIONS = [
-  0.12, 0.37, 0.58, 0.73, 0.91, 0.05, 0.44, 0.66, 0.82, 0.29,
-  0.51, 0.18, 0.94, 0.63, 0.07, 0.4, 0.86, 0.25, 0.7, 0.33,
+  0.12, 0.37, 0.58, 0.73, 0.91, 0.05, 0.44, 0.66, 0.82, 0.29, 0.51, 0.18, 0.94,
+  0.63, 0.07, 0.4, 0.86, 0.25, 0.7, 0.33,
 ] as const;
 
 /** 内置数据的固定时间基准：保证跨重启输出一致，且落在合理的业务时间窗内 */
@@ -104,7 +189,8 @@ const ALPHANUM = 'abcdefghijklmnopqrstuvwxyz0123456789';
 
 function alphanums(length: number): string {
   let out = '';
-  for (let i = 0; i < length; i++) out += ALPHANUM[ranged(0, ALPHANUM.length - 1)]!;
+  for (let i = 0; i < length; i++)
+    out += ALPHANUM[ranged(0, ALPHANUM.length - 1)]!;
   return out;
 }
 
@@ -124,7 +210,9 @@ export const builtin = {
     int(options: { max?: number; min?: number } = {}): number {
       return ranged(options.min ?? 0, options.max ?? 100);
     },
-    float(options: { fractionDigits?: number; max?: number; min?: number } = {}): number {
+    float(
+      options: { fractionDigits?: number; max?: number; min?: number } = {},
+    ): number {
       const min = options.min ?? 0;
       const max = options.max ?? 1;
       const scale = 10 ** (options.fractionDigits ?? 2);
@@ -212,7 +300,9 @@ export const builtin = {
       return digits(typeof length === 'number' ? length : (length.length ?? 1));
     },
     alphanumeric(length: number | { length?: number } = 8): string {
-      return alphanums(typeof length === 'number' ? length : (length.length ?? 8));
+      return alphanums(
+        typeof length === 'number' ? length : (length.length ?? 8),
+      );
     },
     uuid(): string {
       return `${hex(8)}-${hex(4)}-4${hex(3)}-a${hex(3)}-${hex(12)}`;
@@ -221,11 +311,17 @@ export const builtin = {
   date: {
     /** 相对固定基准的「最近」时间，返回 Date 以兼容 dayjs() 与 toISOString() */
     recent(options: { days?: number } = {}): Date {
-      const seconds = ranged(0, Math.max(1, Math.floor((options.days ?? 1) * 86_400)));
+      const seconds = ranged(
+        0,
+        Math.max(1, Math.floor((options.days ?? 1) * 86_400)),
+      );
       return new Date(BASE_TIME - seconds * 1000);
     },
     past(options: { years?: number } = {}): Date {
-      const days = ranged(1, Math.max(1, Math.floor((options.years ?? 1) * 365)));
+      const days = ranged(
+        1,
+        Math.max(1, Math.floor((options.years ?? 1) * 365)),
+      );
       return new Date(BASE_TIME - days * 86_400_000);
     },
     /** 区间内的确定性时间；未给 to 时用固定基准，保证跨重启一致 */

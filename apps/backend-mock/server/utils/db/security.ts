@@ -8,7 +8,6 @@
 import { builtin } from '../builtin-data';
 import { defineCollection } from './sqlite';
 
-
 export type SecurityEventLevel = 'critical' | 'high' | 'low' | 'medium';
 export type SecurityEventStatus = 'dismissed' | 'handled' | 'pending';
 export type SecurityEventType =
@@ -120,15 +119,17 @@ function initialAlerts(count: number): AlertItem[] {
     message: alertMessages[i % alertMessages.length]!,
     source: `192.168.${builtin.number.int({ min: 1, max: 254 })}.${builtin.number.int({ min: 1, max: 254 })}`,
     timestamp: builtin.date.recent({ days: 0.5 }).toISOString(),
-      actions: i < 2 ? ['封禁IP', '强制下线'] : ['查看详情', '忽略'],
+    actions: i < 2 ? ['封禁IP', '强制下线'] : ['查看详情', '忽略'],
   }));
 }
 
 /** 安全事件实体：真实存储，CRUD 与分页都落在这一份数据上 */
-export const SECURITY_EVENTS: SecurityEvent[] = defineCollection<SecurityEvent>({
-  seed: () => initialEvents(56),
-  table: 'tb_security_event',
-});
+export const SECURITY_EVENTS: SecurityEvent[] = defineCollection<SecurityEvent>(
+  {
+    seed: () => initialEvents(56),
+    table: 'tb_security_event',
+  },
+);
 
 /** 告警实体：真实存储，处置后状态可持久化 */
 export const SECURITY_ALERTS: AlertItem[] = defineCollection<AlertItem>({

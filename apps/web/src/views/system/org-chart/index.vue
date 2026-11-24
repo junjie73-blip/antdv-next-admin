@@ -117,8 +117,8 @@ async function load() {
     const res = await getDeptTree();
     const rows = unwrapApi<unknown>(res);
     tree.value = (Array.isArray(rows) ? rows : []) as DeptNode[];
-  } catch (cause) {
-    error.value = cause instanceof Error ? cause.message : '部门树接口暂不可用';
+  } catch (error) {
+    error.value = error instanceof Error ? error.message : '部门树接口暂不可用';
   } finally {
     loading.value = false;
   }
@@ -244,31 +244,23 @@ function collapseAll() {
           <template v-if="selected">
             <Descriptions :column="1" bordered size="small">
               <DescriptionsItem label="部门名称">
-{{
-                selected.name
-              }}
-</DescriptionsItem>
+                {{ selected.name }}
+              </DescriptionsItem>
               <DescriptionsItem label="部门编码">
-{{
-                selected.code
-              }}
-</DescriptionsItem>
+                {{ selected.code }}
+              </DescriptionsItem>
               <DescriptionsItem label="负责人">
-{{
-                selected.leader
-              }}
-</DescriptionsItem>
+                {{ selected.leader }}
+              </DescriptionsItem>
               <DescriptionsItem label="联系电话">
-{{
-                selected.phone
-              }}
-</DescriptionsItem>
+                {{ selected.phone }}
+              </DescriptionsItem>
               <DescriptionsItem label="编制人数">
-{{ selected.userCount }} 人
-</DescriptionsItem>
+                {{ selected.userCount }} 人
+              </DescriptionsItem>
               <DescriptionsItem label="直属下级">
-{{ (selected.children ?? []).length }} 个
-</DescriptionsItem>
+                {{ (selected.children ?? []).length }} 个
+              </DescriptionsItem>
               <DescriptionsItem label="状态">
                 <StatusPill
                   :label="selected.status === 1 ? '正常' : '停用'"

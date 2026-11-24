@@ -5,7 +5,8 @@ import { success } from '../../../utils/response';
 import { defineMockRoute } from '../../../utils/runtime';
 
 export default defineMockRoute({
-  handler: ({ query }) => success(paginateList([...SECURITY_ALERTS], query), 'ok'),
+  handler: ({ query }) =>
+    success(paginateList([...SECURITY_ALERTS], query), 'ok'),
   method: 'GET',
   path: '/security/alerts/list',
 });

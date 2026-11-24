@@ -2,10 +2,10 @@
  * 系统设置内存库（legacy mock/settings.fake.ts 的数据层）
  */
 
-import { BUILTIN_NOW, builtin } from '../builtin-data';
-import { defineCollection, nextBizId } from './sqlite';
 import dayjs from 'dayjs';
 
+import { builtin, BUILTIN_NOW } from '../builtin-data';
+import { defineCollection, nextBizId } from './sqlite';
 
 export type SettingType = 'boolean' | 'json' | 'number' | 'text';
 
@@ -22,7 +22,10 @@ export interface SettingItem {
   value: boolean | number | string;
 }
 
-export const SETTINGS_DB: SettingItem[] = defineCollection<SettingItem>({ seed: () => [], table: 'tb_settings' });
+export const SETTINGS_DB: SettingItem[] = defineCollection<SettingItem>({
+  seed: () => [],
+  table: 'tb_settings',
+});
 function initSettingsDB() {
   if (SETTINGS_DB.length > 0) return;
   const baseDate = dayjs('2024-01-01');

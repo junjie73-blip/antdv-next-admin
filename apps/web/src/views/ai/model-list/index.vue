@@ -1,167 +1,237 @@
 <script setup lang="ts">
-import type { DataPageProps } from '@antdv/common-ui';
+import type {
+  DataColumn,
+  DataFilter,
+  DataPageProps,
+  DataRow,
+  DataStat,
+} from '@antdv/common-ui';
+import type { FormSchema } from '@antdv/form-ui';
+import type { AiOverview } from '~/api/ai';
+
+import { computed, onMounted, ref } from 'vue';
 
 import { DataPage } from '@antdv/common-ui';
+import { message } from '@antdv/popup-ui';
+import {
+  deleteAiModel,
+  getAiModelList,
+  getAiOverview,
+  getAiProviderList,
+  saveAiModel,
+} from '~/api/ai';
 
 defineOptions({ name: 'AiModelList' });
 
-/** 数据按参考 admin 的字段组织；这里用静态种子数据演示完整查询/选择/分页/新建闭环。 */
-const config: DataPageProps = {
-  title: '模型列表',
-  description: '可调用的大模型清单、调用协议与启用状态。',
-  icon: 'carbon:model',
-  stats: [
-    {
-      label: '模型总数',
-      value: '14',
-      icon: 'carbon:model',
-      tone: 'blue',
-    },
-    {
-      label: '在线',
-      value: '11',
-      icon: 'carbon:checkmark',
-      tone: 'green',
-    },
-    {
-      label: '调用量(今日)',
-      value: '28.4k',
-      icon: 'carbon:activity',
-      tone: 'violet',
-    },
-    {
-      label: '异常',
-      value: '1',
-      icon: 'carbon:warning-alt',
-      tone: 'red',
-    },
-  ],
-  columns: [
-    {
-      key: 'id',
-      title: '模型 ID',
-    },
-    {
-      key: 'name',
-      title: '模型名称',
-    },
-    {
-      key: 'provider',
-      title: '供应商',
-    },
-    {
-      key: 'protocol',
-      title: '调用协议',
-    },
-    {
-      key: 'context',
-      title: '上下文',
-    },
-    {
-      key: 'status',
-      title: '状态',
-    },
-  ],
-  rows: [
-    {
-      id: 'M-01',
-      name: 'hunyuan-pro',
-      provider: '腾讯云',
-      protocol: 'OpenAI 兼容',
-      context: '128K',
-      status: '在线',
-    },
-    {
-      id: 'M-02',
-      name: 'hunyuan-turbo',
-      provider: '腾讯云',
-      protocol: 'OpenAI 兼容',
-      context: '64K',
-      status: '在线',
-    },
-    {
-      id: 'M-03',
-      name: 'deepseek-v3',
-      provider: 'DeepSeek',
-      protocol: 'OpenAI 兼容',
-      context: '64K',
-      status: '在线',
-    },
-    {
-      id: 'M-04',
-      name: 'qwen-max',
-      provider: '阿里云',
-      protocol: 'DashScope',
-      context: '32K',
-      status: '在线',
-    },
-    {
-      id: 'M-05',
-      name: 'glm-4',
-      provider: '智谱',
-      protocol: 'OpenAI 兼容',
-      context: '128K',
-      status: '维护中',
-    },
-    {
-      id: 'M-06',
-      name: 'local-embedding',
-      provider: '自建',
-      protocol: 'HTTP',
-      context: '8K',
-      status: '离线',
-    },
-  ],
-  filters: [
-    {
-      key: 'status',
-      label: '运行状态',
+const overview = ref<AiOverview | null>(null);
+/** 供应商下拉选项：从 /ai/provider/list 拉取，模型只能挂到真实存在的供应商上 */
+const providerOptions = ref<Array<{ label: string; value: number }>>([]);
+
+const STATUS_LABELS: Record<string, string> = {
+  error: '异常',
+  offline: '离线',
+  online: '在线',
+};
+const STATUS_COLORS: Record<string, string> = {
+  error: 'red',
+  offline: 'default',
+  online: 'green',
+};
+const PROTOCOL_LABELS: Record<string, string> = {
+  dashscope: 'DashScope',
+  http: 'HTTP',
+  'openai-compatible': 'OpenAI 兼容',
+};
+
+const columns = computed<DataColumn[]>(() => [
+  { key: 'code', title: '模型 ID', width: '150px' },
+  { key: 'name', title: '模型名称', width: '150px' },
+  { key: 'providerName', title: '供应商', width: '130px' },
+  { key: 'protocolLabel', title: '调用协议', width: '130px' },
+  { key: 'context', title: '上下文', width: '100px' },
+  { key: 'callsToday', title: '今日调用', width: '110px' },
+  { key: 'status', title: '状态', width: '100px' },
+  { key: 'updatedAt', title: '更新时间', width: '160px' },
+]);
+
+const filters = computed<DataFilter[]>(() => [
+  {
+    key: 'status',
+    label: '运行状态',
+    options: [
+      { label: '在线', value: 'online' },
+      { label: '离线', value: 'offline' },
+      { label: '异常', value: 'error' },
+    ],
+  },
+  {
+    key: 'providerId',
+    label: '供应商',
+    options: providerOptions.value.map((item) => ({
+      label: item.label,
+      value: String(item.value),
+    })),
+  },
+]);
+
+const statsCards = computed<DataStat[]>(() => [
+  {
+    icon: 'carbon:model',
+    label: '模型总数',
+    tone: 'blue',
+    value: String(overview.value?.modelTotal ?? 0),
+  },
+  {
+    icon: 'carbon:checkmark',
+    label: '在线',
+    tone: 'green',
+    value: String(overview.value?.modelOnline ?? 0),
+  },
+  {
+    icon: 'carbon:activity',
+    label: '今日调用',
+    tone: 'violet',
+    value: (overview.value?.modelCallsToday ?? 0).toLocaleString(),
+  },
+  {
+    icon: 'carbon:warning-alt',
+    label: '异常',
+    tone: 'red',
+    value: String(overview.value?.modelError ?? 0),
+  },
+]);
+
+const createSchemas = computed<FormSchema[]>(() => [
+  { component: 'Input', field: 'name', label: '模型名称', required: true },
+  {
+    component: 'Input',
+    field: 'code',
+    label: '模型 ID（调用别名）',
+    required: true,
+  },
+  {
+    component: 'Select',
+    componentProps: { options: providerOptions.value },
+    field: 'providerId',
+    label: '所属供应商',
+    required: true,
+  },
+  {
+    component: 'Select',
+    componentProps: {
       options: [
-        {
-          label: '在线',
-          value: '在线',
-        },
-        {
-          label: '离线',
-          value: '离线',
-        },
-        {
-          label: '维护中',
-          value: '维护中',
-        },
+        { label: 'OpenAI 兼容', value: 'openai-compatible' },
+        { label: 'DashScope', value: 'dashscope' },
+        { label: 'HTTP', value: 'http' },
       ],
     },
-  ],
-  statusKey: 'status',
-  statusColors: {
-    进行中: 'blue',
-    已完成: 'green',
-    已暂停: 'default',
-    待开始: 'gold',
-    已逾期: 'red',
-    待审批: 'gold',
-    已通过: 'green',
-    已驳回: 'red',
-    草稿: 'default',
-    启用: 'green',
-    停用: 'default',
-    在线: 'green',
-    离线: 'red',
-    维护中: 'gold',
-    高: 'red',
-    中: 'gold',
-    低: 'green',
-    紧急: 'red',
-    待处理: 'gold',
-    处理中: 'blue',
-    已解决: 'green',
-    已关闭: 'default',
-    已发布: 'green',
-    草稿箱: 'default',
-    审核中: 'blue',
+    field: 'protocol',
+    label: '调用协议',
   },
+  { component: 'Input', field: 'context', label: '上下文长度' },
+  {
+    component: 'Select',
+    componentProps: {
+      options: [
+        { label: '在线', value: 'online' },
+        { label: '离线', value: 'offline' },
+        { label: '异常', value: 'error' },
+      ],
+    },
+    field: 'status',
+    label: '状态',
+  },
+]);
+
+async function listApi(params: Record<string, any>) {
+  const result = await getAiModelList(params);
+  return {
+    list: result.list.map((row) => ({
+      ...row,
+      protocolLabel: PROTOCOL_LABELS[row.protocol] ?? row.protocol,
+    })),
+    total: result.total,
+  };
+}
+
+function handleError(error: unknown): void {
+  message.error(error instanceof Error ? error.message : '操作失败');
+}
+
+async function loadOverview() {
+  try {
+    overview.value = await getAiOverview();
+  } catch (error) {
+    handleError(error);
+  }
+}
+
+async function loadProviders() {
+  try {
+    const result = await getAiProviderList({ pageNum: 1, pageSize: 200 });
+    providerOptions.value = result.list.map((item) => ({
+      label: item.name,
+      value: item.id,
+    }));
+  } catch (error) {
+    handleError(error);
+  }
+}
+
+async function onSubmit(
+  values: Record<string, any>,
+  editingKey: null | string,
+) {
+  try {
+    await saveAiModel(
+      editingKey ? { ...values, id: Number(editingKey) } : values,
+    );
+    message.success(editingKey ? '保存成功' : '接入成功');
+    await loadOverview();
+    return true;
+  } catch (error) {
+    handleError(error);
+    return false;
+  }
+}
+
+async function onRemove(row: DataRow) {
+  try {
+    await deleteAiModel(Number(row.id));
+    message.success('删除成功');
+    await loadOverview();
+    return true;
+  } catch (error) {
+    handleError(error);
+    return false;
+  }
+}
+
+const config = computed<DataPageProps>(() => ({
+  actionWidth: 180,
+  api: listApi,
+  columns: columns.value,
   createLabel: '接入模型',
-};
+  createSchemas: createSchemas.value,
+  description:
+    '可调用的大模型清单、协议与启用状态；模型必须关联一个已存在的供应商。',
+  filters: filters.value,
+  icon: 'carbon:model',
+  onSubmit,
+  onRemove,
+  primaryKey: 'id',
+  showDelete: true,
+  stats: statsCards.value,
+  statusColors: STATUS_COLORS,
+  statusLabels: STATUS_LABELS,
+  statusKey: 'status',
+  title: '模型列表',
+}));
+
+onMounted(() => {
+  void loadOverview();
+  void loadProviders();
+});
 </script>
 
 <template>

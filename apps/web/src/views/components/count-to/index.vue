@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { deterministicRatio } from '~/utils/deterministic';
 
 import { Card, CountTo } from '@antdv/common-ui';
 import { Button } from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/utils/cn';
+import { deterministicRatio } from '~/utils/deterministic';
 
 // 容器类名
 const containerClassName = cn('space-y-6');

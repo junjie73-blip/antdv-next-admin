@@ -8,17 +8,17 @@
  * 在 SQLite 下落库，且「模拟重启」（清单例 + 重载模块）后数据仍在。
  */
 
+import type { TestEvent } from './fixtures/nitro-imports';
+
 import { existsSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { closeDb } from '../server/utils/db/sqlite/connection';
 import { resetStoreForTest } from '../server/utils/db/sqlite';
+import { closeDb } from '../server/utils/db/sqlite/connection';
 import { createTestEvent } from './fixtures/nitro-imports';
-
-import type { TestEvent } from './fixtures/nitro-imports';
 
 interface Envelope<T> {
   code: number;
@@ -145,7 +145,9 @@ describe('config 域 · 信封不变 + 重启持久化', () => {
     expect(Object.keys(res.data.values)).toHaveLength(7);
     expect(res.data.values.site).toBeDefined();
     // 代理的 ownKeys/getOwnPropertyDescriptor 必须让展开与序列化无损
-    expect(JSON.parse(JSON.stringify(res.data.values)).site.siteName).toBeDefined();
+    expect(
+      JSON.parse(JSON.stringify(res.data.values)).site.siteName,
+    ).toBeDefined();
   });
 
   it('保存配置后重启仍在', async () => {

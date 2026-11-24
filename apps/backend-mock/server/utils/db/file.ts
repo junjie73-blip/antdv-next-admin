@@ -2,10 +2,10 @@
  * 文件管理内存库（legacy mock/file.fake.ts 的数据层）
  */
 
-import { builtin } from '../builtin-data';
-import { defineCollection, nextBizId } from './sqlite';
 import dayjs from 'dayjs';
 
+import { builtin } from '../builtin-data';
+import { defineCollection, nextBizId } from './sqlite';
 
 export type FileType =
   | 'archive'
@@ -109,7 +109,10 @@ function determineFileSize(): number {
   if (rand < 0.8)
     return builtin.number.int({ min: 512 * 1024, max: 10 * 1024 * 1024 });
   if (rand < 0.95)
-    return builtin.number.int({ min: 10 * 1024 * 1024, max: 500 * 1024 * 1024 });
+    return builtin.number.int({
+      min: 10 * 1024 * 1024,
+      max: 500 * 1024 * 1024,
+    });
   return builtin.number.int({
     min: 500 * 1024 * 1024,
     max: 2 * 1024 * 1024 * 1024,
@@ -270,7 +273,10 @@ function generateFileData(): FileRecord[] {
   return files;
 }
 
-export const FILE_DB = defineCollection({ seed: generateFileData, table: 'tb_file' });
+export const FILE_DB = defineCollection({
+  seed: generateFileData,
+  table: 'tb_file',
+});
 /** 新文件/文件夹自增 id（取库内 max+1，重启不撞号） */
 export function nextFileId(): number {
   return nextBizId('tb_file');

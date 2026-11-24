@@ -434,8 +434,10 @@ const list: BackendMenu[] = [
     ],
   },
   {
-    // 参照实现（wuhu-vue-admin）的「项目管理」分组：纯前端演示页，
-    // 每个模块用占位页承接，路径与导航保持一致即可，不做后端数据。
+    // 项目管理：子菜单共用同一份 SQLite 数据，按业务链顺序排列 ——
+    // 创建/查看项目 → 里程碑 → 任务分配 → 进度看板。
+    // 排期页（/project/schedule）不在侧栏露出，从项目列表/里程碑的「排期」按钮进入。
+    // 页面之间用 projectId / phaseId 互跳，不再各自维护一份静态演示数据。
     menuName: '项目管理',
     name: 'Project',
     icon: 'carbon:collaborate',
@@ -448,16 +450,22 @@ const list: BackendMenu[] = [
         path: '/project/my',
       },
       {
-        menuName: '我的任务',
-        name: 'ProjectTasks',
-        icon: 'carbon:task',
-        path: '/project/tasks',
-      },
-      {
         menuName: '项目列表',
         name: 'ProjectList',
         icon: 'carbon:list',
         path: '/project/list',
+      },
+      {
+        menuName: '进度看板',
+        name: 'ProjectProgress',
+        icon: 'carbon:chart-line-data',
+        path: '/project/progress',
+      },
+      {
+        menuName: '我的任务',
+        name: 'ProjectTasks',
+        icon: 'carbon:task',
+        path: '/project/tasks',
       },
       {
         menuName: '任务管理',

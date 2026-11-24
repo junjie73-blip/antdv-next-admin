@@ -1,3 +1,4 @@
+import { findKnowledge, findModel } from '../../utils/db/ai';
 import { success } from '../../utils/response';
 import { defineMockRoute } from '../../utils/runtime';
 
@@ -6,10 +7,37 @@ interface ChatMessage {
   role: 'assistant' | 'user';
 }
 
+interface ChatPayload extends Record<string, unknown> {
+  knowledgeId?: number;
+  messages?: ChatMessage[];
+  modelId?: number;
+}
+
 /**
- * 单轮对话 Mock：不接真实大模型，按关键词返回贴近业务的示例回答，
- * 让「模板中心 / Chat」「AI 开发 / Chat」两个入口都有可演示的闭环。
- * 接入真实模型时，只需把前端 `chatWithAi` 的实现换掉即可。
+ * 单轮对话接入适配层（backend-mock 实现）。
+ *
+ * ┌──────────────────────────────────────────────────────────────────────────┐
+ * │ 接真实模型的唯一改动点：把下面 buildReply(...) 这一行替换成真实调用。       │
+ * │                                                                          │
+ * │ 方案 A（推荐，前端零接触密钥）：                                           │
+ * │   const provider = createFetchAiProvider({                                │
+ * │     baseUrl: process.env.AI_GATEWAY_URL,  // 网关地址在服务端配置          │
+ * │     fetcher: (url, init) => serverFetch(url, init), // 凭据在服务端 fetcher │
+ * │   });                                                                    │
+ * │   const result = await provider.invoke({                                 │
+ * │     messages: toAiMessages(messages),                                    │
+ * │     model: resolvedModel.code,                                           │
+ * │     signal: ...                                                          │
+ * │   });                                                                    │
+ * │   const content = result.text;                                           │
+ * │                                                                          │
+ * │ 方案 B：把本接口升级为模型网关代理，后端用服务端托管的 key 转发请求。        │
+ * │ 两种方案的密钥都只存在于服务端；本 mock 绝不联网、绝不读 env 里的 key。     │
+ * └──────────────────────────────────────────────────────────────────────────┘
+ *
+ * 目前行为：保留原关键词回复，另外从 db 读「已启用的模型 / 知识库」配置，
+ * 让请求带上 modelId / knowledgeId 时在回复末尾追加来源标注 —— 这是接线点的
+ * 可观测样板，不代表已经接了真实模型或向量检索。
  */
 function buildReply(messages: ChatMessage[]): string {
   const lastUser = [...messages].reverse().find((m) => m.role === 'user');
@@ -37,16 +65,54 @@ function buildReply(messages: ChatMessage[]): string {
   return [
     `你问的是：「${question}」`,
     '',
-    '这是来自 Mock 服务的示例回复（未接入真实大模型）。把前端 `chatWithAi` 换成真实模型接口即可获得真实回答。',
+    '这是来自 Mock 服务的示例回复。当前可通过「AI 开发 → 模型供应商 / 模型列表」配置网关与模型，接线指引见 apps/web/src/views/ai/README.md。',
   ].join('\n');
+}
+
+/**
+ * 从 db 配置解析来源标注：只认「在线模型 / 启用知识库」，id 不存在或已停用时静默忽略，
+ * 保证老调用方（不发 modelId/knowledgeId）拿到的回复与改造前完全一致。
+ */
+function resolveSourceNotes(payload: ChatPayload): string[] {
+  const notes: string[] = [];
+
+  const modelId = Number(payload.modelId);
+  if (Number.isFinite(modelId) && modelId > 0) {
+    const model = findModel(modelId);
+    if (model && model.status === 'online') {
+      notes.push(
+        `模型：${model.name}（${model.providerName} · ${model.code}）`,
+      );
+    }
+  }
+
+  const knowledgeId = Number(payload.knowledgeId);
+  if (Number.isFinite(knowledgeId) && knowledgeId > 0) {
+    const knowledge = findKnowledge(knowledgeId);
+    if (knowledge && knowledge.status === 'enabled') {
+      notes.push(
+        `知识库：${knowledge.name}（文档 ${knowledge.docs} · 已向量化 ${knowledge.vectors}）`,
+      );
+    }
+  }
+
+  return notes;
 }
 
 export default defineMockRoute({
   handler({ data }) {
-    const messages = Array.isArray(data.messages)
-      ? (data.messages as ChatMessage[])
-      : [];
-    return success({ content: buildReply(messages) }, 'ok');
+    const payload = data as ChatPayload;
+    const messages = Array.isArray(payload.messages) ? payload.messages : [];
+
+    // ↓↓↓ 接真实模型时替换这一行为 provider.invoke(...) 的结果（见文件顶部说明）↓↓↓
+    const reply = buildReply(messages);
+
+    const notes = resolveSourceNotes(payload);
+    const content =
+      notes.length > 0 ? `${reply}\n\n[来源] ${notes.join(' ｜ ')}` : reply;
+
+    // 返回结构保持 { content }，Chat 页与「模板中心 / Chat」共用，不改契约。
+    return success({ content }, 'ok');
   },
   method: 'POST',
   path: '/ai/chat',

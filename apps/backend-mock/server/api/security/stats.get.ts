@@ -9,8 +9,22 @@ import { envelope } from '../../utils/response';
 import { defineMockRoute } from '../../utils/runtime';
 
 const THREAT_KEYWORDS = ['XSS', 'SQL注入', 'CSRF', '暴力破解'] as const;
-const THREAT_NAMES = ['XSS攻击', 'SQL注入', 'CSRF攻击', '暴力破解', '扫描探测'] as const;
-const REGIONS = ['北京', '上海', '广州', '深圳', '杭州', '成都', '海外'] as const;
+const THREAT_NAMES = [
+  'XSS攻击',
+  'SQL注入',
+  'CSRF攻击',
+  '暴力破解',
+  '扫描探测',
+] as const;
+const REGIONS = [
+  '北京',
+  '上海',
+  '广州',
+  '深圳',
+  '杭州',
+  '成都',
+  '海外',
+] as const;
 
 /** 与旧 toLocaleDateString('zh-CN') 的展示格式一致 */
 function formatCN(date: string): string {
@@ -26,11 +40,15 @@ export default defineMockRoute({
       name,
       value:
         index < THREAT_KEYWORDS.length
-          ? events.filter((event) => event.title.includes(THREAT_KEYWORDS[index]!)).length
+          ? events.filter((event) =>
+              event.title.includes(THREAT_KEYWORDS[index]!),
+            ).length
           : events.filter(
               (event) =>
                 event.type === 'attack_attempt' &&
-                !THREAT_KEYWORDS.some((keyword) => event.title.includes(keyword)),
+                !THREAT_KEYWORDS.some((keyword) =>
+                  event.title.includes(keyword),
+                ),
             ).length,
     }));
 
@@ -40,8 +58,14 @@ export default defineMockRoute({
     }));
 
     const days = lastNDays(14);
-    const daily = countByDay(days, events.map((event) => event.createdAt));
-    const dailyEvents = days.map((date, i) => ({ date: formatCN(date), count: daily[i]! }));
+    const daily = countByDay(
+      days,
+      events.map((event) => event.createdAt),
+    );
+    const dailyEvents = days.map((date, i) => ({
+      date: formatCN(date),
+      count: daily[i]!,
+    }));
     const responseTime = days.map((date, i) => ({
       date: formatCN(date),
       avgMs: 50 + daily[i]! * 20,

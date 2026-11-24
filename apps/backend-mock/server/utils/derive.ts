@@ -11,9 +11,8 @@ export const DATA_BASE_DATE = '2026-11-01';
 /** 生成截止基准日的最近 n 天日期（YYYY-MM-DD），升序 */
 export function lastNDays(n: number): string[] {
   const base = Date.parse(`${DATA_BASE_DATE}T00:00:00.000Z`);
-  return Array.from(
-    { length: n },
-    (_, i) => new Date(base - (n - 1 - i) * 86_400_000).toISOString().slice(0, 10)!,
+  return Array.from({ length: n }, (_, i) =>
+    new Date(base - (n - 1 - i) * 86_400_000).toISOString().slice(0, 10)!,
   );
 }
 

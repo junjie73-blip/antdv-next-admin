@@ -5,13 +5,17 @@
  * cuid 主键 / 无物理 DELETE。内存实现已下线，不再做双实现矩阵。
  */
 
+import type { DataStore, Row } from '../server/utils/db/sqlite/store';
+
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { closeDb, getDb, resetDbForTest } from '../server/utils/db/sqlite/connection';
+import {
+  closeDb,
+  getDb,
+  resetDbForTest,
+} from '../server/utils/db/sqlite/connection';
 import { genId } from '../server/utils/db/sqlite/ids';
 import { SqliteStore } from '../server/utils/db/sqlite/store';
-
-import type { DataStore, Row } from '../server/utils/db/sqlite/store';
 
 interface DemoRow extends Row {
   id: number;
@@ -115,9 +119,13 @@ for (const [name, make] of IMPLEMENTATIONS) {
 
       expect(store.list<DemoRow>('tb_role').total).toBe(2);
       expect(store.getById<DemoRow>('tb_role', 2)).toBeUndefined();
-      expect(store.list<DemoRow>('tb_role', { includeDeleted: true }).total).toBe(3);
       expect(
-        store.list<DemoRow>('tb_role', { includeDeleted: true }).list.find((r) => r.id === 2)?.name,
+        store.list<DemoRow>('tb_role', { includeDeleted: true }).total,
+      ).toBe(3);
+      expect(
+        store
+          .list<DemoRow>('tb_role', { includeDeleted: true })
+          .list.find((r) => r.id === 2)?.name,
       ).toBe('角色-2');
     });
 
@@ -157,8 +165,12 @@ for (const [name, make] of IMPLEMENTATIONS) {
 
       expect(store.unlink('tb_role_menu', 1, 10)).toBe(true);
       expect(store.links('tb_role_menu', 1)).toHaveLength(1);
-      expect(store.links('tb_role_menu', 1, { includeDeleted: true })).toHaveLength(2);
-      expect(store.links('tb_role_menu', 1, { includeDeleted: true })[0]!.deleted).toBe(1);
+      expect(
+        store.links('tb_role_menu', 1, { includeDeleted: true }),
+      ).toHaveLength(2);
+      expect(
+        store.links('tb_role_menu', 1, { includeDeleted: true })[0]!.deleted,
+      ).toBe(1);
       expect(store.unlink('tb_role_menu', 1, 10)).toBe(false);
       // 另一个实体的关系不受影响
       expect(store.links('tb_role_menu', 2)).toHaveLength(1);

@@ -33,23 +33,10 @@ const props = withDefaults(defineProps<DescriptionProps>(), {
 const slots = useSlots();
 
 /**
- * 详情抽屉的 label/content 对齐：给了 labelWidth 就统一 label 宽度并右对齐，
- * content 靠 DescriptionsItem 自带的 flex-1 左对齐。单项的 labelStyle 仍然优先。
+ * label/content 对齐交给底层 `Descriptions` 的表格列：labelWidth 由列级统一控制，
+ * 所有行的 label 列同宽右对齐、content 列左对齐。这里只透传 item 级 labelStyle，
+ * 不再在单元格内部的 span 上设 width（那会让同列不同行的 label 宽度不一致）。
  */
-const normalizedLabelWidth = computed(() => {
-  const w = props.labelWidth;
-  if (w === undefined || w === null) return undefined;
-  return typeof w === 'number' ? `${w}px` : w;
-});
-function mergedLabelStyle(item: DescriptionItem): Record<string, string> | undefined {
-  if (!normalizedLabelWidth.value && !item.labelStyle) return undefined;
-  return {
-    ...(normalizedLabelWidth.value
-      ? { width: normalizedLabelWidth.value, textAlign: 'right' }
-      : {}),
-    ...item.labelStyle,
-  };
-}
 
 /**
  * 空值占位符与尺寸档位都兜底到 `ConfigProvider`：换语言时占位符跟着词条走，
@@ -227,6 +214,7 @@ defineExpose(instance);
       :size="descriptionsSize"
       :layout="layout"
       :bordered="bordered"
+      :label-width="labelWidth"
     >
       <DescriptionsItem
         v-for="item in filteredSchema"
@@ -234,7 +222,7 @@ defineExpose(instance);
         :span="item.span || 1"
       >
         <template #label>
-          <span :style="mergedLabelStyle(item)">
+          <span :style="item.labelStyle">
             <component :is="labelNode(item)" />
             <template v-if="colon">:</template>
           </span>

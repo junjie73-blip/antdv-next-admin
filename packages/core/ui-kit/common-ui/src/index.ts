@@ -77,6 +77,7 @@ export type {
   DescriptionSize,
 } from './components/description';
 export { Descriptions, DescriptionsItem } from './components/descriptions';
+export type { Breakpoint, ResponsiveColumn } from './components/descriptions';
 export { Divider } from './components/divider';
 export { Empty } from './components/empty';
 export { EmptyState } from './components/empty-state';

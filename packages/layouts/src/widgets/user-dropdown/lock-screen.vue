@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import type { LockScreenMode } from './use-lock-screen';
+
+import { computed, ref, watch } from 'vue';
 
 import { useLayoutI18n } from '@antdv/layout-ui';
 import { CSS_VAR_RADIUS } from '@antdv/shared/constants';
@@ -10,16 +12,29 @@ defineOptions({ name: 'LockScreen' });
 
 const props = withDefaults(
   defineProps<{
-    /** 向下拖过多少像素算解锁 */
+    /** 当前面板模式：首次设置密码 / 输入密码解锁 */
+    mode?: LockScreenMode;
+    /** 校验失败的 i18n key；空表示无错误 */
+    errorMessageKey?: string;
+    /** 向下拖过多少像素算提交密码 */
     threshold?: number;
   }>(),
-  { threshold: UNLOCK_PULL_THRESHOLD },
+  {
+    errorMessageKey: '',
+    mode: 'unlock',
+    threshold: UNLOCK_PULL_THRESHOLD,
+  },
 );
 
-const emit = defineEmits<{ unlock: [] }>();
+const emit = defineEmits<{
+  (
+    event: 'submit-password',
+    payload: { confirm: string; password: string },
+  ): void;
+}>();
 
 /**
- * 解锁的下拉阈值：把手按下去之后要拖过这么多像素才放行。
+ * 解锁的下拉阈值：把手按下去之后要拖过这么多像素才提交密码。
  *
  * 做成入参（而不是写死在指针处理里）有两个理由：单测要在阈值上下两侧各打一次，
  * 以及窄屏（360px 的手机）上手指行程本来就短，宿主可以按视口给一个更小的值。
@@ -27,7 +42,7 @@ const emit = defineEmits<{ unlock: [] }>();
  *
  * 必须声明在 `withDefaults` **之前**：`withDefaults` 的默认值对象会被 `@vue/compiler-sfc`
  * 一起搬进编译产物，晚声明的 `const` 在类型层面就是"使用前未声明"（`pnpm type-check`
- * 报 TS2448 / TS2454）。这里只钉这条静态事实 —— 实际运行时没观测到过 ReferenceError。
+ * 报 TS2448 / TS2454）。
  */
 const UNLOCK_PULL_THRESHOLD = 96;
 
@@ -42,6 +57,18 @@ const UNLOCK_PULL_THRESHOLD = 96;
  */
 
 const { t } = useLayoutI18n();
+
+/** 面板文案 key：错误优先，其次是模式对应的提示 */
+const hintKey = computed(() =>
+  props.errorMessageKey
+    ? props.errorMessageKey
+    : props.mode === 'setup'
+      ? 'header.lockPasswordSetupHint'
+      : 'header.lockPasswordUnlockHint',
+);
+const submitLabel = computed(() =>
+  props.mode === 'setup' ? t('header.lockPasswordSetup') : t('header.unlock'),
+);
 
 /* ---------------------------------------------------------------- 样式变量
  * 一律走 VueUse 的 `useCssVar`：读取要跟随偏好实时变（圆角刻度是可配的），
@@ -86,7 +113,33 @@ watch(
   { immediate: true },
 );
 
-/* ---------------------------------------------------------------- 下拉解锁 */
+/* ---------------------------------------------------------------- 密码表单 */
+
+const password = ref('');
+const confirmPassword = ref('');
+
+/** 切模式（设置成功 → 解锁）时清掉输入，避免刚设置的密码残留在框里 */
+watch(
+  () => props.mode,
+  () => {
+    password.value = '';
+    confirmPassword.value = '';
+    pullProgress.value = '0';
+  },
+);
+
+/**
+ * 所有提交入口（按钮 / 下拉手势 / 回车）都汇到这里，只回抛输入，
+ * 是否放行由宿主 `useLockScreen` 校验——组件自己绝不因为"点了按钮"就解锁。
+ */
+function submit() {
+  emit('submit-password', {
+    confirm: confirmPassword.value,
+    password: password.value,
+  });
+}
+
+/* ---------------------------------------------------------------- 下拉手势 */
 
 /** 指针按下时的 Y，拖动期间用它算位移；null 表示当前没在拖 */
 let pointerStartY: null | number = null;
@@ -106,13 +159,8 @@ function onPointerMove(event: PointerEvent) {
 function onPointerUp() {
   const distance = Number(pullProgress.value) * props.threshold;
   pointerStartY = null;
-  if (distance >= props.threshold) emit('unlock');
+  if (distance >= props.threshold) submit();
   else pullProgress.value = '0';
-}
-
-/** 解锁的三条路（按钮 / 下拉过阈值 / 任意键）都汇到这里，任意键那条在 `useLockScreen` 里 */
-function release() {
-  emit('unlock');
 }
 </script>
 
@@ -130,27 +178,71 @@ function release() {
         <span
           class="lock-badge flex size-14 items-center justify-center rounded-full"
         >
-          <Icon class="text-2xl" icon="carbon:locked" />
+          <Icon
+            class="text-2xl"
+            :icon="props.mode === 'setup' ? 'carbon:password' : 'carbon:locked'"
+          />
         </span>
 
         <h2 class="lock-title mt-4 text-lg font-semibold">
-          {{ t('header.locked') }}
+          {{
+            t(
+              props.mode === 'setup'
+                ? 'header.lockPasswordSetupTitle'
+                : 'header.locked',
+            )
+          }}
         </h2>
-        <p class="lock-hint mt-1 text-sm">
-          {{ t('header.lockHint') }}
+        <p
+          class="lock-hint mt-1 text-sm"
+          :class="props.errorMessageKey ? 'lock-error' : ''"
+          :data-lock-error="props.errorMessageKey || undefined"
+          data-testid="lock-password-hint"
+        >
+          {{ t(hintKey) }}
         </p>
 
-        <button
-          class="lock-button mt-6 inline-flex h-9 w-full cursor-pointer items-center justify-center text-sm transition-colors"
-          data-testid="lock-unlock-button"
-          type="button"
-          @click="release"
-        >
-          {{ t('header.unlock') }}
-        </button>
+        <form class="mt-6 w-full space-y-3 text-left" @submit.prevent="submit">
+          <label class="block">
+            <span class="mb-1 block text-xs text-muted-foreground">
+              {{ t('header.lockPasswordLabel') }}
+            </span>
+            <input
+              v-model="password"
+              autocomplete="current-password"
+              class="lock-input w-full px-3 py-2 text-sm"
+              data-lock-password-input
+              data-testid="lock-password-input"
+              :placeholder="t('header.lockPasswordPlaceholder')"
+              type="password"
+            />
+          </label>
+
+          <label v-if="props.mode === 'setup'" class="block">
+            <span class="mb-1 block text-xs text-muted-foreground">
+              {{ t('header.lockPasswordConfirmLabel') }}
+            </span>
+            <input
+              v-model="confirmPassword"
+              autocomplete="new-password"
+              class="lock-input w-full px-3 py-2 text-sm"
+              data-testid="lock-password-confirm"
+              :placeholder="t('header.lockPasswordConfirmPlaceholder')"
+              type="password"
+            />
+          </label>
+
+          <button
+            class="lock-button mt-2 inline-flex h-9 w-full cursor-pointer items-center justify-center text-sm transition-colors"
+            data-testid="lock-unlock-button"
+            type="submit"
+          >
+            {{ submitLabel }}
+          </button>
+        </form>
 
         <!--
-          把手：按住向下拖过阈值同样解锁。位移与箭头透明度全部由卡上的两个
+          把手：按住向下拖过阈值同样提交密码。位移与箭头透明度全部由卡上的两个
           CSS 变量换算（`--lock-pull` / `--lock-pull-distance`），
           JS 里只管写进度，不碰 style。
         -->
@@ -197,6 +289,21 @@ function release() {
 
 .lock-hint {
   color: hsl(var(--muted-foreground));
+}
+
+.lock-error {
+  color: hsl(var(--destructive));
+}
+
+.lock-input {
+  background: hsl(var(--background));
+  border: 1px solid hsl(var(--border));
+  color: hsl(var(--foreground));
+}
+
+.lock-input:focus {
+  border-color: hsl(var(--ring));
+  outline: none;
 }
 
 .lock-button {

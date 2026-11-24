@@ -162,8 +162,8 @@ function avatarSrc(conversation: Conversation): string {
       <EmptyHeader>
         <EmptyTitle>{{ props.emptyText ?? '还没有会话' }}</EmptyTitle>
         <EmptyDescription>
-发起第一条消息后，这里就会出现会话。
-</EmptyDescription>
+          发起第一条消息后，这里就会出现会话。
+        </EmptyDescription>
       </EmptyHeader>
     </Empty>
     <p v-else class="py-6 text-center text-muted-foreground text-sm">加载中…</p>

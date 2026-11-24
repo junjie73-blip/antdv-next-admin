@@ -373,9 +373,9 @@ const panelClassName = cn(
         </Button>
         <Button variant="ghost" @click="reset">重置示例页</Button>
         <Badge variant="secondary">
-数据源
+          数据源
           {{ Object.keys(page.dataSources.value).length }} 个已装载
-</Badge>
+        </Badge>
         <Badge :variant="page.loading.value ? 'default' : 'outline'">
           {{ page.loading.value ? '取数中' : '空闲' }}
         </Badge>

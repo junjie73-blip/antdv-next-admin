@@ -117,6 +117,7 @@ export {
 
 export {
   type GanttBuildResult,
+  type GanttChangePayload,
   type GanttDateValue,
   type GanttSkippedRow,
   type GanttSkipReason,

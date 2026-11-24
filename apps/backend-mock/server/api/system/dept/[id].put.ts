@@ -16,7 +16,9 @@ export default defineMockRoute({
       ...(data.code !== undefined && { code: String(data.code) }),
       ...(data.leader !== undefined && { leader: String(data.leader) }),
       ...(data.phone !== undefined && { phone: String(data.phone) }),
-      ...(data.sortOrder !== undefined && { sortOrder: Number(data.sortOrder) }),
+      ...(data.sortOrder !== undefined && {
+        sortOrder: Number(data.sortOrder),
+      }),
       ...(data.status !== undefined && { status: data.status as 0 | 1 }),
       ...(data.remark !== undefined && { remark: String(data.remark) }),
     };

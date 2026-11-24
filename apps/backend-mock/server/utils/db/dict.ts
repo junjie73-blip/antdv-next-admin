@@ -2,8 +2,6 @@
  * 数据字典内存库（legacy mock/dict.fake.ts 的数据层）
  */
 
-
-
 export interface DictItem {
   cssClass: string;
   dictLabel: string;
@@ -24,8 +22,11 @@ export interface DictType {
   typeName: string;
 }
 
-export const DICT_TYPE_DB: DictType[] = defineCollection<DictType>({ seed: () => [], table: 'tb_dict_type' });
-let autoIncrementItemId = 19;
+export const DICT_TYPE_DB: DictType[] = defineCollection<DictType>({
+  seed: () => [],
+  table: 'tb_dict_type',
+});
+const autoIncrementItemId = 19;
 
 function initDictDB() {
   if (DICT_TYPE_DB.length > 0) return;

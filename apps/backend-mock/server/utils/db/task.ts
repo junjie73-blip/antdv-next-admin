@@ -11,10 +11,10 @@
  * 数据经 `defineCollection` 落到 `tb_task`，分页与增删改都基于这份持久化数据。
  */
 
-import { BUILTIN_NOW, builtin } from '../builtin-data';
-import { defineCollection, nextBizId } from './sqlite';
 import dayjs from 'dayjs';
 
+import { builtin, BUILTIN_NOW } from '../builtin-data';
+import { defineCollection, nextBizId } from './sqlite';
 
 export type TaskPriority = 'high' | 'low' | 'middle';
 export type TaskStatus = 'blocked' | 'done' | 'pending' | 'running';
@@ -61,7 +61,10 @@ const TITLE_TEMPLATES = [
   '标签页右键菜单支持批量关闭',
 ];
 
-export const TASK_DB: TaskRecord[] = defineCollection<TaskRecord>({ seed: () => [], table: 'tb_task' });
+export const TASK_DB: TaskRecord[] = defineCollection<TaskRecord>({
+  seed: () => [],
+  table: 'tb_task',
+});
 /** 起始 id 基线：保证库内 max+1 不会低于种子 id 上界 */
 const TASK_ID_START = 101;
 
@@ -87,7 +90,9 @@ function initTaskDB() {
       dueDate: baseDate
         .add(builtin.number.int({ min: 1, max: 60 }), 'day')
         .format('YYYY-MM-DD'),
-      remark: builtin.datatype.boolean(0.4) ? builtin.company.catchPhrase() : '',
+      remark: builtin.datatype.boolean(0.4)
+        ? builtin.company.catchPhrase()
+        : '',
       createdAt: baseDate
         .subtract(builtin.number.int({ min: 1, max: 90 }), 'day')
         .format('YYYY-MM-DD HH:mm:ss'),

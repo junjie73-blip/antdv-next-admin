@@ -117,9 +117,9 @@ async function load() {
   try {
     const res = await getMonitorSnapshot({ environment: environment.value });
     snapshot.value = unwrapApi<MonitorSnapshotData | null>(res) ?? null;
-  } catch (cause) {
+  } catch (error) {
     error.value =
-      cause instanceof Error ? cause.message : '监控快照接口暂不可用';
+      error instanceof Error ? error.message : '监控快照接口暂不可用';
   } finally {
     loading.value = false;
   }
@@ -279,8 +279,8 @@ onUnmounted(() => {
             :class="cardClassName"
           >
             <template #extra>
-<Icon :icon="block.icon" class="text-base text-primary" />
-</template>
+              <Icon :icon="block.icon" class="text-base text-primary" />
+            </template>
             <p :class="sectionTitleClassName">{{ block.title }}</p>
             <dl class="mt-3 space-y-2">
               <div

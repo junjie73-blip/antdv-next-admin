@@ -28,7 +28,7 @@ function collectKeys(value: unknown, acc: string[] = []): string[] {
   return acc;
 }
 
-describe('PRESET_TEMPLATES', () => {
+describe('pRESET_TEMPLATES', () => {
   it('四个内置模板结构完整，且不含任何生成规则符号', () => {
     expect(PRESET_TEMPLATES).toHaveLength(4);
     for (const preset of PRESET_TEMPLATES) {
@@ -50,8 +50,12 @@ describe('PRESET_TEMPLATES', () => {
 
   it('模板取值确定，多次读取完全一致', () => {
     for (const preset of PRESET_TEMPLATES) {
-      expect(JSON.parse(JSON.stringify(preset.template))).toEqual(preset.template);
-      expect(collectKeys(preset.template)).toEqual(collectKeys(preset.template));
+      expect(JSON.parse(JSON.stringify(preset.template))).toEqual(
+        preset.template,
+      );
+      expect(collectKeys(preset.template)).toEqual(
+        collectKeys(preset.template),
+      );
     }
   });
 });

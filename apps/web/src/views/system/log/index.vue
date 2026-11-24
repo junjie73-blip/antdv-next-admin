@@ -550,145 +550,145 @@ const loginColumns: BasicColumn[] = [
       <!-- 操作日志：整体缩进与 tab 栏 px-6 对齐，避免表单/表格/分页贴卡片边 -->
       <template v-if="activeTab === 0">
         <div class="px-6 pb-4">
-        <BasicTable
-          :columns="columns"
-          :api="listApi"
-          :immediate="true"
-          :use-search-form="true"
-          :form-config="{ schemas: searchFormSchemas, labelWidth: 80 }"
-          :action-column="{ width: 160, title: '操作', fixed: 'right' }"
-          :row-selection="{ type: 'checkbox' }"
-          :pagination="{
-            showSizeChanger: true,
-            pageSizeOptions: ['10', '20', '50'],
-          }"
-          :scroll="{ x: 1300 }"
-          @register="tableRegister"
-        >
-          <!-- 这一栏只对「操作日志」这个页签有意义，所以留在表格内而不是页头 -->
-          <template #toolbar-actions>
-            <Button variant="outline" @click="handleExport">
-              <Icon icon="carbon:export" />
-              导出
-            </Button>
-            <Button variant="destructive" @click="handleBatchDelete">
-              <Icon icon="ant-design:delete-outlined" />
-              批量删除
-            </Button>
-            <Popconfirm
-              title="确定要清空所有系统日志吗？此操作不可恢复！"
-              danger
-              @confirm="handleClear"
-            >
-              <Button variant="destructive">
-                <Icon icon="carbon:trash-can" />
-                清空
+          <BasicTable
+            :columns="columns"
+            :api="listApi"
+            :immediate="true"
+            :use-search-form="true"
+            :form-config="{ schemas: searchFormSchemas, labelWidth: 80 }"
+            :action-column="{ width: 160, title: '操作', fixed: 'right' }"
+            :row-selection="{ type: 'checkbox' }"
+            :pagination="{
+              showSizeChanger: true,
+              pageSizeOptions: ['10', '20', '50'],
+            }"
+            :scroll="{ x: 1300 }"
+            @register="tableRegister"
+          >
+            <!-- 这一栏只对「操作日志」这个页签有意义，所以留在表格内而不是页头 -->
+            <template #toolbar-actions>
+              <Button variant="outline" @click="handleExport">
+                <Icon icon="carbon:export" />
+                导出
               </Button>
-            </Popconfirm>
-          </template>
-
-          <template #cell-operType="{ record }">
-            <Tag :color="operTypeColorMap[record.operType] || 'default'">
-              {{ record.operType }}
-            </Tag>
-          </template>
-
-          <template #cell-status="{ record }">
-            <Tag :color="statusColorMap[record.status] || 'default'">
-              <span class="inline-flex items-center gap-1">
-                <Icon
-                  :icon="
-                    record.status === 0
-                      ? 'carbon:checkmark-outline'
-                      : 'carbon:close-outline'
-                  "
-                />
-                {{ statusLabelMap[record.status] || '未知' }}
-              </span>
-            </Tag>
-          </template>
-
-          <template #cell-costTime="{ record }">
-            <span
-              :style="{
-                color:
-                  record.costTime > 500
-                    ? 'var(--color-warning, #d97706)'
-                    : 'inherit',
-                fontWeight: record.costTime > 500 ? '500' : 'normal',
-              }"
-            >
-              {{ record.costTime }}
-            </span>
-          </template>
-
-          <template #action="{ record }">
-            <div :class="actionClassName">
-              <Button
-                variant="link"
-                :class="btnClassName"
-                @click="() => handleView(record as OperLogRecord)"
-              >
-                <Icon icon="ant-design:eye-outlined" />
-                详情
+              <Button variant="destructive" @click="handleBatchDelete">
+                <Icon icon="ant-design:delete-outlined" />
+                批量删除
               </Button>
-              <Divider type="vertical" :class="dividerClassName" />
               <Popconfirm
-                :title="`确定要删除日志 #${record.id} 吗？`"
+                title="确定要清空所有系统日志吗？此操作不可恢复！"
                 danger
-                @confirm="() => handleDelete(record as OperLogRecord)"
+                @confirm="handleClear"
               >
-                <Button
-                  variant="link"
-                  class="text-destructive hover:text-destructive"
-                  :class="btnClassName"
-                >
-                  <Icon icon="ant-design:delete-outlined" />
-                  删除
+                <Button variant="destructive">
+                  <Icon icon="carbon:trash-can" />
+                  清空
                 </Button>
               </Popconfirm>
-            </div>
-          </template>
-        </BasicTable>
+            </template>
+
+            <template #cell-operType="{ record }">
+              <Tag :color="operTypeColorMap[record.operType] || 'default'">
+                {{ record.operType }}
+              </Tag>
+            </template>
+
+            <template #cell-status="{ record }">
+              <Tag :color="statusColorMap[record.status] || 'default'">
+                <span class="inline-flex items-center gap-1">
+                  <Icon
+                    :icon="
+                      record.status === 0
+                        ? 'carbon:checkmark-outline'
+                        : 'carbon:close-outline'
+                    "
+                  />
+                  {{ statusLabelMap[record.status] || '未知' }}
+                </span>
+              </Tag>
+            </template>
+
+            <template #cell-costTime="{ record }">
+              <span
+                :style="{
+                  color:
+                    record.costTime > 500
+                      ? 'var(--color-warning, #d97706)'
+                      : 'inherit',
+                  fontWeight: record.costTime > 500 ? '500' : 'normal',
+                }"
+              >
+                {{ record.costTime }}
+              </span>
+            </template>
+
+            <template #action="{ record }">
+              <div :class="actionClassName">
+                <Button
+                  variant="link"
+                  :class="btnClassName"
+                  @click="() => handleView(record as OperLogRecord)"
+                >
+                  <Icon icon="ant-design:eye-outlined" />
+                  详情
+                </Button>
+                <Divider type="vertical" :class="dividerClassName" />
+                <Popconfirm
+                  :title="`确定要删除日志 #${record.id} 吗？`"
+                  danger
+                  @confirm="() => handleDelete(record as OperLogRecord)"
+                >
+                  <Button
+                    variant="link"
+                    class="text-destructive hover:text-destructive"
+                    :class="btnClassName"
+                  >
+                    <Icon icon="ant-design:delete-outlined" />
+                    删除
+                  </Button>
+                </Popconfirm>
+              </div>
+            </template>
+          </BasicTable>
         </div>
       </template>
 
       <!-- 登录日志：与操作日志同样缩进 -->
       <template v-if="activeTab === 1">
         <div class="px-6 pb-4">
-        <BasicTable
-          :columns="loginColumns"
-          :api="mockLoginApi"
-          :immediate="true"
-          :use-search-form="true"
-          :form-config="{ schemas: loginSearchFormSchemas, labelWidth: 80 }"
-          :action-column="{ width: 120, title: '操作', fixed: 'right' }"
-          :pagination="{
-            showSizeChanger: true,
-            pageSizeOptions: ['10', '20', '50'],
-          }"
-          :scroll="{ x: 1200 }"
-          @register="loginTableRegister"
-        >
-          <template #cell-status="{ record }">
-            <Tag :color="record.status === 0 ? 'green' : 'red'">
-              {{ record.status === 0 ? '成功' : '失败' }}
-            </Tag>
-          </template>
+          <BasicTable
+            :columns="loginColumns"
+            :api="mockLoginApi"
+            :immediate="true"
+            :use-search-form="true"
+            :form-config="{ schemas: loginSearchFormSchemas, labelWidth: 80 }"
+            :action-column="{ width: 120, title: '操作', fixed: 'right' }"
+            :pagination="{
+              showSizeChanger: true,
+              pageSizeOptions: ['10', '20', '50'],
+            }"
+            :scroll="{ x: 1200 }"
+            @register="loginTableRegister"
+          >
+            <template #cell-status="{ record }">
+              <Tag :color="record.status === 0 ? 'green' : 'red'">
+                {{ record.status === 0 ? '成功' : '失败' }}
+              </Tag>
+            </template>
 
-          <template #action="{ record }">
-            <div :class="actionClassName">
-              <Button
-                variant="link"
-                :class="btnClassName"
-                @click="() => handleLoginView(record as LoginLogRecord)"
-              >
-                <Icon icon="ant-design:eye-outlined" />
-                详情
-              </Button>
-            </div>
-          </template>
-        </BasicTable>
+            <template #action="{ record }">
+              <div :class="actionClassName">
+                <Button
+                  variant="link"
+                  :class="btnClassName"
+                  @click="() => handleLoginView(record as LoginLogRecord)"
+                >
+                  <Icon icon="ant-design:eye-outlined" />
+                  详情
+                </Button>
+              </div>
+            </template>
+          </BasicTable>
         </div>
       </template>
 

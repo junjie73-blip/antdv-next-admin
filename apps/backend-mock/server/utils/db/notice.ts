@@ -2,10 +2,10 @@
  * 通知内存库（legacy mock/notice.fake.ts 的数据层）
  */
 
-import { BUILTIN_NOW, builtin } from '../builtin-data';
-import { defineCollection } from './sqlite';
 import dayjs from 'dayjs';
 
+import { builtin, BUILTIN_NOW } from '../builtin-data';
+import { defineCollection } from './sqlite';
 
 const SENDERS = [
   '系统管理员',
@@ -32,7 +32,10 @@ export interface Notice {
   type: 1 | 2 | 3;
 }
 
-export const NOTICE_DB: Notice[] = defineCollection<Notice>({ seed: () => [], table: 'tb_notice' });
+export const NOTICE_DB: Notice[] = defineCollection<Notice>({
+  seed: () => [],
+  table: 'tb_notice',
+});
 
 function initNoticeDB() {
   if (NOTICE_DB.length > 0) return;

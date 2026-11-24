@@ -33,7 +33,7 @@ describe('运行环境判定', () => {
     expect(dbFileName()).toBe(DEV_DB_NAME);
   });
 
-  it('MOCK_ENV 优先于 NODE_ENV', () => {
+  it('mOCK_ENV 优先于 NODE_ENV', () => {
     process.env.NODE_ENV = 'production';
     process.env.MOCK_ENV = 'development';
     expect(getMockEnv()).toBe('development');
@@ -49,7 +49,7 @@ describe('运行环境判定', () => {
     expect(dbFileName()).not.toBe(DEV_DB_NAME);
   });
 
-  it('NODE_ENV=production 也能判定（未设 MOCK_ENV 时）', () => {
+  it('nODE_ENV=production 也能判定（未设 MOCK_ENV 时）', () => {
     process.env.NODE_ENV = 'production';
     expect(isProduction()).toBe(true);
   });

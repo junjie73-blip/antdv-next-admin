@@ -87,9 +87,9 @@ async function load() {
     if (!panels.value.some((item) => item.key === activeKey.value)) {
       activeKey.value = panels.value[0]?.key ?? '';
     }
-  } catch (cause) {
+  } catch (error) {
     error.value =
-      cause instanceof Error ? cause.message : '系统配置接口暂不可用';
+      error instanceof Error ? error.message : '系统配置接口暂不可用';
   } finally {
     loading.value = false;
   }

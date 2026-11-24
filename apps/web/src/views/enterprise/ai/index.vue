@@ -97,9 +97,9 @@ async function load() {
       status: STATUS_VALUE[statusTab.value],
     });
     data.value = unwrapApi<AiResourcesData | null>(res) ?? null;
-  } catch (cause) {
+  } catch (error) {
     error.value =
-      cause instanceof Error ? cause.message : 'AI 资源接口暂不可用';
+      error instanceof Error ? error.message : 'AI 资源接口暂不可用';
   } finally {
     loading.value = false;
   }
@@ -128,7 +128,7 @@ function openDetail(item: AiResourceItem) {
 
 /** 供应商表格的操作列：详情走独立抽屉（供应商是只读快照，无新增/编辑接口） */
 type AiProvider = AiResourcesData['providers'][number];
-const viewingProvider = ref<null | AiProvider>(null);
+const viewingProvider = ref<AiProvider | null>(null);
 const [providerDrawerRegister, providerDrawerMethods] = useDrawer();
 function openProviderDetail(provider: AiProvider) {
   viewingProvider.value = provider;
@@ -183,8 +183,8 @@ function openProviderDetail(provider: AiProvider) {
             <Icon icon="carbon:cube" class="size-8 text-muted-foreground" />
             <p :class="hintClassName">没有符合条件的 Agent</p>
             <Button variant="outline" size="sm" @click="clearFilters">
-清除筛选
-</Button>
+              清除筛选
+            </Button>
           </template>
 
           <div :class="gridClassName">
@@ -205,8 +205,8 @@ function openProviderDetail(provider: AiProvider) {
               </template>
               <template #actions>
                 <Button variant="link" size="sm" @click="openDetail(item)">
-查看详情
-</Button>
+                  查看详情
+                </Button>
               </template>
             </ResourceCard>
           </div>
@@ -234,13 +234,13 @@ function openProviderDetail(provider: AiProvider) {
               :metrics="item.metrics"
             >
               <template #meta>
-<span :class="metaClassName">更新于 {{ item.updatedAt }}</span>
-</template>
+                <span :class="metaClassName">更新于 {{ item.updatedAt }}</span>
+              </template>
               <template #actions>
-<Button variant="link" size="sm" @click="openDetail(item)">
-查看详情
-</Button>
-</template>
+                <Button variant="link" size="sm" @click="openDetail(item)">
+                  查看详情
+                </Button>
+              </template>
             </ResourceCard>
           </div>
         </AsyncState>
@@ -267,13 +267,13 @@ function openProviderDetail(provider: AiProvider) {
               :metrics="item.metrics"
             >
               <template #meta>
-<span :class="metaClassName">更新于 {{ item.updatedAt }}</span>
-</template>
+                <span :class="metaClassName">更新于 {{ item.updatedAt }}</span>
+              </template>
               <template #actions>
-<Button variant="link" size="sm" @click="openDetail(item)">
-查看详情
-</Button>
-</template>
+                <Button variant="link" size="sm" @click="openDetail(item)">
+                  查看详情
+                </Button>
+              </template>
             </ResourceCard>
           </div>
         </AsyncState>
@@ -331,30 +331,20 @@ function openProviderDetail(provider: AiProvider) {
           <DescriptionsItem label="名称">{{ viewing.name }}</DescriptionsItem>
           <DescriptionsItem label="编号">{{ viewing.id }}</DescriptionsItem>
           <DescriptionsItem label="负责人">
-{{
-            viewing.owner
-          }}
-</DescriptionsItem>
+            {{ viewing.owner }}
+          </DescriptionsItem>
           <DescriptionsItem label="状态">
-{{
-            STATUS_LABELS[viewing.status]
-          }}
-</DescriptionsItem>
+            {{ STATUS_LABELS[viewing.status] }}
+          </DescriptionsItem>
           <DescriptionsItem label="标签" :span="2">
-{{
-            viewing.tags.join('、') || '-'
-          }}
-</DescriptionsItem>
+            {{ viewing.tags.join('、') || '-' }}
+          </DescriptionsItem>
           <DescriptionsItem label="描述" :span="2">
-{{
-            viewing.description
-          }}
-</DescriptionsItem>
+            {{ viewing.description }}
+          </DescriptionsItem>
           <DescriptionsItem label="更新时间" :span="2">
-{{
-            viewing.updatedAt
-          }}
-</DescriptionsItem>
+            {{ viewing.updatedAt }}
+          </DescriptionsItem>
         </Descriptions>
       </template>
       <p v-else :class="hintClassName">暂无资源详情</p>
@@ -371,7 +361,11 @@ function openProviderDetail(provider: AiProvider) {
         <DescriptionsItem label="供应商名称">
           {{ viewingProvider.name }}
         </DescriptionsItem>
-        <DescriptionsItem label="编号">{{ viewingProvider.id }}</DescriptionsItem>
+        <DescriptionsItem label="编号">
+{{
+          viewingProvider.id
+        }}
+</DescriptionsItem>
         <DescriptionsItem label="调用协议">
           {{ viewingProvider.protocol }}
         </DescriptionsItem>

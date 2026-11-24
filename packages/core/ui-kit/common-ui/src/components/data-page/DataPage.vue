@@ -40,18 +40,27 @@ import { Tag } from '../tag';
  * `{ list, total }` 端点（配了 api 后 BasicTable 不再做客户端切片，必须自己切）。
  */
 const props = withDefaults(defineProps<DataPageProps>(), {
+  actionWidth: 200,
+  api: undefined,
   createFields: undefined,
+  createSchemas: undefined,
   createLabel: '新建',
   description: '',
   filters: () => [],
   icon: 'carbon:data-vis-4',
+  onSubmit: undefined,
+  onRemove: undefined,
+  onRemoveSelected: undefined,
   primaryKey: 'id',
+  rows: () => [],
+  showDelete: true,
   stats: () => [],
   statusColors: () => ({}),
+  statusLabels: () => ({}),
   statusKey: '',
 });
 
-/** 本地数据源（增删改直接改它，再 tableMethods.reload() 走一遍 api 适配层） */
+/** 本地数据源（仅在未提供服务端 api 时参与增删改） */
 const rows = ref<DataRow[]>([...props.rows]);
 
 const keywordField = 'keyword';
@@ -104,6 +113,7 @@ const tableColumns = computed<BasicColumn[]>(() =>
  * 这里在内存里对 rows 做过滤 + 切片，返回 { list, total }。
  */
 async function listApi(params: Record<string, any>) {
+  if (props.api) return props.api(params);
   const pageNum = Number(params.pageNum ?? 1);
   const pageSize = Number(params.pageSize ?? 8);
   const kw = String(params[keywordField] ?? '')
@@ -135,20 +145,23 @@ async function listApi(params: Record<string, any>) {
 
 /** 新增/编辑表单字段（默认取 columns 前三项，去掉状态列） */
 const createColumns = computed(() => {
-  const keys = props.createFields ?? props.columns.slice(0, 3).map((c) => c.key);
+  const keys =
+    props.createFields ?? props.columns.slice(0, 3).map((c) => c.key);
   return props.columns.filter(
     (c) => keys.includes(c.key) && c.key !== props.statusKey,
   );
 });
 
-const modalFormSchemas = computed<FormSchema[]>(() =>
-  createColumns.value.map((column) => ({
-    field: column.key,
-    label: column.title,
-    component: 'Input',
-    required: true,
-    componentProps: { placeholder: `请输入${column.title}` },
-  })),
+const modalFormSchemas = computed<FormSchema[]>(
+  () =>
+    props.createSchemas ??
+    createColumns.value.map((column) => ({
+      field: column.key,
+      label: column.title,
+      component: 'Input',
+      required: true,
+      componentProps: { placeholder: `请输入${column.title}` },
+    })),
 );
 
 const [tableRegister, tableMethods] = useTable();
@@ -158,7 +171,8 @@ const [formRegister, formMethods] = useForm();
 
 /** 编辑态：非空表示编辑现有行 */
 const editingKey = ref<null | string>(null);
-const detailRow = ref<null | DataRow>(null);
+const editingRow = ref<DataRow | null>(null);
+const detailRow = ref<DataRow | null>(null);
 const selectedCount = ref(0);
 
 function handleSelectionChange(keys: (number | string)[]) {
@@ -180,6 +194,7 @@ const toneClass: Record<string, string> = {
 
 function openCreate() {
   editingKey.value = null;
+  editingRow.value = null;
   void formMethods.resetFields();
   formMethods.clearValidate();
   modalMethods.openModal();
@@ -187,8 +202,11 @@ function openCreate() {
 
 function openEdit(row: DataRow) {
   editingKey.value = String(row[props.primaryKey]);
+  editingRow.value = row;
   void formMethods.setFieldsValue(
-    Object.fromEntries(createColumns.value.map((c) => [c.key, row[c.key] ?? ''])),
+    Object.fromEntries(
+      createColumns.value.map((c) => [c.key, row[c.key] ?? '']),
+    ),
   );
   formMethods.clearValidate();
   modalMethods.openModal();
@@ -198,7 +216,28 @@ async function submitCreate() {
   const values = await formMethods.validate();
   if (!values) return;
 
-  if (editingKey.value !== null) {
+  // 服务端模式：写入成功后由外部钩子负责提示与刷新，这里只管弹层生命周期
+  if (props.onSubmit) {
+    const ok = await props.onSubmit(
+      values,
+      editingKey.value,
+      editingRow.value ?? undefined,
+    );
+    if (ok === false) return;
+    modalMethods.closeModal();
+    editingKey.value = null;
+    editingRow.value = null;
+    await tableMethods.value?.reload();
+    return;
+  }
+
+  if (editingKey.value === null) {
+    const next: DataRow = { ...values };
+    next[props.primaryKey] = `N${Date.now().toString().slice(-6)}`;
+    if (props.statusKey) next[props.statusKey] = '进行中';
+    rows.value.unshift(next);
+    message.success('新建成功');
+  } else {
     const index = rows.value.findIndex(
       (r) => String(r[props.primaryKey]) === editingKey.value,
     );
@@ -206,15 +245,10 @@ async function submitCreate() {
       rows.value[index] = { ...rows.value[index], ...values };
     }
     message.success('保存成功');
-  } else {
-    const next: DataRow = { ...values };
-    next[props.primaryKey] = `N${Date.now().toString().slice(-6)}`;
-    if (props.statusKey) next[props.statusKey] = '进行中';
-    rows.value.unshift(next);
-    message.success('新建成功');
   }
   modalMethods.closeModal();
   editingKey.value = null;
+  editingRow.value = null;
   await tableMethods.value?.reload();
 }
 
@@ -223,16 +257,30 @@ function openDetail(row: DataRow) {
   detailMethods.openDrawer();
 }
 
-function removeRow(row: DataRow) {
+async function removeRow(row: DataRow) {
+  if (props.onRemove) {
+    const ok = await props.onRemove(row);
+    if (ok === false) return;
+    await tableMethods.value?.reload();
+    return;
+  }
   const key = String(row[props.primaryKey]);
   rows.value = rows.value.filter((r) => String(r[props.primaryKey]) !== key);
   message.success('删除成功');
   void tableMethods.value?.reload();
 }
 
-function removeSelected() {
+async function removeSelected() {
   if (!selectedCount.value) return;
   const selectedRows = tableMethods.value?.getSelectRows?.() ?? [];
+  if (props.onRemoveSelected) {
+    const ok = await props.onRemoveSelected(selectedRows);
+    if (ok === false) return;
+    tableMethods.value?.clearSelectedRowKeys?.();
+    selectedCount.value = 0;
+    await tableMethods.value?.reload();
+    return;
+  }
   const keys = new Set(selectedRows.map((r) => String(r[props.primaryKey])));
   rows.value = rows.value.filter((r) => !keys.has(String(r[props.primaryKey])));
   tableMethods.value?.clearSelectedRowKeys?.();
@@ -250,6 +298,11 @@ function progressOf(row: DataRow): number | undefined {
   const num = Number.parseInt(String(raw).replace('%', ''), 10);
   return Number.isNaN(num) ? undefined : num;
 }
+
+/** 外部在写接口成功后强制刷新表格（服务端数据源模式下 props.rows 不会变） */
+defineExpose({
+  reload: () => tableMethods.value?.reload(),
+});
 </script>
 
 <template>
@@ -295,7 +348,7 @@ function progressOf(row: DataRow): number | undefined {
     <Card class="shadow-sm">
       <template #title>{{ title }}列表</template>
       <BasicTable
-        :action-column="{ width: 200, title: '操作', fixed: 'right' }"
+        :action-column="{ width: actionWidth, title: '操作', fixed: 'right' }"
         :api="listApi"
         :columns="tableColumns"
         :form-config="{ schemas: searchFormSchemas, labelWidth: 80 }"
@@ -316,6 +369,7 @@ function progressOf(row: DataRow): number | undefined {
       >
         <template #toolbar-actions>
           <Button
+            v-if="showDelete && (!api || onRemoveSelected)"
             size="sm"
             variant="outline"
             :disabled="!selectedCount"
@@ -329,7 +383,7 @@ function progressOf(row: DataRow): number | undefined {
         <!-- 状态列（statusKey 由页面侧声明，动态插槽名） -->
         <template #[statusCellSlot]="{ record }">
           <Tag :color="cellColor(record[statusKey] || '')">
-            {{ record[statusKey] }}
+            {{ props.statusLabels[record[statusKey]] ?? record[statusKey] }}
           </Tag>
         </template>
 
@@ -350,6 +404,7 @@ function progressOf(row: DataRow): number | undefined {
         <!-- 操作列：详情 / 编辑 / 删除，样式参考 system/user 列表 -->
         <template #action="{ record }">
           <div :class="actionClassName">
+            <slot name="action-extra" :record="record"></slot>
             <Button
               variant="link"
               :class="btnClassName"
@@ -365,20 +420,22 @@ function progressOf(row: DataRow): number | undefined {
             >
               <Icon icon="ant-design:edit-outlined" /> 编辑
             </Button>
-            <Divider type="vertical" :class="dividerClassName" />
-            <Popconfirm
-              :title="`确定删除该记录吗？`"
-              danger
-              @confirm="removeRow(record)"
-            >
-              <Button
-                variant="link"
-                class="text-destructive hover:text-destructive"
-                :class="btnClassName"
+            <template v-if="showDelete">
+              <Divider type="vertical" :class="dividerClassName" />
+              <Popconfirm
+                title="确定删除该记录吗？"
+                danger
+                @confirm="removeRow(record)"
               >
-                <Icon icon="ant-design:delete-outlined" /> 删除
-              </Button>
-            </Popconfirm>
+                <Button
+                  variant="link"
+                  class="text-destructive hover:text-destructive"
+                  :class="btnClassName"
+                >
+                  <Icon icon="ant-design:delete-outlined" /> 删除
+                </Button>
+              </Popconfirm>
+            </template>
           </div>
         </template>
       </BasicTable>
@@ -416,6 +473,7 @@ function progressOf(row: DataRow): number | undefined {
           {{ detailRow[column.key] || '-' }}
         </DescriptionsItem>
       </Descriptions>
+      <slot name="detail-extra" :record="detailRow"></slot>
     </BasicDrawer>
   </div>
 </template>

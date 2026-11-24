@@ -36,7 +36,7 @@ export function collectVariables(template: string | undefined): string[] {
   const found = new Set<string>();
   for (const match of template.matchAll(TEMPLATE_TOKEN)) {
     const raw = (match[1] ?? '').split('??')[0]!.trim();
-    if (!raw || /[^A-Za-z_$\u4E00-\u9FA5.0-9_\s\[\]()'"]/u.test(raw)) continue;
+    if (!raw || /[^A-Za-z_$\u4E00-\u9FA5.0-9_\s[\]()'"]/u.test(raw)) continue;
     if (/^[A-Za-z_$][\w$]*\s*\(/u.test(raw)) continue; // 函数调用不是变量
     if (/^(['"]).*\1$/u.test(raw)) continue; // 字面量兜底
     found.add(raw);

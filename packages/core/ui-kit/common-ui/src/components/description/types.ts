@@ -1,5 +1,7 @@
 import type { VNodeChild } from 'vue';
 
+import type { ResponsiveColumn } from '../descriptions/grid';
+
 /**
  * 通用记录类型：迁移前从 `@antdv/form-ui` 引入，为去掉跨包依赖在此就地定义等价类型。
  */
@@ -114,10 +116,11 @@ export interface DescriptionProps {
   schema?: DescriptionItem[];
 
   /**
-   * 每行显示的列数
+   * 每行显示的列数：数字表示所有断点一致；对象按 xs/sm/md/lg/xl/xxl 分断点配置，
+   * 未配置的断点向下继承更小断点的列数（xs 缺省为 1）。底层按 24 栅格重算每项宽度。
    * @default 3
    */
-  column?: number;
+  column?: ResponsiveColumn;
 
   /**
    * 尺寸；不传走旧组件库的默认档（宽松）。
@@ -139,8 +142,8 @@ export interface DescriptionProps {
 
   /**
    * label 统一宽度（数字按 px 处理，也可用 '6rem' 这类字符串）。
-   * 详情抽屉里设为固定值可让长短不一的 label 右对齐、content 左对齐；
-   * 不传则保持 label 宽度随内容撑开的默认行为。
+   * 作用于底层 Descriptions 的 label 列，让所有行同宽右对齐、content 列左对齐。
+   * 不传时由表格布局按各行最长 label 自动计算统一列宽，仍然整齐对齐。
    */
   labelWidth?: number | string;
 

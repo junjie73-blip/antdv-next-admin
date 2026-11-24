@@ -261,7 +261,10 @@ export function generateClientLogs(count = 88): ClientLogRecord[] {
   });
 }
 
-export const CLIENT_LOG_DB = defineCollection({ seed: generateClientLogs, table: 'tb_client_log' });
+export const CLIENT_LOG_DB = defineCollection({
+  seed: generateClientLogs,
+  table: 'tb_client_log',
+});
 
 export interface CaptchaLogRecord {
   code: string;
@@ -310,7 +313,10 @@ export function generateCaptchaLogs(count = 88): CaptchaLogRecord[] {
   });
 }
 
-export const CAPTCHA_LOG_DB = defineCollection({ seed: generateCaptchaLogs, table: 'tb_captcha_log' });
+export const CAPTCHA_LOG_DB = defineCollection({
+  seed: generateCaptchaLogs,
+  table: 'tb_captcha_log',
+});
 
 /** 通用日志筛选：关键字 + 枚举 + 时间倒序，客户端日志与验证码日志共用口径 */
 export function selectLogs<T extends { id: number; time: string }>(

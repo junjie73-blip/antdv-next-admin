@@ -5,10 +5,10 @@
  * REGIONS / SERVICES 是系统内置配置数据（真实后端同样会预置），保持不变。
  */
 
-import { MONITOR_SNAPSHOT } from '../../utils/db/monitor';
 import { OPER_LOG_DB } from '../../utils/db/log';
-import { SECURITY_ALERTS } from '../../utils/db/security';
+import { MONITOR_SNAPSHOT } from '../../utils/db/monitor';
 import { ONLINE_DB } from '../../utils/db/online';
+import { SECURITY_ALERTS } from '../../utils/db/security';
 import { envelope } from '../../utils/response';
 import { defineMockRoute } from '../../utils/runtime';
 
@@ -39,7 +39,9 @@ const NETWORK_BASELINE = { in: 86.4, out: 42.1 };
 const LEVELS = ['critical', 'high', 'medium', 'low'] as const;
 
 function resourceValue(key: string): number {
-  return MONITOR_SNAPSHOT.resources.find((item) => item.key === key)?.value ?? 0;
+  return (
+    MONITOR_SNAPSHOT.resources.find((item) => item.key === key)?.value ?? 0
+  );
 }
 
 export default defineMockRoute({

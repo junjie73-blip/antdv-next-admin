@@ -281,8 +281,8 @@ const codeClassName = cn(
       <Space :size="4" class="mt-3" wrap>
         <Button size="sm" @click="applyPalette">图表配色跟随当前主题</Button>
         <Button size="sm" variant="outline" @click="resetDemo">
-重置示例报表
-</Button>
+          重置示例报表
+        </Button>
         <span v-if="paletteApplied" :class="hintClassName">已注入 6 档色板（重挂 viewer 生效）</span>
       </Space>
       <Alert

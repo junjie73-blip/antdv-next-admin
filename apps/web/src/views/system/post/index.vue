@@ -113,7 +113,11 @@ onMounted(async () => {
       getDeptTree(),
       getUserList({ pageNum: 1, pageSize: 200 }),
     ]);
-    const depts = (Array.isArray(deptRes) ? deptRes : ((deptRes as { data?: unknown })?.data ?? [])) as DeptTreeNode[];
+    const depts = (
+      Array.isArray(deptRes)
+        ? deptRes
+        : ((deptRes as { data?: unknown })?.data ?? [])
+    ) as DeptTreeNode[];
     deptTreeData.value = depts;
     const data = (userRes as { data?: unknown })?.data ?? userRes;
     const rows = ((data as { list?: unknown })?.list ?? []) as Array<
@@ -126,9 +130,9 @@ onMounted(async () => {
       avatar: typeof row.avatar === 'string' ? row.avatar : undefined,
       deptName: String(row.deptName ?? ''),
     }));
-  } catch (cause) {
-    const detail = cause instanceof Error ? cause.message : '未知错误';
-    console.error('[post] 基础数据加载失败', cause);
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : '未知错误';
+    console.error('[post] 基础数据加载失败', error);
     message.error(`部门/用户数据加载失败：${detail}，请刷新页面重试`);
   }
 });
@@ -253,10 +257,10 @@ async function postListApi(params: Record<string, any>) {
   try {
     const res = await getPostList(params);
     const data = (res as { data?: unknown })?.data ?? res;
-    const payload = data as { list?: unknown[]; total?: number } | undefined;
+    const payload = data as undefined | { list?: unknown[]; total?: number };
     return { items: payload?.list ?? [], total: payload?.total ?? 0 };
-  } catch (cause) {
-    const detail = cause instanceof Error ? cause.message : '未知错误';
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : '未知错误';
     message.error(`岗位列表加载失败：${detail}`);
     return { items: [], total: 0 };
   }

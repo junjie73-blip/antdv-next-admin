@@ -15,14 +15,18 @@ import {
  * 头像下拉里新增的「锁屏」在浏览器里的表现。
  *
  * 单测（`packages/layouts/__tests__/user-dropdown-lock.test.ts`）钉的是结构：
- * 入口是数据驱动菜单里多出来的一项、状态机三条解锁路径都汇到 `unlock()`、
+ * 入口是数据驱动菜单里多出来的一项、密码设置/校验状态机、失败保持锁定、
  * 样式表里没有 px 圆角、阈值判定上下两侧各打一次。jsdom 不解析 CSS 变量，
  * 也算不出 rem —— 所以**"不同屏幕尺寸下圆角到底一不一致"只能在这里量**。
  *
  * 分工按能力划：
  * - 计算值（半径、把手位移、遮罩命中测试、滚动是否真的被钉住）→ 这里量；
- * - 阈值两侧（96 默认档在真机上拖 60 / 拖 130）→ 这里量，别的阈值档位由单测换 props 打；
+ * - 密码流程（首次设置、错误/空密码保持锁定、正确密码放行）→ 这里走真实 DOM；
+ * - 阈值两侧（96 默认档在真机上拖 60 / 拖 130 提交密码）→ 这里量，别的阈值档位由单测换 props 打；
  * - 还原（解锁后 `overflow` 回到原样、监听器摘掉）→ 两边都钉，这里只看得到真结果。
+ *
+ * 注意：每个 test 是独立 context，localStorage 不共享，所以首次锁屏都要先
+ * `setupPassword()` 设置密码（设置成功仍锁定），后续才走"输入密码解锁"。
  */
 
 /** 视口高度全程同一个值，卡片"垂直居中"的判据要靠它 */
@@ -66,8 +70,38 @@ async function lock(page: Page) {
     .toBe('');
 }
 
-/** 点遮罩上的「解锁屏幕」 */
-async function unlockByButton(page: Page) {
+/**
+ * 测试统一用的锁屏密码。Playwright 每个 test 是独立 context，localStorage 互相隔离，
+ * 所以每个用例的**首次锁屏都会进入设置模式**，都要先设置一次密码。
+ */
+const LOCK_PASSWORD = '1234';
+
+/** 当前是否处于「首次设置密码」模式（有确认框就是） */
+function isSetupMode(page: Page) {
+  return page.locator('[data-testid="lock-password-confirm"]').count();
+}
+
+/**
+ * 首次锁屏的设置流程：填两次密码点提交。
+ * 按产品要求，设置成功**仍保持锁定**，面板切到「输入密码解锁」模式。
+ */
+async function setupPassword(page: Page, password = LOCK_PASSWORD) {
+  await page.locator('[data-testid="lock-password-input"]').fill(password);
+  await page.locator('[data-testid="lock-password-confirm"]').fill(password);
+  await page.locator('[data-testid="lock-unlock-button"]').click();
+  // 切模式后确认框消失，且输入被清空（见 lock-screen.vue 的 watch(mode)）
+  await expect(
+    page.locator('[data-testid="lock-password-confirm"]'),
+  ).toHaveCount(0);
+}
+
+/**
+ * 完成当前锁屏并解锁：设置模式下先设密码，再输一次密码提交。
+ * 重复锁屏时没有确认框，走的就是「输入密码解锁」，只填一次。
+ */
+async function unlockWithPassword(page: Page, password = LOCK_PASSWORD) {
+  if (await isSetupMode(page)) await setupPassword(page, password);
+  await page.locator('[data-testid="lock-password-input"]').fill(password);
   await page.locator('[data-testid="lock-unlock-button"]').click();
   await expect(screen(page)).toHaveCount(0);
 }
@@ -259,7 +293,7 @@ test.describe('锁屏', () => {
     expect(blocked.pageButton, '锁屏期间页面按钮仍可点').toBe('masked');
 
     // 5. 解锁后一切还原：滚动锁放开，同一个滚轮动作立刻生效
-    await unlockByButton(page);
+    await unlockWithPassword(page);
     await page.mouse.move(720, 500);
     await page.mouse.wheel(0, 300);
     await expect
@@ -275,18 +309,38 @@ test.describe('锁屏', () => {
     expect(errors.errors).toEqual([]);
   });
 
-  test('按任意键也能解锁，且这一键不会落进页面', async ({ page }) => {
+  test('按键不能绕过密码，只有校验成功才解锁；输入框里的按键照常', async ({
+    page,
+  }) => {
     const errors = watchErrors(page);
     await signIn(page);
     await go(page, '/system/user');
 
     await lock(page);
-    await page.keyboard.press('a');
-    await expect(screen(page), '按任意键那条路径没放行').toHaveCount(0);
+    // 首次是设置模式：先设好密码，切到解锁模式（此时仍锁定）
+    await setupPassword(page);
 
-    // 摘干净：锁屏期间的 capture 监听器不能留在 window 上
-    await page.keyboard.press('b');
+    // 落在遮罩上的按键被吞掉，不会解锁
+    await page.keyboard.press('a');
+    await expect(screen(page), '按键绕过了密码校验').toBeVisible();
+
+    // 空密码 / 错误密码都不放行，并给出明确错误提示
+    await page.locator('[data-testid="lock-unlock-button"]').click();
+    await expect(screen(page), '空密码竟然解锁了').toBeVisible();
+    await expect(
+      page.locator('[data-testid="lock-password-hint"]'),
+    ).toHaveAttribute('data-lock-error');
+    await page.locator('[data-testid="lock-password-input"]').fill('wrong');
+    await page.locator('[data-testid="lock-unlock-button"]').click();
+    await expect(screen(page), '错误密码竟然解锁了').toBeVisible();
+
+    // 正确密码才放行
+    await page
+      .locator('[data-testid="lock-password-input"]')
+      .fill(LOCK_PASSWORD);
+    await page.locator('[data-testid="lock-unlock-button"]').click();
     await expect(screen(page)).toHaveCount(0);
+
     expect(
       await page.evaluate(() => document.documentElement.style.overflow),
       '解锁后 <html> 还带着滚动锁',
@@ -295,27 +349,34 @@ test.describe('锁屏', () => {
     expect(errors.errors).toEqual([]);
   });
 
-  test('下拉解锁只看阈值：60px 归零，130px 放行', async ({ page }) => {
+  test('下拉手势只看阈值提交密码：60px 归零，130px 才提交', async ({
+    page,
+  }) => {
     const errors = watchErrors(page);
     await signIn(page);
     await go(page, '/system/user');
 
-    // 未到阈值：拖到中途（30px）进度是 30/96、把手跟着走 30px，松手后归零且不解锁
     await lock(page);
+    await setupPassword(page);
+
+    // 未到阈值：拖到中途（30px）进度是 30/96、把手跟着走 30px，松手后归零且不提交
     const short = await pullHandle(page, 60);
     expect(short.pull, '进度没有按阈值归一').toBeCloseTo(
       30 / PULL_THRESHOLD,
       1,
     );
     expect(short.translateY).toBeCloseTo(30, 0);
-    await expect(screen(page), '没到阈值就放行了').toBeVisible();
+    await expect(screen(page), '没到阈值就收起了').toBeVisible();
     const reset = await readHandle(page);
     expect(reset.pull).toBe(0);
     expect(reset.translateY, '松手没回到原位').toBeCloseTo(0, 0);
 
-    // 过阈值：拖 130 > 96，松手即解锁
+    // 过阈值：填好密码后拖 130 > 96，松手提交密码并解锁
+    await page
+      .locator('[data-testid="lock-password-input"]')
+      .fill(LOCK_PASSWORD);
     await pullHandle(page, 130);
-    await expect(screen(page), '拖过阈值没有解锁').toHaveCount(0);
+    await expect(screen(page), '拖过阈值提交密码后没有解锁').toHaveCount(0);
 
     expect(errors.errors).toEqual([]);
   });
@@ -348,7 +409,7 @@ test.describe('锁屏', () => {
       await page.waitForTimeout(200); // 窄屏判定走 useWindowSize，重排要一帧
       await lock(page);
       seen.push({ read: await readRadii(page), width });
-      await unlockByButton(page);
+      await unlockWithPassword(page);
     }
 
     for (const { read, width } of seen) {
@@ -411,7 +472,7 @@ test.describe('锁屏', () => {
     expect(half.button.topLeft).toBeCloseTo(rootFontSize * 0.5, 0);
     expect(half.inlineCardRadius).toContain('rem');
     expect(half.inlineCardRadius).not.toContain('px');
-    await unlockByButton(page);
+    await unlockWithPassword(page);
 
     // 恢复默认刻度，别把 0.5 留给后面的用例
     const reset = await openPreferenceDrawer(page, '外观');
@@ -427,6 +488,7 @@ test.describe('锁屏', () => {
     await signIn(page);
 
     await lock(page);
+    await setupPassword(page);
     const card = await page.locator('.lock-card').boundingBox();
     expect(card).not.toBeNull();
     if (card) {
@@ -445,6 +507,10 @@ test.describe('锁屏', () => {
       expect(knob.y + knob.height).toBeLessThan(720);
     }
 
+    // 拖过阈值提交密码后解锁
+    await page
+      .locator('[data-testid="lock-password-input"]')
+      .fill(LOCK_PASSWORD);
     await pullHandle(page, 120);
     await expect(screen(page), '窄屏上拖把手没能解锁').toHaveCount(0);
 
@@ -457,21 +523,23 @@ test.describe('锁屏', () => {
     await go(page, '/system/user');
 
     await lock(page);
-    await unlockByButton(page);
+    await unlockWithPassword(page);
 
     // 遮罩整体从 DOM 摘掉（不是靠 opacity 藏起来）
     await expect(page.locator('.lock-card')).toHaveCount(0);
     await expect(handle(page)).toHaveCount(0);
 
-    // 再锁一次仍然正常：状态机可重复，第二次的滚动锁落在新的滚动盒上
+    // 再锁一次仍然正常：状态机可重复，第二次走解锁模式（已有密码），滚动锁落在新的滚动盒上
     await lock(page);
     await expect
       .poll(() =>
         contentViewport(page).evaluate((el) => getComputedStyle(el).overflowY),
       )
       .toBe('hidden');
-    await page.keyboard.press('Enter');
-    await expect(screen(page)).toHaveCount(0);
+    await expect(
+      page.locator('[data-testid="lock-password-confirm"]'),
+    ).toHaveCount(0);
+    await unlockWithPassword(page);
 
     expect(errors.errors).toEqual([]);
   });

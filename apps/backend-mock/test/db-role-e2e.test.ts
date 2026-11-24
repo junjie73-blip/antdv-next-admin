@@ -5,18 +5,18 @@
  * 这是 SQLITE_MIGRATION_PLAN.md 1.4「集成」与「重启后数据持久化」用例的落地。
  */
 
+import type { RoleItem } from '../server/utils/db/role';
+import type { TestEvent } from './fixtures/nitro-imports';
+
 import { existsSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { closeDb } from '../server/utils/db/sqlite/connection';
 import { resetStoreForTest } from '../server/utils/db/sqlite';
+import { closeDb } from '../server/utils/db/sqlite/connection';
 import { createTestEvent } from './fixtures/nitro-imports';
-
-import type { TestEvent } from './fixtures/nitro-imports';
-import type { RoleItem } from '../server/utils/db/role';
 
 interface Envelope<T> {
   code: number;
@@ -68,7 +68,9 @@ function event(init: {
   return createTestEvent(init);
 }
 
-async function getList(query: Record<string, string> = {}): Promise<Envelope<ListData>> {
+async function getList(
+  query: Record<string, string> = {},
+): Promise<Envelope<ListData>> {
   return (await handlers.list(event({ query }))) as Envelope<ListData>;
 }
 
@@ -87,7 +89,7 @@ afterEach(() => {
 });
 
 describe('role 域 · 响应信封与分页契约', () => {
-  it('GET list 返回 code=200 与 { list, total }，无参时全量', async () => {
+  it('gET list 返回 code=200 与 { list, total }，无参时全量', async () => {
     const res = await getList();
     expect(res.code).toBe(200);
     expect(res.message).toBe('获取角色列表成功');
@@ -101,7 +103,9 @@ describe('role 域 · 响应信封与分页契约', () => {
     expect(page1.data.total).toBe(6);
     expect(page1.data.list.map((r) => r.id)).toEqual([1, 2]);
     expect(page2.data.list.map((r) => r.id)).toEqual([3, 4]);
-    expect(new Set([...page1.data.list, ...page2.data.list].map((r) => r.id)).size).toBe(4);
+    expect(
+      new Set([...page1.data.list, ...page2.data.list].map((r) => r.id)).size,
+    ).toBe(4);
   });
 
   it('keyword 模糊与 status 精确筛选语义不变', async () => {
@@ -114,7 +118,7 @@ describe('role 域 · 响应信封与分页契约', () => {
 });
 
 describe('role 域 · CRUD 往返与持久化', () => {
-  it('POST 新增 -> PUT 改名 -> DELETE 删除，全流程落库', async () => {
+  it('pOST 新增 -> PUT 改名 -> DELETE 删除，全流程落库', async () => {
     const created = (await handlers.create(
       event({
         body: {
@@ -139,7 +143,9 @@ describe('role 域 · CRUD 往返与持久化', () => {
     expect(updated.data.name).toBe('测试角色（改）');
     expect(updated.data.code).toBe('tester');
 
-    const deleted = (await handlers.remove(event({ params: { id: '7' } }))) as Envelope<null>;
+    const deleted = (await handlers.remove(
+      event({ params: { id: '7' } }),
+    )) as Envelope<null>;
     expect(deleted.code).toBe(200);
     expect((await getList()).data.total).toBe(6);
   });
@@ -154,7 +160,9 @@ describe('role 域 · CRUD 往返与持久化', () => {
   });
 
   it('超级管理员保护逻辑不变', async () => {
-    const res = (await handlers.remove(event({ params: { id: '1' } }))) as Envelope<null>;
+    const res = (await handlers.remove(
+      event({ params: { id: '1' } }),
+    )) as Envelope<null>;
     expect(res.code).toBe(400);
     expect(res.message).toBe('超级管理员角色不允许删除');
     expect((await getList()).data.total).toBe(6);

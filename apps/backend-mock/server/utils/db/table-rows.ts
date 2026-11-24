@@ -32,7 +32,9 @@ function initialRows(): TableDemoRow[] {
     email: builtin.internet.email(),
     phone: builtin.phone.number(),
     status: STATUSES[index % STATUSES.length]!,
-    createdAt: new Date(Date.parse('2026-11-01T00:00:00.000Z') - index * 86_400_000).toISOString(),
+    createdAt: new Date(
+      Date.parse('2026-11-01T00:00:00.000Z') - index * 86_400_000,
+    ).toISOString(),
   }));
 }
 

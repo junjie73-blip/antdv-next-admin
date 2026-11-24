@@ -437,7 +437,9 @@ const cancelBtn = computed(() =>
         -->
         <div
           v-else
-          :class="cn('flex min-h-0 flex-1 flex-col', merged.useWrapper && 'p-4')"
+          :class="
+            cn('flex min-h-0 flex-1 flex-col', merged.useWrapper && 'p-4')
+          "
         >
           <slot></slot>
         </div>

@@ -162,8 +162,6 @@ function scriptedServer(frame: ImFrame, emit: (frame: ImFrame) => void): void {
         () => emit({ payload: { message: reply }, type: 'message' }),
         1200,
       ),
-    );
-    timers.push(
       setTimeout(
         () =>
           emit({
@@ -365,8 +363,8 @@ const codeClassName = cn(
       <Space :size="4" class="mt-3" wrap>
         <Badge variant="outline">{{ im.status.value }}</Badge>
         <Badge variant="secondary">
-当前会话 {{ im.activeConversationId.value ?? '—' }}
-</Badge>
+          当前会话 {{ im.activeConversationId.value ?? '—' }}
+        </Badge>
         <Badge variant="secondary">未读合计 {{ unreadTotal }}</Badge>
         <Badge :variant="isVirtualized ? 'secondary' : 'outline'">
           {{ im.messages.value.length }} 条{{
@@ -376,26 +374,26 @@ const codeClassName = cn(
       </Space>
       <Space :size="4" class="mt-3" wrap>
         <Button size="sm" variant="outline" @click="peerSpeaksInGroup">
-让同事在群里发言
-</Button>
+          让同事在群里发言
+        </Button>
         <Button size="sm" variant="outline" @click="togglePresence">
-切换对方在线状态
-</Button>
+          切换对方在线状态
+        </Button>
         <Button size="sm" variant="outline" @click="forceNextFailure = true">
-让下一条发送失败
-</Button>
+          让下一条发送失败
+        </Button>
         <Button size="sm" variant="outline" @click="advanceClock">
-把时钟拨过撤回窗口
-</Button>
+          把时钟拨过撤回窗口
+        </Button>
         <Button size="sm" variant="outline" @click="recallLast">
-撤回最近一条
-</Button>
+          撤回最近一条
+        </Button>
         <Button size="sm" variant="outline" @click="emitBadFrame">
-塞一条坏帧
-</Button>
+          塞一条坏帧
+        </Button>
         <Button size="sm" variant="ghost" @click="resetRuntime">
-清空注入的运行时
-</Button>
+          清空注入的运行时
+        </Button>
       </Space>
       <Separator class="my-4" />
       <ImPanel

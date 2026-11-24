@@ -151,8 +151,8 @@ defineExpose({
       <EmptyHeader>
         <EmptyTitle>这张报表还是空的</EmptyTitle>
         <EmptyDescription>
-用报表设计器加一个指标卡或图表，或者先选一个模板。
-</EmptyDescription>
+          用报表设计器加一个指标卡或图表，或者先选一个模板。
+        </EmptyDescription>
       </EmptyHeader>
     </Empty>
   </div>

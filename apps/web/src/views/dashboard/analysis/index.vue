@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { Ref } from 'vue';
-import { deterministicRatio } from '~/utils/deterministic';
 
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
 import { RouterLink } from 'vue-router';
@@ -13,6 +12,7 @@ import { useAppStore } from '@antdv/stores';
 import { Icon } from '@iconify/vue';
 import { useEventListener } from '@vueuse/core';
 import * as echarts from 'echarts';
+import { deterministicRatio } from '~/utils/deterministic';
 
 defineOptions({ name: 'DashboardAnalysis' });
 const appStore = useAppStore();
@@ -589,11 +589,15 @@ function initActivityHeatmap() {
   );
   const errorRates = hours.map((_, i) => {
     const baseError =
-      i >= 9 && i <= 18 ? 0.8 + deterministicRatio() * 1.5 : 0.1 + deterministicRatio() * 0.4;
+      i >= 9 && i <= 18
+        ? 0.8 + deterministicRatio() * 1.5
+        : 0.1 + deterministicRatio() * 0.4;
     const spike = deterministicRatio() > 0.9 ? 3 + deterministicRatio() * 2 : 0;
     return Number((baseError + spike).toFixed(2));
   });
-  const errors4xx = hours.map(() => Number((deterministicRatio() * 0.8).toFixed(2)));
+  const errors4xx = hours.map(() =>
+    Number((deterministicRatio() * 0.8).toFixed(2)),
+  );
   const errors5xx = hours.map((v, i) => {
     const val = errorRates[i]! - errors4xx[i]!;
     return Number(Math.max(0, val).toFixed(2));

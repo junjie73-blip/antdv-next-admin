@@ -378,8 +378,8 @@ defineExpose({ addSibling, isApprovalLike });
               <div class="flex items-center justify-between">
                 <Label>办理人规则</Label>
                 <Button size="xs" variant="outline" @click="addRule">
-添加规则
-</Button>
+                  添加规则
+                </Button>
               </div>
               <p class="text-muted-foreground text-[11px]">
                 多条规则解析出的人合并去重；顺序即优先级，主策略没人时走该条的兜底。
@@ -410,8 +410,8 @@ defineExpose({ addSibling, isApprovalLike });
                     </NativeSelectOption>
                   </NativeSelect>
                   <Button size="xs" variant="ghost" @click="removeRule(index)">
-删除
-</Button>
+                    删除
+                  </Button>
                 </div>
                 <Input
                   v-if="
@@ -620,11 +620,11 @@ defineExpose({ addSibling, isApprovalLike });
               >
                 <NativeSelectOption value="">不自动处理</NativeSelectOption>
                 <NativeSelectOption value="remind">
-提醒办理人
-</NativeSelectOption>
+                  提醒办理人
+                </NativeSelectOption>
                 <NativeSelectOption value="approve">
-自动同意
-</NativeSelectOption>
+                  自动同意
+                </NativeSelectOption>
                 <NativeSelectOption value="reject">自动驳回</NativeSelectOption>
               </NativeSelect>
               <p class="text-muted-foreground text-[11px]">

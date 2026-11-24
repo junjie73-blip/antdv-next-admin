@@ -112,9 +112,9 @@ async function load() {
       status: STATUS_VALUE[statusTab.value],
     });
     data.value = unwrapApi<null | WorkflowListData>(res) ?? null;
-  } catch (cause) {
+  } catch (error) {
     error.value =
-      cause instanceof Error ? cause.message : '流程列表接口暂不可用';
+      error instanceof Error ? error.message : '流程列表接口暂不可用';
   } finally {
     loading.value = false;
   }
@@ -263,8 +263,8 @@ function clearFilters() {
         <Icon icon="carbon:flow" class="size-8 text-muted-foreground" />
         <p :class="hintClassName">没有符合筛选条件的流程</p>
         <Button variant="outline" size="sm" @click="clearFilters">
-清除筛选
-</Button>
+          清除筛选
+        </Button>
       </template>
 
       <div :class="gridClassName">
@@ -294,8 +294,8 @@ function clearFilters() {
           </template>
           <template #actions>
             <Button variant="link" size="sm" @click="openDesigner">
-进入设计器
-</Button>
+              进入设计器
+            </Button>
             <Button
               variant="ghost"
               size="sm"
@@ -313,9 +313,9 @@ function clearFilters() {
                 variant="ghost"
                 size="sm"
                 :disabled="pendingId === item.id"
-                >
-删除
-</Button>
+              >
+                删除
+              </Button>
             </Popconfirm>
           </template>
         </ResourceCard>

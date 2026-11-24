@@ -12,7 +12,6 @@
  * 前端响应信封、分页字段（pageNum/pageSize）、`data.list/total` 形态完全不变。
  */
 
-
 import { defineCollection, getStore, nextBizId } from './sqlite';
 
 // 内置角色数据为确定性常量，不受装载顺序影响
@@ -115,7 +114,9 @@ export function nextRoleId(): number {
  */
 export function syncRoleMenuLinks(roleId: number, menuIds: number[]): void {
   const store = getStore();
-  const active = store.links('tb_role_menu', roleId).map((link) => String(link.menu_id));
+  const active = store
+    .links('tb_role_menu', roleId)
+    .map((link) => String(link.menu_id));
   const wanted = menuIds.map(String);
   for (const id of active) {
     if (!wanted.includes(id)) store.unlink('tb_role_menu', roleId, id);

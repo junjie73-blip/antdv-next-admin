@@ -20,55 +20,60 @@ const props = withDefaults(
 
 const context = inject(DESCRIPTIONS_KEY, undefined);
 const bordered = computed(() => context?.value.bordered ?? false);
-const column = computed(() => context?.value.column ?? 3);
 const layout = computed(() => context?.value.layout ?? 'horizontal');
 const size = computed(() => context?.value.size ?? 'default');
-
 const isVertical = computed(() => layout.value === 'vertical');
 
-const style = computed(() => {
-  const span = Math.max(1, Math.min(props.span, column.value));
-  return { gridColumn: `span ${span} / span ${span}` };
+// 跨列倍数交给 CSS 变量：响应式 column 切换时由列级规则重新计算实际宽度，
+// 超过当前行容量的 span 会被 min(..., 100%) 收窄为占满整行。
+const safeSpan = computed(() => {
+  const raw = Number(props.span ?? 1);
+  return Number.isFinite(raw) ? Math.max(1, Math.floor(raw)) : 1;
 });
 
-const rootClass = computed(() =>
+const itemStyle = computed<Record<string, string>>(() => ({
+  '--desc-span': String(safeSpan.value),
+}));
+
+const cellClass = computed(() =>
+  size.value === 'small' ? 'px-2 py-1.5' : 'px-3 py-2',
+);
+
+const itemClass = computed(() =>
   cn(
-    'flex min-w-0 py-1',
-    bordered.value ? 'border' : '',
-    isVertical.value ? 'flex-col' : 'flex-row',
+    'flex min-w-0 items-start',
+    isVertical.value && 'flex-col',
+    bordered.value && 'border-r border-b',
   ),
 );
 
-const cellClass = computed(() =>
-  size.value === 'small' ? 'px-2 py-1' : 'px-3 py-2',
+const labelClass = computed(() =>
+  cn(
+    // 宽度统一由列级 --desc-label-width 控制，保证跨行/跨列同宽；右对齐对齐官网
+    'text-muted-foreground shrink-0 text-right font-medium break-words whitespace-normal',
+    cellClass.value,
+    bordered.value ? 'bg-muted/40 border-r' : 'pr-2',
+    isVertical.value && 'w-full text-left',
+  ),
 );
 
-const labelClass = computed(() =>
-  bordered.value
-    ? cn(
-        'bg-muted/40 flex shrink-0 items-center font-medium',
-        cellClass.value,
-        isVertical.value ? 'border-b' : 'border-r',
-      )
-    : cn(
-        'shrink-0 text-gray-500 dark:text-gray-400',
-        isVertical.value ? 'mb-0.5' : 'mr-2',
-      ),
+const labelStyle = computed(() =>
+  isVertical.value ? undefined : { width: 'var(--desc-label-width)' },
 );
 
 const valueClass = computed(() =>
-  cn('min-w-0 flex-1 wrap-break-word', bordered.value ? cellClass.value : ''),
+  cn(
+    'min-w-0 flex-1 wrap-break-word',
+    cellClass.value,
+    isVertical.value && 'w-full',
+  ),
 );
 </script>
 
 <template>
-  <div data-common-descriptions-item :style="style" :class="rootClass">
-    <div
-      v-if="props.label || $slots.label"
-      data-common-descriptions-label
-      :class="labelClass"
-    >
-      <slot name="label">{{ props.label }}</slot>
+  <div data-common-descriptions-item :style="itemStyle" :class="itemClass">
+    <div data-common-descriptions-label :style="labelStyle" :class="labelClass">
+      <slot name="label">{{ label }}</slot>
     </div>
     <div data-common-descriptions-value :class="valueClass">
       <slot></slot>

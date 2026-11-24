@@ -50,8 +50,8 @@
   },
   "dependencies": {
     "@tanstack/vue-store": "catalog:",
-    "better-sqlite3": "^13.2.0",
-    "sqlite": "^5.1.1"
+    "better-sqlite3": "catalog:conflicts_better-sqlite3_h13_2_0",
+    "sqlite": "catalog:"
   },
   "devDependencies": {
     "@antdv/commitlint-config": "workspace:*",

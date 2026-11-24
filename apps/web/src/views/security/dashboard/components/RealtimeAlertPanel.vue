@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { AlertItem, SecurityEventLevel } from '~/api/security';
-import { deterministicRatio } from '~/utils/deterministic';
 
 import { onMounted, ref } from 'vue';
 
@@ -9,6 +8,7 @@ import { Button } from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/utils/cn';
 import { Icon } from '@iconify/vue';
 import { getAlertList, handleAlert } from '~/api/security';
+import { deterministicRatio } from '~/utils/deterministic';
 
 defineOptions({ name: 'RealtimeAlertPanel' });
 

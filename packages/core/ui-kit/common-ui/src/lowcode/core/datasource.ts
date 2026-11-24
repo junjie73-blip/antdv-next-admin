@@ -83,8 +83,8 @@ export interface DataSourceRunnerOptions {
   fetcher?: DataSourceFetcher;
   /** 传函数是为了让宿主在运行期换实现而不用重建 runner */
   functions?:
-  | (() => Record<string, DataSourceFunction>)
-  | Record<string, DataSourceFunction>;
+    | (() => Record<string, DataSourceFunction>)
+    | Record<string, DataSourceFunction>;
   now?: () => number;
   timeoutMs?: number;
 }
@@ -245,9 +245,9 @@ export function createDataSourceRunner(
             spec.body === undefined
               ? undefined
               : resolveValue(spec.body, scope ?? {}, {
-                ctx: baseContext(),
-                evaluator,
-              }),
+                  ctx: baseContext(),
+                  evaluator,
+                }),
           headers: spec.headers,
           method: (spec.method ?? 'GET').toUpperCase(),
           params,
