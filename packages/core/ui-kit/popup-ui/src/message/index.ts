@@ -43,6 +43,34 @@ export const NOTIFICATION_TOASTER_ID = 'notification';
  */
 const TOAST_DURATION = 3000;
 
+/**
+ * 同一条用户可见文案的去重窗口（毫秒）。
+ *
+ * 请求层已经统一弹提示，页面 catch 里还留着 `message.error(error.message)` 这类
+ * 历史写法；两者文案相同、时间相邻，不去重就会连弹两条。窗口只覆盖**同一种状态
+ * + 同一段人话**（有 description 时按 description 算），不影响两条不同消息 stacking。
+ */
+const FEEDBACK_DEDUPE_WINDOW_MS = 1200;
+const recentFeedback = new Map<string, number>();
+
+/** 仅供测试与手动重置队列：清掉去重窗口内的记录 */
+export function resetFeedbackDedupe(): void {
+  recentFeedback.clear();
+}
+
+function feedbackKey(type: ToastType, content: string, description?: string) {
+  return `${type}:${description ?? content}`;
+}
+
+function isDuplicate(key: string, now: number): boolean {
+  for (const [storedKey, at] of recentFeedback) {
+    if (now - at > FEEDBACK_DEDUPE_WINDOW_MS) recentFeedback.delete(storedKey);
+  }
+  if (recentFeedback.has(key)) return true;
+  recentFeedback.set(key, now);
+  return false;
+}
+
 /** 四种带状态徽标的类型，内核与 `toast` 上的方法名一一对应 */
 type ToastType = 'error' | 'info' | 'success' | 'warning';
 
@@ -104,8 +132,13 @@ function toToastOptions(
  * 一条通道的实现。`toasterId` 省略时落到没有 id 的那只 toaster（轻提示）。
  */
 function createFeedback(toasterId?: string) {
-  const show = (type: ToastType, content: string, init?: ToastInitInput) =>
-    toast[type](content, toToastOptions(init, toasterId));
+  const show = (type: ToastType, content: string, init?: ToastInitInput) => {
+    const { description } = normalizeInit(init);
+    if (isDuplicate(feedbackKey(type, content, description), Date.now())) {
+      return '' as ToastId;
+    }
+    return toast[type](content, toToastOptions(init, toasterId));
+  };
 
   return {
     /** 关闭单条；`id` 是这几个方法调用时的返回值 */

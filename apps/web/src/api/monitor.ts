@@ -2,7 +2,7 @@ import { get, put } from './request';
 
 /**
  * 系统管理补集的接口：服务监控、两类日志、系统配置、通用记录详情。
- * 路径与 `apps/backend-mock/server/api/system/**` 一一对应，静态对账用例会逐条校验。
+ * 路径与 `apps/web/backend-mock/server/api/system/**` 一一对应，静态对账用例会逐条校验。
  */
 
 export interface MonitorMetric {

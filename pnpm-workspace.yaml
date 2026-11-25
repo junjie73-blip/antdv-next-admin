@@ -155,6 +155,7 @@ catalog:
   cspell: ^10.3.3
   cz-git: ^1.14.0
   czg: ^1.14.0
+  db0: ^0.4.2
   dayjs: ^1.11.23
   defu: ^6.1.7
   diff: ^9.0.0
@@ -182,7 +183,7 @@ catalog:
   frappe-gantt: ^1.2.2
   get-port: ^7.2.0
   globals: ^17.14.0
-  h3: ^1.15.11
+  h3: ^2.0.8
   happy-dom: ^21.0.4
   highlight.js: ^11.12.0
   html-minifier-terser: ^7.2.0
@@ -199,7 +200,7 @@ catalog:
   medium-zoom: ^1.1.2
   mitt: ^3.0.1
   nanoid: ^5.1.16
-  nitropack: ^2.13.6
+  nitro: 3.0.261103-rc
   npm-run-all2: ^8.0.4
   nprogress: ^0.2.0
   ora: ^9.4.1
@@ -252,6 +253,8 @@ catalog:
   unplugin-vue-components: ^31.1.0
   vee-validate: 4.15.1
   video.js: ^8.24.1
+  # Nitro v3 的 KV 层要求 >= 2.0.0-alpha.10；db0 仍用 1.x，由 pnpm 各自隔离
+  unstorage: 2.0.0-alpha.11
   vite: ^8.3.6
   vite-bundle-analyzer: ^1.3.9
   vite-plugin-cdn-import: ^1.0.1
@@ -324,4 +327,3 @@ onlyBuiltDependencies:
   - '@vue-office/excel'
   - '@vue-office/pdf'
   - '@vue-office/pptx'
-

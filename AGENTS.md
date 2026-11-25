@@ -15,8 +15,8 @@
 
 ```
 apps/
-├── web/            # 前端应用 @antdv/web（唯一的应用产物）
-└── backend-mock/   # Nitro Mock 服务 @antdv/backend-mock（SQLite）
+└── web/            # 前端应用 @antdv/web（唯一的应用产物）
+    └── backend-mock/  # Nitro Mock 服务源码（SQLite，dev 由 nitro/vite 插件接管）
 docs/               # VitePress 文档站 @antdv/docs（独立部署 Pages，不参与应用构建）
 packages/
 ├── core/
@@ -184,9 +184,9 @@ test/               # 跨包共享的测试工具
 - 允许：依赖上述全部 `packages/*`；`~` 指向 `src`，`#` 指向 `types`。
 - 禁止：禁止在 `views/` 里直接 `new WebSocket` 或直接 `http.get`（见编码规范）；禁止在 `packages/*` 里反向 import `~/`（`pnpm check:dep` 会拦）。
 
-**@antdv/backend-mock**（`apps/backend-mock`）
+**web 内置 Mock 服务**（`apps/web/backend-mock`）
 
-- 作用：Nitro Mock 服务——业务接口 + 运行时控制面（供 Mock 数据中心面板消费）。
+- 作用：Nitro Mock 服务——业务接口 + 运行时控制面（供 Mock 数据中心面板消费）；dev 由 web 的官方 `nitro/vite` 插件同端口接管。
 - 允许：`better-sqlite3` + `sqlite`；`MOCK_ENV`（优先）/ `NODE_ENV` 判定环境。
 - 禁止：禁止内存存储与 faker 等模拟数据生成；禁止在 production 播种或开放重置类运维接口。
 
@@ -250,5 +250,5 @@ pnpm mock:seed | mock:reset | mock:db:info   # SQLite 运维（生产执行 seed
 ## 交付要求
 
 - 任何改动完成后，`pnpm test:unit`、`pnpm check:type`、`pnpm test:e2e` 全绿再汇报；改了包边界或构建配置还要跑 `pnpm check`。
-- 状态 / 数据模型变更须同步更新 `apps/backend-mock` 的数据与测试。
+- 状态 / 数据模型变更须同步更新 `apps/web/backend-mock` 的数据与测试。
 - 只改完成当前任务所必需的文件，不要顺手重构无关代码。

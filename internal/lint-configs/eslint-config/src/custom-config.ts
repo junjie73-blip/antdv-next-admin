@@ -82,7 +82,6 @@ const customConfig: Linter.Config[] = [
                 '@antdv/popup-ui',
                 '@antdv/table-ui',
                 '@antdv/tabs-ui',
-                '@antdv/backend-mock',
                 '@antdv/directives',
                 '@antdv/hooks',
                 '@antdv/layouts',

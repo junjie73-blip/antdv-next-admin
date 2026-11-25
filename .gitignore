@@ -39,6 +39,8 @@ test-results/
 playwright-report/
 
 .tmp/*
+# 任意层级的临时目录（构建脚本归档用）
+.tmp/
 *.zip
 */cache/*
 *prototype/*
@@ -49,6 +51,11 @@ dev-list
 apps/backend-mock/.nitro
 apps/backend-mock/.output
 apps/backend-mock/.data
+# 验证脚本在 web 侧生成的临时 SQLite 库
+apps/web/.data
+# 历史 Netlify 方案留下的构建产物；现在的生产包不再依赖它们
+apps/backend-mock/.netlify
+apps/web/netlify/functions
 
 # VitePress 本地缓存（dist 已被上面的 `dist` 规则覆盖）
 docs/.vitepress/cache

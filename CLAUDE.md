@@ -70,7 +70,7 @@ test/               # 跨包共享测试工具
 ### 应用与工具
 
 - **@antdv/web** —— 前端应用（`views/` 页面、`api/` 接口、`plugins/` 宿主接线、`router/` 路由表）。`~` → `src`，`#` → `types`。禁止：`views/` 里直接 `new WebSocket` 或直接 `http.get`；`packages/*` 反向 import `~/`。
-- **@antdv/backend-mock** —— Nitro Mock 服务（业务接口 + 控制面）。禁止：内存存储与 faker；production 播种或开放重置类运维接口。
+- **web 内置 Mock 服务**（`apps/web/backend-mock`）—— Nitro Mock 服务（业务接口 + 控制面），dev 由 `nitro/vite` 同端口接管。禁止：内存存储与 faker；production 播种或开放重置类运维接口。
 - **@antdv/docs** —— VitePress 文档站（根目录 `docs/`）。禁止：参与应用构建、被 `apps/*` 或 `packages/*` import。
 - **internal/** —— `vite-config`（共享 Vite 配置，偏离用 `overrides` 深合并）、`tsconfig`、`node-utils`、五套 lint 预设（**改规则改这里，不要本地覆盖**）。
 - **scripts/** —— `vsh`（lint / check-circular / check-dep / publint）、`turbo-run`（交互式跑 turbo 任务）。
@@ -108,6 +108,6 @@ pnpm mock:seed | mock:reset | mock:db:info   # SQLite 运维（生产需追加 -
 ## 交付要求
 
 - 改动完成后单测、类型检查、e2e 全绿再汇报；改了包边界或构建配置还要跑 `pnpm check`。
-- `apps/backend-mock` 全部走 SQLite，无内存存储与 faker；dev/prod 由 `MOCK_ENV` / `NODE_ENV` 区分。
+- `apps/web/backend-mock` 全部走 SQLite，无内存存储与 faker；dev/prod 由 `MOCK_ENV` / `NODE_ENV` 区分。
 - 状态 / 数据模型变更须同步更新后端数据与测试。
 - 只改完成当前任务所必需的文件。

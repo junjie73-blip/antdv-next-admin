@@ -18,7 +18,7 @@ import {
  * 而且是**真实存在的路由** —— 用不存在的 path 探针会把"守卫拦下 403"和
  * "路由表里压根没有这条"混为一谈（后者也落 403，但证明不了权限生效）。
  *
- * custom 的白名单只给了一部分页面（见 `apps/backend-mock/server/utils/accounts.ts`），
+ * custom 的白名单只给了一部分页面（见 `apps/web/backend-mock/server/utils/accounts.ts`），
  * 断言一律按"有没有 SystemMenu"这种语义写，不钉总条数：菜单增删是常态，
  * 钉死数字的用例每次加页面都要回来改，改的人只会把数字改成当下看到的 ——
  * 那样的断言不再表达任何约束。

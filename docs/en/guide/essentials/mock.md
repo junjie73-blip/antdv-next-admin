@@ -1,20 +1,20 @@
 # Mock server (Nitro)
 
-No backend is needed in development: `pnpm dev:web` starts a Nitro server inside the Vite process, and it answers every frontend `/api/**` request.
+No backend is needed in development: `pnpm dev:web` uses Nitro's official Vite plugin (`nitro/vite`) to serve the frontend and `/api/**` from the same dev server. There is no separate port 5320 and no `/api` reverse proxy.
 
 ```
 apps/web dev server ── 6080
-   │  with VITE_MOCK=true the internal plugin `nitroMock()` starts a nitropack dev server
-   └── /api ──proxy──► 127.0.0.1:5320  (apps/backend-mock)
+   ├── Vite serves client modules and HMR
+   └── nitro/vite serves /api/** and /_ws (sources in apps/web/backend-mock/server)
 ```
 
-- Switch: `VITE_MOCK` in `.env`. `.env.development` sets it to `true` (the Nitro pass-through below); `.env.production` sets it to `true` as well, but that is something else entirely — the shipped bundle has no Node server, requests are answered by the **in-package browser mock**, see [What about production](#what-about-production).
-- The port is hardcoded (`VITE_MOCK_SERVER=http://localhost:5320`, one copy held by the proxy and one by the plugin): the plugin only probes "is this port usable", never "find me a free port" — switching ports makes no sense, because the frontend proxy address is configured from it.
-- Editing `apps/backend-mock/server/api/**` **reloads automatically**, no need to restart dev.
+- Switch: `VITE_MOCK` in `.env`. It enables the live plugin in dev; in production the shipped bundle still has no Node server, and requests are answered by the **in-package browser mock**, see [What about production](#what-about-production).
+- Nitro configuration lives in `apps/web/nitro.config.ts`; SQLite, KV and runtime state live under `apps/web/.data/` and `apps/web/.mock-state.json`.
+- Editing `apps/web/backend-mock/server/api/**` **reloads automatically**, no need to restart dev.
 
 ## Adding a mock endpoint
 
-Create a handler under `apps/backend-mock/server/api/` following Nitro's file conventions:
+Create a handler under `apps/web/backend-mock/server/api/` following Nitro's file conventions:
 
 ```ts
 // server/api/system/tag/list.get.ts
@@ -73,7 +73,7 @@ The panel page is not wired into the routes yet `apps/web/src/views/tool/mock/**
 
 :::
 
-Runtime config is persisted to `.mock-state.json` (already gitignored). Note that **the filename carries no path**: the mock is started in-process by the `apps/web` dev process, so the persist file lands in the cwd that launched it (`apps/web/.mock-state.json`), not under `apps/backend-mock/` — check there first when debugging "why didn't my switch get saved".
+Runtime config is persisted to `apps/web/.mock-state.json` (already gitignored). After the migration into the web package, that location is fixed — check there first when debugging "why didn't my switch get saved".
 
 ## Uploads and real files
 

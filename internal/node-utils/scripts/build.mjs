@@ -3,7 +3,7 @@
 /**
  * stub 构建：只出 JS、跳过 d.ts 生成，用于本地联调。
  *
- * 下游（apps/web 的 vite.config、apps/backend-mock 的 nitro 配置）都是 Node 进程，
+ * 下游（apps/web 的 vite.config / nitro.config）都是 Node 进程，
  * 改一次 node-utils 源码不必等真正的 d.ts 生成，`pnpm --filter @antdv/node-utils stub`
  * 就能立刻拿到新的 dist/index.mjs；正式打包仍走 `build`（tsdown，含 d.ts）。
  *

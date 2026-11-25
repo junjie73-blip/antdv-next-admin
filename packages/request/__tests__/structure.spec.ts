@@ -5,8 +5,11 @@ import { describe, expect, it, vi } from 'vitest';
 
 import * as api from '../src';
 
-// barrel 里的 fetcher 只在报错时用 toast；把 popup-ui 的组件依赖图挡在单测之外
-vi.mock('@antdv/popup-ui', () => ({ toast: {} }));
+// barrel 里的 fetcher 只在报错时用 message / notification；把 popup-ui 的组件依赖图挡在单测之外
+vi.mock('@antdv/popup-ui', () => ({
+  message: { error: vi.fn() },
+  notification: { error: vi.fn() },
+}));
 
 const SRC_DIR = path.resolve(import.meta.dirname, '../src');
 

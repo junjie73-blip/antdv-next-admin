@@ -1,10 +1,6 @@
 {
   "folders": [
     {
-      "name": "@antdv/backend-mock",
-      "path": "apps/backend-mock"
-    },
-    {
       "name": "@antdv/web",
       "path": "apps/web"
     },

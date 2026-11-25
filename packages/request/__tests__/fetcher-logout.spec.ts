@@ -3,8 +3,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { forceLogout, resetLogoutFlag } from '../src/fetcher';
 import { configureRequest, resetRequestRuntime } from '../src/runtime';
 
-// fetcher 只在报错时才用 toast；把 popup-ui 的组件依赖图挡在单测之外
-vi.mock('@antdv/popup-ui', () => ({ toast: {} }));
+// fetcher 只在报错时才用 message / notification；把 popup-ui 的组件依赖图挡在单测之外
+vi.mock('@antdv/popup-ui', () => ({
+  message: { error: vi.fn() },
+  notification: { error: vi.fn() },
+}));
 
 const LOGIN_PATH = '/login';
 

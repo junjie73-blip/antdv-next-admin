@@ -45,7 +45,7 @@ import { cn } from '@antdv/shared/utils/cn';
  *    `shiftNode` / `duplicateNode`），它们返回新树；页面只做一件事：把新树写回 `schema.value.tree`。
  *    页面里没有任何一条自创的树操作，也没有「先改视图再同步数据」的补丁。
  * 3. **取数靠注入**：`configureLowcode({ fetcher })` 是包内 `rest` 数据源唯一的出口。
- *    下面这个 fetcher 是**假实现**，只按 url 给写死的数据，因此断网、不起 `apps/backend-mock`
+ *    下面这个 fetcher 是**假实现**，只按 url 给写死的数据，因此断网、不起内置 mock 服务
  *    也能跑通「绑定 → 求值 → 取数 → 写回 scope → 事件动作」完整链路；
  *    接真后端只需要把它换成 `(input) => http.request(input)`。
  * 4. **四块面板吃同一份装配**（`page.context`）。不传的话每个组件各 `createLowcodeContext()`

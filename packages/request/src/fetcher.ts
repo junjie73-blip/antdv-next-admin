@@ -1,6 +1,6 @@
 import type { ApiResponse } from './types';
 
-import { toast } from '@antdv/popup-ui';
+import { message, notification } from '@antdv/popup-ui';
 import {
   config as csrfConfig,
   getCsrfToken,
@@ -26,7 +26,48 @@ const AUTH_ENDPOINTS = [
   '/auth/password-policy',
 ];
 const STATE_CHANGING = new Set(['DELETE', 'PATCH', 'POST', 'PUT']);
-const SILENT_CODES = new Set<number>([ErrorCode.UNAUTHORIZED]);
+
+/** HTTP 层成功范围；业务成败只看 2xx 信封里的 code，不把业务失败当 HTTP 故障 */
+function isHttpSuccess(status: number): boolean {
+  return status >= 200 && status < 300;
+}
+
+/** 状态码的人话兜底：非 JSON / 无 body 的 HTTP 错误不能把 HTML 或空文案弹给用户 */
+const STATUS_FALLBACK: Record<number, string> = {
+  400: '请求参数有误',
+  401: '登录已过期，请重新登录',
+  403: '没有操作权限',
+  404: '请求的资源不存在',
+  408: '请求超时，请稍后重试',
+  429: '操作过于频繁，请稍后再试',
+};
+
+function statusFallback(status: number, fallback = '请求失败'): string {
+  if (!status) return '网络连接异常，请检查网络后重试';
+  return STATUS_FALLBACK[status] ?? (status >= 500 ? '服务器繁忙，请稍后重试' : fallback);
+}
+
+/** 字符串 body 可能是 JSON 文本，也可能是 HTML/纯文本；统一归一后再取错误文案 */
+function parsePayload(data: unknown): unknown {
+  if (typeof data !== 'string') return data;
+  try {
+    return JSON.parse(data);
+  } catch {
+    return data;
+  }
+}
+
+/** HTTP 错误时 vueuse 只给 statusText，错误详情要从 response 的克隆里再读一次 */
+async function readErrorBody(response?: Response | null): Promise<unknown> {
+  if (!response) return null;
+  try {
+    const clone = response.clone();
+    const text = await clone.text().catch(() => '');
+    return text ? parsePayload(text) : null;
+  } catch {
+    return null;
+  }
+}
 
 let csrfInitialized = false;
 let refreshPromise: null | Promise<string> = null;
@@ -267,59 +308,70 @@ export function createFetcher(opts: CreateFetcherOptions = {}) {
       },
 
       async afterFetch({ data, response }) {
-        const contentType = response.headers.get('content-type') ?? '';
+        const payload = parsePayload(data);
 
-        // ⭐ 非 JSON（blob / arrayBuffer / text / 二进制）直接透传
+        // HTTP 非 2xx 一律失败，哪怕 body 是 HTML/blob/text（网关 404 常见）；
+        // vueuse 通常在 afterFetch 前就抛了，这里保留兜底，保证所有版本都拦得到。
+        if (!isHttpSuccess(response.status)) {
+          throw new RequestError(
+            resolveErrorMessage(
+              payload,
+              statusFallback(response.status),
+              response.status,
+            ),
+            {
+              data: payload,
+              status: response.status,
+              statusText: response.statusText,
+              code: response.status,
+            },
+          );
+        }
+
+        const contentType = response.headers.get('content-type') ?? '';
+        // 2xx 非 JSON（blob / arrayBuffer / text / 二进制）直接透传
         if (!contentType.includes('application/json')) {
           return { data };
         }
 
-        // ⭐ JSON：解析并检查业务码
-        let payload: any = data;
-        if (typeof data === 'string') {
-          try {
-            payload = JSON.parse(data);
-          } catch {
-            /* keep */
-          }
-        }
-
+        // 2xx JSON：业务码失败是"操作反馈"，不是 HTTP 故障，交给 message 通道
         const bodyCode: number | undefined =
           payload && typeof payload === 'object' && 'code' in payload
             ? (payload as ApiResponse).code
             : undefined;
 
         if (bodyCode !== undefined && bodyCode !== ErrorCode.SUCCESS) {
-          const err = new RequestError(
+          throw new RequestError(
             resolveErrorMessage(payload, '请求失败', response.status, bodyCode),
             {
               data: payload,
               status: response.status,
+              statusText: response.statusText,
               code: bodyCode,
             },
           );
-          err.handled = true; // ⭐ 避免 onFetchError 重复弹 toast
-          throw err;
         }
 
         return { data: payload };
       },
 
       async onFetchError({ error, response }) {
-        // 所有失败都从这一个口子收口：afterFetch 抛出的业务码错误、HTTP 非 2xx、
+        // 所有失败从这一个口子收口：afterFetch 抛出的业务码错误、HTTP 非 2xx、
         // 网络异常，以及 beforeFetch 的会话失效。旧的早退分支会让业务码错误
         // 绕过错误上报，登录密码输错时全局状态就一直是「健康」。
         const status = response?.status ?? 0;
+        const body = await readErrorBody(response);
         const err =
           error instanceof RequestError
             ? error
             : new RequestError(
-                resolveErrorMessage(
-                  null,
-                  (error as any)?.message || '请求失败',
+                resolveErrorMessage(body, statusFallback(status), status),
+                {
+                  data: body,
                   status,
-                ),
-                { status, code: status },
+                  statusText: response?.statusText,
+                  code: status || undefined,
+                },
               );
 
         getRequestRuntime().onError?.(err);
@@ -341,29 +393,37 @@ export function resolveErrorMessage(
       return String((data as any).message);
     return '服务器繁忙，请稍后重试';
   }
+  if (typeof data === 'string') {
+    const text = data.trim();
+    // HTML / XML 错误页不该整段弹给用户，让状态码兜底文案接管
+    if (text && !text.startsWith('<')) return text.slice(0, 200);
+  }
   if (typeof data === 'object' && data !== null) {
     if ('message' in data && typeof (data as any).message === 'string')
       return (data as any).message;
     if ('msg' in data && typeof (data as any).msg === 'string')
       return (data as any).msg;
   }
-  return fallback;
+  return fallback || statusFallback(status ?? 0);
 }
 
-async function reportRequestError(error: RequestError) {
-  if (error.handled || SILENT_CODES.has(error.code)) return;
-  if (isServerFailure(error.status, error.code)) {
-    toast.error('请求错误', {
-      description: error.message || '服务器繁忙，请稍后重试',
-    });
+/**
+ * 提示口径的唯一收口：
+ * - HTTP 非 2xx（含网络异常）是"服务层出了问题"，用 notification 全局通知；
+ * - HTTP 2xx 只是业务码/校验失败，是"这次操作没成功"，用 message 轻提示。
+ * 两条通道都不在这里报成功：成功后的操作反馈由调用方按场景决定。
+ */
+function reportRequestError(error: RequestError) {
+  if (error.handled) return;
+  const description = resolveErrorMessage(
+    error.data,
+    error.message || statusFallback(error.status),
+    error.status,
+    error.code,
+  );
+  if (!isHttpSuccess(error.status)) {
+    notification.error('请求失败', { description });
     return;
   }
-  toast.error('请求错误', {
-    description: resolveErrorMessage(
-      error.data,
-      error.message,
-      error.status,
-      error.code,
-    ),
-  });
+  message.error(description);
 }

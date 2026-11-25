@@ -577,7 +577,7 @@ test.describe('交互巡检：导航精简、首屏出数、查询串、抽屉�
  * 铃铛开合、上传真的把文件发出去、列表页的新增/编辑/删除/导出。
  * 这些都是以前一查就坏的：铃铛整项被注释掉（偏好开关却是开的）、
  * 上传示例页的 8 个 `action` 在 mock 后端全部 404、通知管理「新增消息」打的是一个
- * 根本不存在的 `/system/notice/save`。静态对账见 `apps/backend-mock/test/api-parity.test.ts`，
+ * 根本不存在的 `/system/notice/save`。静态对账见 `apps/web/backend-mock/test/api-parity.test.ts`，
  * 这里补的是"浏览器里真的点得动"。
  */
 

@@ -6,7 +6,7 @@
 
 | 能力 | 落地形态 | 关键文件 |
 | --- | --- | --- |
-| 供应商配置管理 | 列表/筛选/分页/增删改，`key` 入参在服务端立即脱敏，只存末 4 位掩码与状态 | `apps/backend-mock/server/utils/db/ai.ts`、`server/api/ai/provider/**`、本目录 `provider/index.vue` |
+| 供应商配置管理 | 列表/筛选/分页/增删改，`key` 入参在服务端立即脱敏，只存末 4 位掩码与状态 | `apps/web/backend-mock/server/utils/db/ai.ts`、`server/api/ai/provider/**`、本目录 `provider/index.vue` |
 | 模型配置管理 | 校验 `providerId` 必须存在，`providerName` 由 db 关联回填；支持按供应商筛选 | `server/api/ai/model/**`、本目录 `model-list/index.vue` |
 | 知识库配置管理 | 文档数/分片数/向量数/可见范围/启停的元数据 CRUD | `server/api/ai/knowledge/**`、本目录 `knowledge/index.vue` |
 | 编排应用元数据 | 流程定义（名称/节点数/版本/草稿→发布）CRUD，不碰引擎内核 | `server/api/ai/flow/**` |
@@ -53,6 +53,6 @@
 ## 五、验证
 
 ```bash
-cd apps/backend-mock
-node ../../node_modules/.pnpm/vitest@4.1.12_@types+node@2_034fb6bcff434ae2a196ce13aef41fe8/node_modules/vitest/vitest.mjs run test/ai-config.test.ts
+cd apps/web
+pnpm test:server --testPathPattern ai-config.test.ts
 ```

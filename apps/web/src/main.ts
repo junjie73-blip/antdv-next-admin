@@ -25,6 +25,7 @@ import {
   vPermission,
 } from './directives';
 import i18n from './locales';
+import { installBrowserMockIfEnabled } from './mock/activate';
 import { configureLayoutsHost } from './plugins/layouts-host';
 import { configureRequestRuntime } from './plugins/request-runtime';
 import { configureTableRuntime } from './plugins/table-runtime';
@@ -134,8 +135,11 @@ function mountApp() {
 }
 
 /**
- * 启动序列。两件事的顺序是硬约束：
+ * 启动序列。三件事的顺序是硬约束：
  *
+ * 0. 生产包里的浏览器内 mock 先把 `/api/*` 接住（数据快照已随包构建，不依赖任何部署平台
+ *    配置）；开关关着或没命中 mock 路径时，请求原样走真实网络。必须先装它，守卫的第一发
+ *    `/menus` 才有数据。
  * 1. 还原会话 —— `setToken` 落盘的是 JWE 密文，而 store 建好时只能同步读缓存，
  *    所以刷新后 `token` 里是一串密文：`isLoggedIn` 为真，请求头却是 `Bearer <密文>`，
  *    后端认不出人，表现成"每次刷新都要重登"。
@@ -144,10 +148,11 @@ function mountApp() {
  * 1 必须**早于** `setupRouter`：`app.use(router)` 一执行，vue-router 的 install
  * 就立刻发起首次导航（内部 `push(routerHistory.location)`），守卫在那一刻就去取
  * `/menus` —— 等到 `app.mount` 之后再解密已经晚了。
- *
- * 浏览器内请求拦截层已下线，所有 `/api` 一律走真实后端服务。
  */
 async function bootstrap() {
+  await installBrowserMockIfEnabled().catch((error: unknown) =>
+    console.error('[mock] 浏览器内 mock 装载失败，按真实接口继续', error),
+  );
   await useUserStore()
     .initToken()
     .catch((error: unknown) =>

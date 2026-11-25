@@ -1,9 +1,10 @@
 # CI 与部署
 
-两条互不相干的发布链路：管理后台走 Vercel 的 Git 集成（或根目录 `nginx.conf` 那条自建路径），文档站走 GitHub Actions 部署到 GitHub Pages。**仓库里只有一个 workflow** —— `.github/workflows/` 下目前只有 `docs.yml`，没有任何跑 lint / 单测 / e2e 的 CI 作业：
+两条互不相干的发布链路：管理后台走 Vercel / Netlify 的 Git 集成（或根目录 `nginx.conf` 那条自建路径），文档站走 GitHub Actions 部署到 GitHub Pages。**仓库里只有一个 workflow** —— `.github/workflows/` 下目前只有 `docs.yml`，没有任何跑 lint / 单测 / e2e 的 CI 作业：
 
 ```
 GitHub 仓库 ──► Vercel 项目：管理后台        Root Directory = apps/web
+            ├─► Netlify 项目：管理后台      Root Directory = 仓库根（或 apps/web）
             └─► GitHub Actions（.github/workflows/docs.yml）：文档构建 → GitHub Pages
 ```
 
@@ -37,7 +38,7 @@ Vercel 控制台里 New Project → 导仓库 → **Root Directory 填 `apps/web
 
 `--filter @antdv/web...` 末尾那三个点不是排版错误 `apps/web` 依赖 23 个 workspace 包（`dependencies` 里 21 个运行时子包 `apps/web/package.json:20-40`，加上 `devDependencies` 里的 `@antdv/tsconfig` 与 `@antdv/vite-config` `:113-114`），其中 `@antdv/{shared,hooks,directives,preferences,router,types}` 六个是 **`tsdown` 出来的产物**（`main` 指 `./dist/index.js`），`@antdv/{vite-config,node-utils}` 同样是；仓库里不入库 `dist`。pnpm 的 `<pkg>...` 会把这个包**和它的依赖**一起纳入，于是 `... build` 会先构建 `@antdv/shared`、`@antdv/layouts`、`@antdv/vite-config` …再构建 web。只写 `pnpm --filter @antdv/web build` 的话，Vercel 上会得到一堆"找不到 `@antdv/shared/utils/cn`"的构建失败 ——本地不复现，因为你机器上的 `dist` 是上一次构建留下的。另一批（`enums` / `layouts` / `request` / `stores` / `utils` / `icons` / `design` 与 ui-kit 八个，共 15 个）是源码发布 —— `main` 直指 `./src/index.ts`（`design` 是 `./src/index.css`），连 build 脚本都没有，由 web 的 Vite 直接编译，所以它们在不在 `... build` 里都一样。
 
-也可以用 `pnpm turbo build --filter=@antdv/web`，代价是要在 Vercel 上多装一遍 turbo 的缓存目录，收益只有远程缓存。`turbo.json` 现在不再声明 `^build`：ui-kit 三个包（`form-ui` / `table-ui` / `common-ui`）互相引用源码，Turborepo 会把这种源码级互引当成构建依赖成环，直接在 Vercel / Netlify 的 `turbo run build --filter @antdv/web` 上报 `Cyclic dependency detected` 并退出 1。workspace 包都以 `src` 作为 exports 目标、构建时把依赖 externalize，internal/* 又已在 `postinstall` 先构建，所以不需要 `^build` 也能正确出包。
+也可以用 `pnpm turbo build --filter=@antdv/web`，代价是要在 Vercel 上多装一遍 turbo 的缓存目录，收益只有远程缓存。`turbo.json` 保留了 `build.dependsOn: ["^build"]`，因为 `internal/vite-config` 等包的 exports 指向 `dist`，消费者必须等它们先构建；只对互相以源码引用成环的三个包（`@antdv/common-ui`、`@antdv/form-ui`、`@antdv/table-ui`）覆盖为仅等待 `@antdv/vite-config#build`。这样 Vercel / Netlify 都能正常出包，Turborepo 仍会打印 circular warning，但不阻断构建。
 
 :::
 
@@ -49,7 +50,40 @@ Vercel 控制台里 New Project → 导仓库 → **Root Directory 填 `apps/web
 
 ::: warning
 
-环境变量在 Vercel 上配，不要提交 `VITE_APP_BASE_API` 指向真实后端、`VITE_MOCK=false`、`VITE_WS_URL` 填生产 WebSocket 地址、 `VITE_CACHE_ENCRYPT_KEY` 换成你自己的 32 字符随机密钥（SM4）。Project Settings → Environment Variables 里配，值不进仓库。根目录那份 `nginx.conf` 是自建部署的老路径（`try_files` + `/api/v1` 反代），Vercel 上用不到，两条路选一条，别同时留着两套前缀。
+环境变量在平台上配，不要提交。`VITE_APP_BASE_API=/api` 与 dev 保持一致，浏览器内 mock 就按这个前缀接管；`VITE_MOCK=true` 表示生产包启用随包 mock（要接真实后端时改成 `false`），部署后还能用 `?mock=0/1` 现场切换，不必重新构建。`VITE_WS_URL` 填生产 WebSocket 地址、`VITE_CACHE_ENCRYPT_KEY` 换成你自己的 32 字符随机密钥（SM4）。仓库里没有 `vercel.json` 也没有 `netlify.toml`：mock 不依赖平台侧函数或反代，静态产物可以直接搬到你需要的任何托管服务。根目录那份 `nginx.conf` 是自建部署的老路径（`try_files` + `/api/v1` 反代），与本方案二选一，别同时留着两套前缀。
+
+:::
+
+## 管理后台：任意静态托管
+
+生产包是**纯静态产物** `apps/web/dist`。backend-mock 的响应在 `pnpm mock:fixtures` 时生成进 `apps/web/src/mock/fixtures.json`，由浏览器内 fetch 拦截器在同源 `/api/*` 上应答 —— 不需要 Netlify Function、Vercel API 函数，也不需要平台侧的反代 / redirect 配置。换平台只需上传 dist：
+
+| 项 | 值 |
+| --- | --- |
+| Root Directory | 仓库根或 `apps/web` 都可以 |
+| Build Command | `pnpm install && pnpm build:web` |
+| Publish Directory | 仓库根模式 `apps/web/dist`；`apps/web` 模式 `dist` |
+| Node Version | 22.18+（只有重新生成快照时用到内置 TS 类型擦除；单纯构建静态包没有这个要求） |
+
+快照是入库的生成物：CI 只需要 `pnpm install` + `pnpm build:web`，不需要先启动 mock 服务。接口有增删或响应结构变化时才跑 `pnpm mock:fixtures`（它自己起进程内 Nitro），把新快照提交进仓库。
+
+启停 mock 不需要改代码或重新构建：URL 加 `?mock=0` 关掉、`?mock=1` 打开，或写 `localStorage.BACKEND_MOCK_ENABLED`。拦截器只接管同源且以 `/api` 开头的请求；没有登记的路径、真实业务接口、跨域请求与静态资源一律透传给原生 fetch。
+
+全场景验证（快照已入库，不需要额外服务）：
+
+```bash
+pnpm verify:environments
+# 路由对比：开发态 141 条 / 生产包快照 127 条；逐条对比 127 条，写接口登记 14 条。
+# 开发环境与生产包快照的状态、业务码、文案、数据结构完全一致。
+node apps/web/scripts/verify-prod-mock.mjs
+# 用无代理静态服务 + Playwright 验证登录 / 菜单 / 增删改查，统计逃逸到网络的接口请求。
+```
+
+第一条在进程内起 Nitro dev server，把开发态响应与 `apps/web/src/mock/fixtures.json` 逐条对比；写接口用空对象探测，`code` 400/404 是预期的参数校验反馈。报告落在 `.tmp/verify-environments-report.json`。第二条是浏览器端到端核验：它故意不配 SPA history fallback，任何没被 mock 接住的接口都会变成真实网络 404 而被记为失败。
+
+::: warning
+
+快照是**内存态**演示数据：刷新页面回到初始快照，写操作不跨设备、不跨刷新持久化。需要真持久化时把 `VITE_MOCK` 关掉，让 `/api` 走真实后端；不要让 mock 快照和真实业务接口混用同一批路径。
 
 :::
 
@@ -157,7 +191,7 @@ Vercel 每次部署都有 Deployments 列表，出问题直接在该项目里 Pr
 管理后台：
 
 1. `/`（不带 hash）能打开，资源 200，无控制台报错；
-2. 登录接口打的是 `VITE_APP_BASE_API` 指向的真实后端，而不是 `/api`（那是 mock 的前缀）；
+2. 同源 `POST /api/auth/login` 返回 `code: 200` 且带 token（生产包内的 mock 会接住它，静态托管上不需要任何后端或反代）；
 3. 深链刷新（`/#/system/user`）不 404，未匹配路径落到 `index.html`。
 
 文档站：

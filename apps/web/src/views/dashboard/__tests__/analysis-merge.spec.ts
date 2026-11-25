@@ -12,7 +12,7 @@ import { describe, expect, it } from 'vitest';
  *
  * 1. 快捷操作必须落在真实存在的业务路由上 —— 原工作台的四个格子是
  *    `cursor-pointer` 却不可点的 div（光标在撒谎），合并时不能把谎言搬过来；
- *    菜单种子（`apps/backend-mock/server/api/menus.get.ts`）同时是路由表和权限来源，
+ *    菜单种子（`apps/web/backend-mock/server/api/menus.get.ts`）同时是路由表和权限来源，
  *    所以拿它的 `path` 当唯一真相；
  * 2. `menuName` 是侧栏/标签页/面包屑的文案来源，删页面必须连种子一起删，
  *    否则留下一条点不动的菜单；
@@ -25,7 +25,7 @@ const ANALYSIS_SOURCE = readFileSync(
 );
 
 const MENU_SEED_SOURCE = readFileSync(
-  resolve(process.cwd(), '../../apps/backend-mock/server/api/menus.get.ts'),
+  resolve(process.cwd(), 'backend-mock/server/api/menus.get.ts'),
   'utf8',
 );
 

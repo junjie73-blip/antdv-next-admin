@@ -1,20 +1,20 @@
 # Mock 服务（Nitro）
 
-dev 时不需要后端：`pnpm dev:web` 会在 Vite 进程内拉起一个 Nitro 服务，前端 `/api/**` 全部由它应答。
+dev 时不需要后端：`pnpm dev:web` 通过 Nitro 官方 Vite 插件（`nitro/vite`）在同一个 Vite dev server 上同时服务前端与 `/api/**`。不再有独立的 5320 端口，也不再配置 `/api` 反向代理。
 
 ```
 apps/web dev server ── 6080
-   │  VITE_MOCK=true 时内部插件 `nitroMock()` 启动 nitropack dev server
-   └── /api ──proxy──► 127.0.0.1:5320  （apps/backend-mock）
+   ├── Vite 负责页面模块与 HMR
+   └── nitro/vite 插件负责 /api/** 与 /_ws（源码在 apps/web/backend-mock/server）
 ```
 
-- 开关：`.env` 里 `VITE_MOCK`。`.env.development` 设 `true`（走下面的 Nitro 透传）， `.env.production` 也设 `true`，但那是另一套东西 —— 产物里没有 Node 服务，接口由**包内的浏览器mock** 应答，见[生产怎么办](#生产怎么办)。
-- 端口是写死的（`VITE_MOCK_SERVER=http://localhost:5320`，proxy 与插件两边各持一份）：插件只做"这个端口能不能用"的探测，不做"帮我找一个空闲端口" —— 换端口没有意义，前端代理地址是按它配的。
-- 改 `apps/backend-mock/server/api/**` 会**自动重载**，不用重启 dev。
+- 开关：`.env` 里 `VITE_MOCK`。dev 下由插件提供实时接口，生产下则由随包构建的浏览器内 mock 接住（见[生产怎么办](#生产怎么办)）。生产部署后还可以用 `?mock=0/1` 或 `localStorage.BACKEND_MOCK_ENABLED` 现场启停。
+- Nitro 配置在 `apps/web/nitro.config.ts`；数据库、KV 与运行时状态落在 `apps/web/.data/` 与 `apps/web/.mock-state.json`。
+- 改 `apps/web/backend-mock/server/api/**` 会触发服务端重载，不用手动重启 dev。
 
 ## 加一条假接口
 
-在 `apps/backend-mock/server/api/` 下按 Nitro 的文件约定新建一个 handler：
+在 `apps/web/backend-mock/server/api/` 下按 Nitro 的文件约定新建一个 handler：
 
 ```ts
 // server/api/system/tag/list.get.ts
@@ -73,39 +73,36 @@ curl -s -X POST localhost:6080/api/mock-center/runtime \
 
 :::
 
-运行时配置落在 `.mock-state.json`（已 gitignore）。注意**文件名不带路径**：mock 由 `apps/web` 的 dev 进程在进程内拉起，persist 文件落在启动它的 cwd（`apps/web/.mock-state.json`），而不是 `apps/backend-mock/` 下 —— 找"为什么我的开关没保存"时先看这里。
+运行时配置落在 `.mock-state.json`（已 gitignore）。迁入 web 后位置固定在 `apps/web/.mock-state.json` —— 找"为什么我的开关没保存"时先看这里。
 
 ## 上传与真实文件
 
-`server/api/upload.post.ts`（以及 `system/file` 一组）是真接收文件的：分片上传示例页要能真的传上去、图片墙要能预览本地文件，所以这条不能只回一个假 URL。产物里没有 Node 服务时，同一条契约由 `apps/web/src/mock/dynamic.ts` 现造应答（见下）。
+`server/api/upload.post.ts`（以及 `system/file` 一组）是真接收文件的：分片上传示例页要能真的传上去、图片墙要能预览本地文件。dev 下由 Nitro handler 处理 multipart；生产下由 `src/mock/dynamic.ts` 按同一信封契约现造应答（multipart 无法快照，且 `fileId` / 预览地址要求每次唯一）。
 
 ## 生产怎么办
 
-生产构建里 `VITE_MOCK=true`，但走的不是 Nitro —— 是 `apps/web/src/mock/` 这套**浏览器内 mock**：产物自己带着数据，部署出去不需要任何后端。
+生产包把 mock 服务的响应**快照**直接编进 `apps/web/src/mock/fixtures.json`，在 fetch 出口拦截同源 `/api/*`：没有 Nitro 服务端、没有云函数、没有反代配置。任意静态托管（Vercel / Netlify / Nginx / OSS）都只需要上传 `apps/web/dist`。官方 `nitro/vite` 插件在 `vite.config.ts` 里用 `apply: 'serve'` 限定为开发期，因此 `vite build` 仍只产出静态包。
 
 ```
-main.ts ── activate.ts ──(PROD && VITE_MOCK)──► import('./browser')  // 懒加载，fixtures 不进主 chunk
-                                                     └─ 劫持 globalThis.fetch
-   请求 ──► matcher.ts（去前缀、同域、method 命中）──► overlay.ts（会话 + 写覆盖层）──► Response
-                                        └─ 没命中 / 跨域 ──► 原样透传给真实网络
+开发环境：web dev 6080 ──nitro/vite 插件（同进程）──► /api/**、/_ws
+生产环境：同源 /api/* ──► globalThis.fetch 拦截器 ──► fixtures 快照 + 内存覆盖层
+          未命中 / 跨域 / 真实业务接口 ──► 原生 fetch（原样透传）
 ```
 
-- **数据从哪来**：`scripts/generate-mock-fixtures.mjs`（`pnpm mock:fixtures`）爬一个**正在跑的** Nitro mock，把 67 条接口的响应信封 + 各账号（凭据、权限码、可见菜单白名单）快照成 `src/mock/fixtures.json`（约 420 KB）。mock 接口有增删或结构变化时要重新生成，否则产物里的数据就是上一次抓取时的。
-- **没有前缀**：`VITE_APP_BASE_API` 只写在 `.env.development`，生产包里它是空串 —— 请求发到站点根下的 `/menus`、`/auth/login`、`/demo/task/list`。拦截器与请求层读同一个变量，所以两边天然对齐；代码里写死 `/api/...` 会在生产直接漏到网络上。
-- **写操作**：抓快照时不碰写接口（抓一次就真改数据，DELETE 尤其致命），所以 POST/PUT/DELETE 的应答由 `overlay.ts` 按同一信封现造，改动落在内存副本上：新增行可检索、`total` 跟着副本走、列表筛选与 Nitro 的 handler 同口径（文本 `includes`、`status` 之类走全等、`page/pageSize` 不参与筛选）。**刷新页面就回到快照** —— 会话与副本都是内存态，这是产物里没有持久化对账对象时的取舍。
-- **上传**：multipart 抓不了、返回值又要求每次唯一，所以 `/upload`、`/upload/:variant` 被排除在 fixtures 之外，由 `dynamic.ts` 现造（`fileId` / `storedPath` / 内联 SVG 预览地址），与 Nitro 的 `server/utils/upload.ts` 同一份契约。示例页因此统一走 `customRequest` → 项目的 `http`：antd 默认的上传器用的是 **XHR**，fetch 层的劫持从它旁边绕过去。
-- **菜单与权限**：`/menus` 按会话账号的白名单裁剪，前端把裁完的树摊成 allowedNames/allowedPaths，越权页面的路由压根不注册，导航落到通配兜底 → 403。换账号确实换可见范围。
+- 快照怎么来：`pnpm mock:fixtures`。脚本以 `apps/web` 为 rootDir 起进程内 Nitro，扫 `apps/web/backend-mock/server/api` 下全部路由，用内存库抓取 GET 的统一信封响应、账号表与菜单；**接口有增删或响应结构变化时重跑一次**。产物入库，CI / 离线构建不需要 mock 服务在跑。
+- 写操作：`POST/PUT/DELETE` 不抓快照（抓一次就真改数据），由 `overlay.ts` 在内存副本上现造；新增行可检索、`total` 跟着变，刷新页面回到快照。
+- 启停开关：构建期由 `.env.production` 的 `VITE_MOCK=true` 决定；部署后可用 URL `?mock=0` / `?mock=1` 或 `localStorage.BACKEND_MOCK_ENABLED` 现场覆盖，不必重新构建。dev 下不装拦截器（实时 mock 由官方 Nitro 插件提供），除非显式用运行时开关强开。
+- 隔离：只拦同源且以 `VITE_APP_BASE_API`（缺省 `/api`）开头的请求。路由表里没有的路径、真实业务接口、跨域请求、静态资源与 HEAD/OPTIONS 一律原样透传。
+- 上传：`dynamic.ts` 现造 `{ variant, fileId, url, storedPath, uploadedAt }`，契约镜像 `apps/web/backend-mock/server/utils/upload.ts`，`fileId` 与预览地址每次唯一。
 
 ::: warning
 
-`vite preview` 不能用来验生产 `internal/vite-config` 没写 `preview` 段，而 Vite 的 preview server 会**继承 `server.proxy`** ——于是 `/api` 又被 dev 的 Nitro 接住，你看到的"生产能跑"是假阳性。要验就换一个不带代理的静态服务（把 `apps/web/dist` 直接 serve 出去，并且**不要**配 SPA history 兜底：那会把一条没接住的接口伪装成 `200 + index.html`）。仓库里留了 `apps/web/scripts/verify-prod-mock.mjs`：Playwright 打一遍登录 / 菜单 / 增删改查 / 语言切换 / 越权 403 / 上传，并把「逃逸到网络的接口请求」统计成硬失败。
+`vite preview` 不能用来验生产：它仍会加载 `vite.config`，官方 Nitro 插件虽已限定 `apply: 'serve'`，但仓库自己的验证脚本会显式用无代理静态服务，避免任何服务端参与造成假阳性。先跑 `pnpm verify:environments`：进程内起 Nitro，把开发态响应与生产包快照逐条对比状态码、业务码、文案与结构，报告落在 `.tmp/verify-environments-report.json`。再跑 `pnpm --filter @antdv/web verify:mock`：自带一个没有代理的静态服务，用 Playwright 打一遍登录 / 菜单 / 增删改查，并把逃逸到网络的接口请求记为硬失败。
 
 :::
 
-`VITE_MOCK=false` 时开关不成立（`activate.ts:19-22`，dev 下它也成立不了 —— 那时有 Nitro 实时服务，再拦一道会把「数据中心」面板的延迟/停用/生成功能顶掉）。拦截器与 fixtures 因为是 `import()` 进来的独立 chunk，压根不会被加载；接口请求原样透传，`/api` 之类的相对路径由部署平台的转发规则或反代给到真实后端。 `VITE_APP_BASE_API` 是唯一的前缀来源（dev 为 `/api`），代码里不要写死完整域名。
-
 ::: warning
 
-别让 mock 变成需求文档 mock 的职责是"让 21 个菜单页面在没有后端时也能点得动"，不是复刻真实业务规则。真接口的字段口径以对接的后端为准；发现 mock 与后端不一致时，**改 mock 去对齐后端**，不要在前端写"两边都兼容"的分支。
+别让 mock 变成需求文档 mock 的职责是"让所有菜单页面在没有后端时也能点得动"，不是复刻真实业务规则。真接口的字段口径以对接的后端为准；发现 mock 与后端不一致时，**改 mock 去对齐后端**，不要在前端写"两边都兼容"的分支。
 
 :::

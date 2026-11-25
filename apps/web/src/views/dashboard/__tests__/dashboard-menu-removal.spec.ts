@@ -10,7 +10,7 @@ import { describe, expect, it } from 'vitest';
  * keep-alive 就都会把它带回来。所以用源码断言守住「菜单 + 页面」两侧。
  */
 const MENU_SEED_SOURCE = readFileSync(
-  resolve(process.cwd(), '../../apps/backend-mock/server/api/menus.get.ts'),
+  resolve(process.cwd(), 'backend-mock/server/api/menus.get.ts'),
   'utf8',
 );
 

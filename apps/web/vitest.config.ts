@@ -19,9 +19,14 @@ const SKIP_PLUGINS = new Set([
   'vite-plugin-compression',
   'vite:archiver',
   'vite:metadata',
-  'vite:mock-server',
   'vite:visualizer',
 ]);
+
+/** Nitro 官方插件按名字前缀整组剔除，避免测试环境被服务端 runtime 接管 */
+function isSkippedPlugin(plugin: PluginOption): boolean {
+  const name = (plugin as { name?: string }).name;
+  return Boolean(name && (SKIP_PLUGINS.has(name) || name.startsWith('nitro:')));
+}
 
 /** 递归剔除：插件数组里可能出现 `Plugin[]`、假值（条件插件）和嵌套数组 */
 function prunePlugins(plugins: PluginOption[]): PluginOption[] {
@@ -30,8 +35,7 @@ function prunePlugins(plugins: PluginOption[]): PluginOption[] {
     .filter(Boolean)
     .map((plugin) => {
       if (Array.isArray(plugin)) return prunePlugins(plugin);
-      const name = (plugin as { name?: string }).name;
-      return name && SKIP_PLUGINS.has(name) ? undefined : plugin;
+      return isSkippedPlugin(plugin) ? undefined : plugin;
     })
     .filter(Boolean) as PluginOption[];
 }
@@ -55,7 +59,7 @@ export default defineConfig(async () => {
         environment: 'jsdom',
         // 与仓库根 `vitest run --dom` 保持一致：用例里直接写 describe/it，不逐个 import
         globals: true,
-        exclude: [...configDefaults.exclude, 'e2e/**'],
+        exclude: [...configDefaults.exclude, 'backend-mock/**', 'e2e/**'],
         root: fileURLToPath(new URL('./', import.meta.url)),
         setupFiles: ['./test/setup.ts'],
       },

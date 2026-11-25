@@ -24,7 +24,12 @@ vi.mock('vue-sonner', () => ({
 
 import { toast } from 'vue-sonner';
 
-import { message, notification, NOTIFICATION_TOASTER_ID } from '../src/message';
+import {
+  message,
+  notification,
+  NOTIFICATION_TOASTER_ID,
+  resetFeedbackDedupe,
+} from '../src/message';
 
 type ToastMethod = 'error' | 'info' | 'loading' | 'success' | 'warning';
 
@@ -35,6 +40,7 @@ const spies = toast as unknown as Record<
 const types = ['error', 'info', 'success', 'warning'] as const;
 
 beforeEach(() => {
+  resetFeedbackDedupe();
   for (const fn of Object.values(spies)) fn.mockClear();
 });
 
@@ -193,5 +199,35 @@ describe('closeButton —— 关闭按钮是可选项，默认不渲染', () => 
   it('显式 false 要写进载荷：宿主整体开启时，false 是唯一能关掉单条的写法', () => {
     notification.error('标题', { closeButton: false });
     expect(spies.error.mock.calls[0]?.[1]).toHaveProperty('closeButton', false);
+  });
+});
+
+describe('反馈去重：同一次失败只让用户看到一条', () => {
+  it('请求层的通知与页面 catch 的轻提示同文案时只保留先到的通知', () => {
+    notification.error('请求失败', { description: '用户名或密码错误' });
+    message.error('用户名或密码错误');
+
+    expect(spies.error).toHaveBeenCalledTimes(1);
+    expect(spies.error.mock.calls[0]?.[1]).toHaveProperty(
+      'toasterId',
+      NOTIFICATION_TOASTER_ID,
+    );
+  });
+
+  it('不同文案各自提示，不被同一窗口误吞', () => {
+    message.error('保存失败');
+    notification.error('请求失败', { description: '网络断开' });
+
+    expect(spies.error).toHaveBeenCalledTimes(2);
+  });
+
+  it('超过去重窗口后，同一文案可以再次提示', () => {
+    const now = vi.spyOn(Date, 'now').mockReturnValue(1000);
+    message.error('操作失败');
+    now.mockReturnValue(1000 + 1300);
+    message.error('操作失败');
+
+    expect(spies.error).toHaveBeenCalledTimes(2);
+    now.mockRestore();
   });
 });

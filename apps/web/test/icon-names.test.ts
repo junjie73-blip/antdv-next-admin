@@ -39,10 +39,10 @@ const COLLECTIONS = [
 /**
  * 扫描范围：应用源码 + 共享包 + mock 的菜单种子数据。
  *
- * 菜单图标是后端下发的，写错的地方在 `apps/backend-mock/server`，
+ * 菜单图标是后端下发的，写错的地方在 `apps/web/backend-mock/server`，
  * 只扫前端等于把最大的一处漏掉。
  */
-const SCAN_ROOTS = ['apps/backend-mock/server', 'apps/web/src', 'packages'];
+const SCAN_ROOTS = ['apps/web/backend-mock/server', 'apps/web/src', 'packages'];
 
 const SCAN_EXT = new Set(['.ts', '.tsx', '.vue']);
 /** dist / 缓存 / 依赖产物：都是别人生成过的，不该由本用例负责 */

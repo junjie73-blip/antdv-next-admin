@@ -5,7 +5,6 @@ import { createHtmlPlugin as viteHtmlPlugin } from 'vite-plugin-html';
 import viteVueDevTools from 'vite-plugin-vue-devtools';
 
 import { isEnvEnabled, loadEnv } from '../utils/env';
-import { resolveMockPort } from '../utils/proxy';
 import { vitePluginAppLoading } from './app-loading';
 import { createArchiverPlugin } from './archiver';
 import { createAutoImportPlugins } from './auto-import';
@@ -14,7 +13,6 @@ import { cspUpgradeInsecureRequests } from './csp';
 import { viteDayjsPlugin } from './dayjs';
 import { viteExtraAppConfigPlugin } from './extra-app-config';
 import { viteMetadataPlugin } from './metadata';
-import { viteNitroMockPlugin } from './nitro-mock';
 import { vitePrintPlugin } from './print';
 import { createPwaPlugin } from './pwa';
 import { createSvgIconsPlugin } from './svg-icons';
@@ -146,10 +144,10 @@ export async function createPlugins(
   if (isEnvEnabled(envConfig.VITE_TURBO_CONSOLE))
     plugins.push(createTurboConsolePlugin());
 
-  // 以下只在应用形态有意义：Mock 转发、压缩归档、PWA、运行时配置、打印、首屏 Loading
+  // 以下只在应用形态有意义：压缩归档、PWA、运行时配置、打印、首屏 Loading
   if (isApp) {
-    // Mock 不再由 Vite 插件承担：VITE_MOCK=true 时由 dev proxy 把 /api 转发到
-    // apps/backend-mock（Nitro）服务，见 utils/proxy.ts
+    // Mock 服务由各应用自己在 vite.config 里接入官方 `nitro/vite` 插件，
+    // 与前端共用同一个 dev server；共享层不再维护独立端口或 /api 代理。
     if (isEnvEnabled(envConfig.VITE_ARCHIVER))
       plugins.push(createArchiverPlugin());
     if (isEnvEnabled(envConfig.VITE_PWA))
@@ -160,12 +158,6 @@ export async function createPlugins(
       plugins.push(
         await viteExtraAppConfigPlugin({ isBuild: isProd, mode, root }),
       );
-    }
-    if (isEnvEnabled(envConfig.VITE_MOCK)) {
-      // 端口来自环境变量推导（VITE_MOCK_PORT → VITE_MOCK_SERVER → 默认），
-      // 判定条件与 utils/proxy.ts 的 createMockProxy 保持一致，
-      // 否则会出现"代理开着但内嵌 mock 没起"或反过来的半开状态。
-      plugins.push(viteNitroMockPlugin({ port: resolveMockPort(envConfig) }));
     }
     if (isEnvEnabled(envConfig.VITE_PRINT)) plugins.push(vitePrintPlugin());
 

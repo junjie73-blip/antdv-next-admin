@@ -1,7 +1,7 @@
 {
   "name": "@antdv/vite-config",
   "version": "0.2.0",
-  "description": "共享 Vite 配置：插件装配、分包策略、env 解析与 dev proxy（含 Nitro Mock 转发）",
+  "description": "共享 Vite 配置：插件装配、分包策略、env 解析与用户自定义 dev proxy",
   "private": true,
   "type": "module",
   "scripts": {
@@ -39,7 +39,6 @@
     "@vitejs/plugin-vue-jsx": "catalog:",
     "archiver": "catalog:",
     "dayjs": "catalog:",
-    "nitropack": "catalog:",
     "postcss": "catalog:",
     "tinyglobby": "catalog:",
     "unplugin-auto-import": "catalog:",

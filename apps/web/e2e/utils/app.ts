@@ -24,7 +24,7 @@ import { expect } from '@playwright/test';
 /** 与 `apps/web/src/config/constants.ts` 保持一致，别在断言里再写一遍字面量 */
 export const HOME_PATH = '/dashboard/analysis';
 
-/** Nitro mock 的账号表在 `apps/backend-mock/server/utils/accounts.ts`，两组凭据都要用到 */
+/** Nitro mock 的账号表在 `apps/web/backend-mock/server/utils/accounts.ts`，两组凭据都要用到 */
 export interface E2eAccount {
   password: string;
   username: string;
