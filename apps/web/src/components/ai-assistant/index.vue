@@ -25,7 +25,6 @@ import {
   Textarea,
 } from '@antdv/shadcn-ui';
 import { Icon } from '@iconify/vue';
-
 import { uploadFile } from '~/api/system';
 import FilePreviewDialog from '~/components/file-preview/FilePreviewDialog.vue';
 import {
@@ -35,6 +34,7 @@ import {
   promptsOf,
   snapshotOf,
 } from '~/composables/ai';
+
 import ConfirmActionCard from './components/ConfirmActionCard.vue';
 import ToolProgress from './components/ToolProgress.vue';
 import { createCopilotProvider } from './provider';
@@ -58,8 +58,8 @@ interface Attachment {
 const MAX_ATTACHMENTS = 5;
 const MAX_ATTACHMENT_SIZE = 20 * 1024 * 1024;
 const attachments = ref<Attachment[]>([]);
-const previewTarget = ref<null | File>(null);
-const fileInput = ref<null | HTMLInputElement>(null);
+const previewTarget = ref<File | null>(null);
+const fileInput = ref<HTMLInputElement | null>(null);
 
 function readableSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
@@ -69,20 +69,34 @@ function readableSize(bytes: number): string {
 
 function fileTypeOf(name: string): string {
   const ext = name.split('.').pop()?.toLowerCase() ?? '';
-  if (['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp'].includes(ext)) return 'image';
-  if (['mp4', 'webm', 'ogg', 'mov'].includes(ext)) return 'video';
-  if (['mp3', 'wav', 'm4a', 'flac'].includes(ext)) return 'audio';
-  if (['zip', 'rar', '7z', 'tar', 'gz'].includes(ext)) return 'archive';
-  if (['md', 'csv', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'pdf', 'txt'].includes(ext))
+  if (['bmp', 'gif', 'jpeg', 'jpg', 'png', 'svg', 'webp'].includes(ext))
+    return 'image';
+  if (['mov', 'mp4', 'ogg', 'webm'].includes(ext)) return 'video';
+  if (['flac', 'm4a', 'mp3', 'wav'].includes(ext)) return 'audio';
+  if (['7z', 'gz', 'rar', 'tar', 'zip'].includes(ext)) return 'archive';
+  if (
+    [
+      'csv',
+      'doc',
+      'docx',
+      'md',
+      'pdf',
+      'ppt',
+      'pptx',
+      'txt',
+      'xls',
+      'xlsx',
+    ].includes(ext)
+  )
     return 'document';
   return 'other';
 }
 
 async function onFilesPicked(event: Event) {
   const input = event.target as HTMLInputElement;
-  const picked = Array.from(input.files ?? []);
+  const picked = [...(input.files ?? [])];
   input.value = ''; // 同一文件可以重复选
-  if (!picked.length) return;
+  if (picked.length === 0) return;
   const room = MAX_ATTACHMENTS - attachments.value.length;
   if (room <= 0) {
     window.alert(`最多附加 ${MAX_ATTACHMENTS} 个文件`);
@@ -115,7 +129,8 @@ async function onFilesPicked(event: Event) {
       // 上传登记失败不阻塞本地预览与对话，附件仍可随消息发送
     }
   }
-  if (picked.length > room) window.alert(`最多附加 ${MAX_ATTACHMENTS} 个文件，多余的已忽略`);
+  if (picked.length > room)
+    window.alert(`最多附加 ${MAX_ATTACHMENTS} 个文件，多余的已忽略`);
 }
 
 function removeAttachment(name: string) {
@@ -147,15 +162,26 @@ const system = usePrompt(
 
 const runtime = {
   context: () => snapshot.value,
-  table: (target?: string) => (target ? pageTable(target) : pageTable(String(route.name ?? ''))),
-  form: (target?: string) => (target ? pageForm(target) : pageForm(String(route.name ?? ''))),
-  navigate: async (intent: { routeName: string; query?: Record<string, string> }) => {
+  table: (target?: string) =>
+    target ? pageTable(target) : pageTable(String(route.name ?? '')),
+  form: (target?: string) =>
+    target ? pageForm(target) : pageForm(String(route.name ?? '')),
+  navigate: async (intent: {
+    routeName: string;
+    query?: Record<string, string>;
+  }) => {
     await router.push({ name: intent.routeName as never, query: intent.query });
-    return { ok: true, message: `已跳转到${intent.routeName}`, traceId: `nav_${Date.now()}` };
+    return {
+      ok: true,
+      message: `已跳转到${intent.routeName}`,
+      traceId: `nav_${Date.now()}`,
+    };
   },
   audit: (event: unknown) => {
     // Control Plane 的 Trace 接口就绪后在这里上报；当前保留本地事件便于调试。
-    window.dispatchEvent(new CustomEvent('copilot:tool-trace', { detail: event }));
+    window.dispatchEvent(
+      new CustomEvent('copilot:tool-trace', { detail: event }),
+    );
   },
 };
 
@@ -177,8 +203,11 @@ const generativeComponents = {
 function send(text?: string) {
   const base = (text ?? draft.value).trim();
   const names = attachments.value.map((item) => item.name);
-  if (!base && !names.length) return;
-  const content = names.length ? `${base || '请分析这些文件'}\n[附件：${names.join('、')}]` : base;
+  if (!base && names.length === 0) return;
+  const content =
+    names.length > 0
+      ? `${base || '请分析这些文件'}\n[附件：${names.join('、')}]`
+      : base;
   draft.value = '';
   attachments.value = [];
   void chat.sendMessage(content);
@@ -239,27 +268,46 @@ onBeforeUnmount(() => {
       class="fixed right-4 bottom-20 z-30 flex h-[min(620px,calc(100vh-7rem))] w-[min(392px,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border border-border/70 bg-background/95 shadow-2xl backdrop-blur-xl sm:right-5"
       aria-label="Copilot 工作台"
     >
-      <header class="flex items-center gap-2 border-b border-border/70 px-3 py-2.5">
-        <span class="flex size-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
+      <header
+        class="flex items-center gap-2 border-b border-border/70 px-3 py-2.5"
+      >
+        <span
+          class="flex size-7 items-center justify-center rounded-lg bg-primary/10 text-primary"
+        >
           <Icon icon="carbon:magic-wand" class="size-4" />
         </span>
         <div class="min-w-0 flex-1">
-          <p class="text-sm font-semibold leading-tight text-foreground">Copilot 工作台</p>
-          <p class="truncate text-[10px] text-muted-foreground">{{ meta.title }} · {{ meta.entity }}</p>
+          <p class="text-sm font-semibold leading-tight text-foreground">
+            Copilot 工作台
+          </p>
+          <p class="truncate text-[10px] text-muted-foreground">
+            {{ meta.title }} · {{ meta.entity }}
+          </p>
         </div>
-        <Button variant="ghost" size="sm" class="h-7 px-2 text-xs" @click="commandOpen = true">
+        <Button
+          variant="ghost"
+          size="sm"
+          class="h-7 px-2 text-xs"
+          @click="commandOpen = true"
+        >
           <Icon icon="carbon:terminal" class="size-3.5" />
           ⌘K
         </Button>
       </header>
 
       <!-- 上下文 Chip：明确告诉用户 AI 读取了左侧状态 -->
-      <div class="flex flex-wrap items-center gap-1.5 border-b border-border/60 bg-muted/30 px-3 py-2">
-        <span class="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/5 px-2 py-0.5 text-[10px] text-primary">
+      <div
+        class="flex flex-wrap items-center gap-1.5 border-b border-border/60 bg-muted/30 px-3 py-2"
+      >
+        <span
+          class="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/5 px-2 py-0.5 text-[10px] text-primary"
+        >
           <Icon icon="carbon:radio" class="size-3" />
           @{{ meta.title }}
         </span>
-        <span class="inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-[10px] text-muted-foreground">
+        <span
+          class="inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-[10px] text-muted-foreground"
+        >
           <Icon icon="carbon:document" class="size-3" />
           读取当前页面数据
         </span>
@@ -275,9 +323,12 @@ onBeforeUnmount(() => {
       <div class="min-h-0 flex-1 space-y-3 overflow-y-auto px-3 py-3">
         <div v-if="!chat.messages.value.length" class="space-y-3 pt-2">
           <div class="rounded-xl border border-border/70 bg-muted/40 px-3 py-3">
-            <p class="text-sm font-medium text-foreground">我可以读取当前页面状态并代为操作</p>
+            <p class="text-sm font-medium text-foreground">
+              我可以读取当前页面状态并代为操作
+            </p>
             <p class="mt-1 text-[11px] leading-relaxed text-muted-foreground">
-              先选一条快捷指令，或直接描述你要做的事。AI 可能出错，请核实关键信息。
+              先选一条快捷指令，或直接描述你要做的事。AI
+              可能出错，请核实关键信息。
             </p>
           </div>
           <div class="flex flex-wrap gap-1.5">
@@ -295,7 +346,9 @@ onBeforeUnmount(() => {
         </div>
 
         <ChatMessage
-          v-for="message in chat.messages.value.filter((m: { role: string }) => m.role !== 'system')"
+          v-for="message in chat.messages.value.filter(
+            (m: { role: string }) => m.role !== 'system',
+          )"
           :key="message.id"
           :message="message"
           :components="generativeComponents"
@@ -310,8 +363,15 @@ onBeforeUnmount(() => {
             :key="item.name"
             class="inline-flex max-w-full items-center gap-1 rounded-full border border-border bg-muted/40 px-2 py-1 text-[10px] text-muted-foreground"
           >
-            <button type="button" class="max-w-36 truncate hover:underline" :title="item.name" @click="previewTarget = item.file">
-              {{ item.uploading ? '上传中… ' : '' }}{{ item.name }}（{{ item.size }}）
+            <button
+              type="button"
+              class="max-w-36 truncate hover:underline"
+              :title="item.name"
+              @click="previewTarget = item.file"
+            >
+              {{ item.uploading ? '上传中… ' : '' }}{{ item.name }}（{{
+                item.size
+              }}）
             </button>
             <button
               type="button"
@@ -323,8 +383,17 @@ onBeforeUnmount(() => {
             </button>
           </span>
         </div>
-        <div class="relative rounded-xl border border-border bg-background shadow-sm focus-within:border-ring">
-          <input ref="fileInput" type="file" multiple class="hidden" accept=".md,.markdown,.csv,.xlsx,.docx,.pptx,.pdf,.png,.jpg,.jpeg,.gif,.webp,.svg,.mp4,.webm,.mp3,.wav" @change="onFilesPicked" />
+        <div
+          class="relative rounded-xl border border-border bg-background shadow-sm focus-within:border-ring"
+        >
+          <input
+            ref="fileInput"
+            type="file"
+            multiple
+            class="hidden"
+            accept=".md,.markdown,.csv,.xlsx,.docx,.pptx,.pdf,.png,.jpg,.jpeg,.gif,.webp,.svg,.mp4,.webm,.mp3,.wav"
+            @change="onFilesPicked"
+          />
           <button
             type="button"
             class="absolute bottom-1.5 left-1.5 z-10 flex size-7 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
@@ -351,7 +420,9 @@ onBeforeUnmount(() => {
             <Icon icon="carbon:arrow-up" class="size-4" />
           </Button>
         </div>
-        <p class="mt-1.5 text-center text-[10px] text-muted-foreground">AI 可能出错，请核实关键信息</p>
+        <p class="mt-1.5 text-center text-[10px] text-muted-foreground">
+          AI 可能出错，请核实关键信息
+        </p>
       </div>
     </section>
   </Transition>
@@ -362,13 +433,21 @@ onBeforeUnmount(() => {
     @update:open="previewTarget = null"
   />
 
-  <CommandDialog v-model:open="commandOpen" title="Copilot 指令" description="输入自然语言或选择页面">
+  <CommandDialog
+    v-model:open="commandOpen"
+    title="Copilot 指令"
+    description="输入自然语言或选择页面"
+  >
     <CommandInput placeholder="输入指令，如：总结当前页面、帮我预填表单…" />
     <CommandList>
       <CommandEmpty>没有匹配的指令</CommandEmpty>
       <CommandGroup heading="快捷指令">
         <CommandItem
-          v-for="prompt in ['这个页面能做什么？', '总结当前页面数据', '帮我检查异常数据']"
+          v-for="prompt in [
+            '这个页面能做什么？',
+            '总结当前页面数据',
+            '帮我检查异常数据',
+          ]"
           :key="prompt"
           :value="prompt"
           @select="runCommand(prompt)"

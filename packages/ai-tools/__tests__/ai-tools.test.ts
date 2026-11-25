@@ -1,3 +1,5 @@
+import type { AiContextSnapshot, ToolRuntime } from '../src/index';
+
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -9,13 +11,16 @@ import {
   parseTableQuery,
   resolveSelection,
 } from '../src/index';
-import type { AiContextSnapshot, ToolRuntime } from '../src/index';
 
 const fields = [
-  { key: 'status', label: '执行状态', options: [
-    { label: '失败', value: 'failed' },
-    { label: '成功', value: 'success' },
-  ] },
+  {
+    key: 'status',
+    label: '执行状态',
+    options: [
+      { label: '失败', value: 'failed' },
+      { label: '成功', value: 'success' },
+    ],
+  },
   { key: 'duration', label: '耗时', type: 'number' as const },
   { key: 'name', label: '实例名称' },
 ];
@@ -37,24 +42,38 @@ function mockRuntime(overrides: Partial<ToolRuntime> = {}): ToolRuntime & {
   filled: unknown[];
   audits: unknown[];
 } {
-  const state = { applied: [] as unknown[], navigated: [] as unknown[], opened: [] as unknown[], filled: [] as unknown[], audits: [] as unknown[] };
+  const state = {
+    applied: [] as unknown[],
+    navigated: [] as unknown[],
+    opened: [] as unknown[],
+    filled: [] as unknown[],
+    audits: [] as unknown[],
+  };
   return {
     ...state,
     context: () => baseContext,
     table: () => ({
       id: 'instances',
-      applyQuery: (query: unknown) => { state.applied.push(query); },
+      applyQuery: (query: unknown) => {
+        state.applied.push(query);
+      },
     }),
     form: () => ({
       id: 'editor',
-      open: (schema: unknown) => { state.opened.push(schema); },
-      fill: (values: unknown) => { state.filled.push(values); },
+      open: (schema: unknown) => {
+        state.opened.push(schema);
+      },
+      fill: (values: unknown) => {
+        state.filled.push(values);
+      },
     }),
     navigate: async (intent) => {
       state.navigated.push(intent);
       return { ok: true, message: '已跳转', traceId: 'nav_1' };
     },
-    audit: (event) => { state.audits.push(event); },
+    audit: (event) => {
+      state.audits.push(event);
+    },
     ...overrides,
   };
 }
@@ -62,7 +81,9 @@ function mockRuntime(overrides: Partial<ToolRuntime> = {}): ToolRuntime & {
 describe('parseTableQuery', () => {
   it('把中文状态词映射到字段字典里声明的枚举值', () => {
     const query = parseTableQuery('有哪些失败的实例', fields);
-    expect(query.filters).toEqual([{ field: 'status', op: 'eq', value: 'failed' }]);
+    expect(query.filters).toEqual([
+      { field: 'status', op: 'eq', value: 'failed' },
+    ]);
   });
 
   it('识别耗时最长与前 N 个', () => {
@@ -121,11 +142,15 @@ describe('路由与指代', () => {
     expect(matchNavigation('打开我的审批', baseContext.links!)).toMatchObject({
       routeName: 'ApprovalMine',
     });
-    expect(matchNavigation('打开不存在的页面', baseContext.links!)).toBeUndefined();
+    expect(
+      matchNavigation('打开不存在的页面', baseContext.links!),
+    ).toBeUndefined();
   });
 
   it('有指代时才注入选中行', () => {
-    expect(resolveSelection('处理这些单据', baseContext)).toEqual(baseContext.selectedRows);
+    expect(resolveSelection('处理这些单据', baseContext)).toEqual(
+      baseContext.selectedRows,
+    );
     expect(resolveSelection('查看所有单据', baseContext)).toEqual([]);
   });
 });
@@ -134,13 +159,17 @@ describe('createAiTools', () => {
   it('search_table 应用筛选并写审计', async () => {
     const runtime = mockRuntime();
     const tools = createAiTools(runtime);
-    const result = await tools.searchTable.execute?.(
+    const result = (await tools.searchTable.execute?.(
       { utterance: '有哪些失败的实例' },
       { signal: new AbortController().signal, toolCallId: 'c1' },
-    ) as { ok: boolean; traceId: string };
+    )) as { ok: boolean; traceId: string };
     expect(result.ok).toBe(true);
     expect(runtime.applied).toEqual([
-      { filters: [{ field: 'status', op: 'eq', value: 'failed' }], sorts: [], limit: undefined },
+      {
+        filters: [{ field: 'status', op: 'eq', value: 'failed' }],
+        sorts: [],
+        limit: undefined,
+      },
     ]);
     expect(runtime.audits).toHaveLength(1);
   });
@@ -148,10 +177,10 @@ describe('createAiTools', () => {
   it('confirm_action 只返回确认卡片，不执行写操作', async () => {
     const runtime = mockRuntime();
     const tools = createAiTools(runtime);
-    const result = await tools.confirmAction.execute?.(
+    const result = (await tools.confirmAction.execute?.(
       { title: '批量通过审批', impact: '3 张单据将被标记为通过' },
       { signal: new AbortController().signal, toolCallId: 'c2' },
-    ) as { confirmation?: { defaultAction: string }; ok: boolean };
+    )) as { confirmation?: { defaultAction: string }; ok: boolean };
     expect(result.ok).toBe(false);
     expect(result.confirmation?.defaultAction).toBe('cancel');
     expect(runtime.navigated).toHaveLength(0);

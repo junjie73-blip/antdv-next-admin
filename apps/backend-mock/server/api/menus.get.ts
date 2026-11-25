@@ -52,18 +52,6 @@ const list: BackendMenu[] = [
         icon: 'carbon:chart-line-data',
         path: '/screen/monitor',
       },
-      {
-        menuName: '任务中心',
-        name: 'DashboardTasks',
-        icon: 'carbon:task',
-        path: '/dashboard/tasks',
-      },
-      {
-        menuName: '工单',
-        name: 'DashboardTickets',
-        icon: 'carbon:ticket',
-        path: '/dashboard/tickets',
-      },
     ],
   },
   {
@@ -514,10 +502,30 @@ const list: BackendMenu[] = [
         icon: 'carbon:settings',
         path: '',
         children: [
-          { menuName: 'Provider 管理', name: 'CpProvider', icon: 'carbon:api', path: '/ai/control-plane/provider' },
-          { menuName: 'Prompt 模板', name: 'CpPrompt', icon: 'carbon:document', path: '/ai/control-plane/prompt' },
-          { menuName: 'Context 治理', name: 'CpContext', icon: 'carbon:filter', path: '/ai/control-plane/context' },
-          { menuName: '调用 Trace', name: 'CpTrace', icon: 'carbon:chart-line-data', path: '/ai/control-plane/trace' },
+          {
+            menuName: 'Provider 管理',
+            name: 'CpProvider',
+            icon: 'carbon:api',
+            path: '/ai/control-plane/provider',
+          },
+          {
+            menuName: 'Prompt 模板',
+            name: 'CpPrompt',
+            icon: 'carbon:document',
+            path: '/ai/control-plane/prompt',
+          },
+          {
+            menuName: 'Context 治理',
+            name: 'CpContext',
+            icon: 'carbon:filter',
+            path: '/ai/control-plane/context',
+          },
+          {
+            menuName: '调用 Trace',
+            name: 'CpTrace',
+            icon: 'carbon:chart-line-data',
+            path: '/ai/control-plane/trace',
+          },
         ],
       },
       {

@@ -129,7 +129,9 @@ async function onSubmit(
   editingKey: null | string,
 ) {
   try {
-    await saveAiAgent(editingKey ? { ...values, id: Number(editingKey) } : values);
+    await saveAiAgent(
+      editingKey ? { ...values, id: Number(editingKey) } : values,
+    );
     message.success(editingKey ? '保存成功' : '新建成功');
     await loadOverview();
     return true;

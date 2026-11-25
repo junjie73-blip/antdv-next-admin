@@ -29,9 +29,9 @@ import {
 
 import { resolveAccount } from './accounts';
 import { maskPolicySnapshot, recordAudit } from './db/security-advanced';
-import { sanitizePayload, stringifyPayload } from './security/masking';
 import { envelope } from './response';
 import { keyOf, methodOf, moduleOf, shouldInjectFailure } from './route-meta';
+import { sanitizePayload, stringifyPayload } from './security/masking';
 import { pushLog, recordHit, registerManifest, resolveRuntime } from './store';
 
 /**
@@ -202,7 +202,11 @@ function recordApiAudit(
     method: route.method,
     path,
     result: failed ? 'error' : 'success',
-    risk: failed ? 'high' : /\/security|\/ai\/|\/auth\//.test(path) ? 'medium' : 'low',
+    risk: failed
+      ? 'high'
+      : /\/security|\/ai\/|\/auth\//.test(path)
+        ? 'medium'
+        : 'low',
     traceId: context.traceId ?? 'unknown',
   });
 }
@@ -246,7 +250,8 @@ export function defineMockRoute(definition: MockRouteDefinition) {
     setResponseHeader(event, 'cache-control', 'no-store');
     setResponseHeader(event, 'vary', 'Authorization');
     // 链路追踪号对客户端可见：前端报错时可直接带上它查审计
-    if (context.traceId) setResponseHeader(event, 'x-request-id', context.traceId);
+    if (context.traceId)
+      setResponseHeader(event, 'x-request-id', context.traceId);
     if (outcome.status !== undefined && outcome.status !== 200)
       setResponseStatus(event, outcome.status);
     recordApiAudit({ ...route, method }, context, outcome);

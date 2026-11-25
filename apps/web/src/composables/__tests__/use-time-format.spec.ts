@@ -7,8 +7,12 @@ const ISO = '2026-11-25T02:30:00.000Z';
 
 describe('可配置时间格式', () => {
   it('预设格式按当前时区渲染，不再下发原始 ISO 串', () => {
-    expect(formatByTimeFormat(ISO, 'YYYY-MM-DD HH:mm:ss')).toBe('2026-11-25 10:30:00');
-    expect(formatByTimeFormat(ISO, 'YYYY/MM/DD HH:mm')).toBe('2026/11/25 10:30');
+    expect(formatByTimeFormat(ISO, 'YYYY-MM-DD HH:mm:ss')).toBe(
+      '2026-11-25 10:30:00',
+    );
+    expect(formatByTimeFormat(ISO, 'YYYY/MM/DD HH:mm')).toBe(
+      '2026/11/25 10:30',
+    );
     expect(formatByTimeFormat(ISO, 'MM-DD HH:mm')).toBe('11-25 10:30');
   });
 

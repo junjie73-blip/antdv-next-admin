@@ -82,7 +82,9 @@ const statsCards = computed<DataStat[]>(() => [
     icon: 'carbon:stop',
     label: '阻断型规则',
     tone: 'red',
-    value: String(policies.value.filter((row) => row.action === 'block').length),
+    value: String(
+      policies.value.filter((row) => row.action === 'block').length,
+    ),
   },
   {
     icon: 'carbon:erase',
@@ -114,7 +116,9 @@ const createSchemas = computed<FormSchema[]>(() => [
 
 function listApi(params: Record<string, any>) {
   return getAiPolicyList().then((rows) => {
-    const keyword = String(params.keyword ?? '').trim().toLowerCase();
+    const keyword = String(params.keyword ?? '')
+      .trim()
+      .toLowerCase();
     const filtered = rows.filter((row) =>
       [row.key, row.name, row.description]
         .join(' ')
@@ -144,9 +148,14 @@ async function loadPolicies() {
   }
 }
 
-async function onSubmit(values: Record<string, any>, editingKey: null | string) {
+async function onSubmit(
+  values: Record<string, any>,
+  editingKey: null | string,
+) {
   try {
-    await saveAiPolicy(editingKey ? { ...values, id: Number(editingKey) } : values);
+    await saveAiPolicy(
+      editingKey ? { ...values, id: Number(editingKey) } : values,
+    );
     message.success(editingKey ? '策略已更新' : '策略已创建');
     await loadPolicies();
     return true;

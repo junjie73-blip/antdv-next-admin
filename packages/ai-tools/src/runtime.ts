@@ -1,16 +1,5 @@
-/**
- * 工具工厂：把纯推理函数包装成 vue-llm 的 ChatTool。
- * 所有浏览器/框架能力都从 ToolRuntime 注入，这里只做编排与审计。
- */
-import { defineTool, type ChatTool } from 'vue-llm';
+import type { ChatTool } from 'vue-llm';
 
-import {
-  dedupeFilters,
-  inferFormSchema,
-  inferFormValues,
-  matchNavigation,
-  parseTableQuery,
-} from './infer';
 import type {
   FillFormFieldsArgs,
   FillFormFieldsResult,
@@ -21,6 +10,20 @@ import type {
   SearchTableResult,
 } from './tool-types';
 import type { ToolConfirmation, ToolOutcome, ToolRuntime } from './types';
+
+/**
+ * 工具工厂：把纯推理函数包装成 vue-llm 的 ChatTool。
+ * 所有浏览器/框架能力都从 ToolRuntime 注入，这里只做编排与审计。
+ */
+import { defineTool } from 'vue-llm';
+
+import {
+  dedupeFilters,
+  inferFormSchema,
+  inferFormValues,
+  matchNavigation,
+  parseTableQuery,
+} from './infer';
 
 let traceSeq = 0;
 function nextTraceId(prefix: string): string {
@@ -42,9 +45,13 @@ function pickArgs<T extends Record<string, unknown>>(
   args: unknown,
   keys: readonly string[],
 ): T {
-  const source = (args && typeof args === 'object' ? args : {}) as Record<string, unknown>;
+  const source = (args && typeof args === 'object' ? args : {}) as Record<
+    string,
+    unknown
+  >;
   const picked: Record<string, unknown> = {};
-  for (const key of keys) if (source[key] !== undefined) picked[key] = source[key];
+  for (const key of keys)
+    if (source[key] !== undefined) picked[key] = source[key];
   return picked as T;
 }
 
@@ -83,12 +90,16 @@ function createSearchTable(runtime: ToolRuntime) {
       const table = runtime.table(args.target);
 
       if (!table) {
-        const result = outcome(false, '当前页面没有可操作的表格，请切换到列表页后重试。', {
-          applied: false,
-          filters,
-          sorts: query.sorts,
-          summary: '无表格句柄',
-        });
+        const result = outcome(
+          false,
+          '当前页面没有可操作的表格，请切换到列表页后重试。',
+          {
+            applied: false,
+            filters,
+            sorts: query.sorts,
+            summary: '无表格句柄',
+          },
+        );
         runtime.audit({
           args: { ...args },
           ms: performance.now() - started,
@@ -103,7 +114,7 @@ function createSearchTable(runtime: ToolRuntime) {
       await table.applyQuery({ ...query, filters });
       const result = outcome(
         true,
-        filters.length || query.sorts.length
+        filters.length > 0 || query.sorts.length > 0
           ? `已应用 ${filters.length} 个筛选、${query.sorts.length} 个排序条件。`
           : '未识别到明确条件，已保留当前筛选。',
         {
@@ -143,7 +154,11 @@ function createGenerateForm(runtime: ToolRuntime) {
       const started = performance.now();
       const ctx = runtime.context();
       const form = runtime.form();
-      const schema = inferFormSchema(args.description, ctx.fields ?? [], ctx.title);
+      const schema = inferFormSchema(
+        args.description,
+        ctx.fields ?? [],
+        ctx.title,
+      );
       if (!form) {
         const result = outcome(false, '当前页面没有可打开的表单。', {
           opened: false,
@@ -162,11 +177,15 @@ function createGenerateForm(runtime: ToolRuntime) {
       }
 
       await form.open(schema);
-      const result = outcome(true, `已生成含 ${Object.keys(schema.properties).length} 个字段的表单，请确认后提交。`, {
-        opened: true,
-        schema,
-        formId: form.id,
-      });
+      const result = outcome(
+        true,
+        `已生成含 ${Object.keys(schema.properties).length} 个字段的表单，请确认后提交。`,
+        {
+          opened: true,
+          schema,
+          formId: form.id,
+        },
+      );
       runtime.audit({
         args: { ...args },
         ms: performance.now() - started,
@@ -188,8 +207,15 @@ function createFillFormFields(runtime: ToolRuntime) {
     parameters: {
       ...JSON_OBJECT_SCHEMA,
       properties: {
-        fields: { type: 'array', items: { type: 'string' }, description: '要填充的字段 key' },
-        source: { type: 'string', description: 'context | history | description' },
+        fields: {
+          type: 'array',
+          items: { type: 'string' },
+          description: '要填充的字段 key',
+        },
+        source: {
+          type: 'string',
+          description: 'context | history | description',
+        },
       },
     },
     async execute(args) {
@@ -226,7 +252,7 @@ function createFillFormFields(runtime: ToolRuntime) {
       const filled = Object.keys(inferred.values);
       const result = outcome(
         true,
-        filled.length
+        filled.length > 0
           ? `已预填 ${filled.length} 个字段，${inferred.skipped.length} 个字段需人工补录。请检查后提交。`
           : '没有足够可靠的数据可预填，请手动填写。',
         { ...inferred, filled },
@@ -276,9 +302,13 @@ function createNavigateTo(runtime: ToolRuntime) {
       }
 
       const navigation = await runtime.navigate(intent);
-      const result = outcome<{ routeName: string }>(navigation.ok, navigation.message, {
-        routeName: intent.routeName,
-      });
+      const result = outcome<{ routeName: string }>(
+        navigation.ok,
+        navigation.message,
+        {
+          routeName: intent.routeName,
+        },
+      );
       runtime.audit({
         args: { ...args },
         ms: performance.now() - started,
@@ -305,7 +335,11 @@ function createConfirmAction(runtime: ToolRuntime) {
       properties: {
         title: { type: 'string', description: '操作标题' },
         impact: { type: 'string', description: '影响范围' },
-        risks: { type: 'array', items: { type: 'string' }, description: '风险提示' },
+        risks: {
+          type: 'array',
+          items: { type: 'string' },
+          description: '风险提示',
+        },
       },
       required: ['title', 'impact'],
     },

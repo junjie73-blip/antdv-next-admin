@@ -1,5 +1,5 @@
-import { createMemoryHistory, createRouter } from 'vue-router';
 import { mount } from '@vue/test-utils';
+import { createMemoryHistory, createRouter } from 'vue-router';
 
 import { describe, expect, it, vi } from 'vitest';
 
@@ -33,7 +33,7 @@ function makeRouter() {
   });
 }
 
-describe('Copilot 工作台', () => {
+describe('copilot 工作台', () => {
   it('悬浮按钮打开窄侧栏，并展示上下文 Chip 与按路由生成的快捷 Prompt', async () => {
     const router = makeRouter();
     await router.push('/approval/mine');

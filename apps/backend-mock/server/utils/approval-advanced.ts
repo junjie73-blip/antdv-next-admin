@@ -14,10 +14,14 @@
  * 5. 所有数组字段整体回写（defineCollection 的 Proxy 只拦截顶层赋值）。
  */
 
-import dayjs from 'dayjs';
-
 import type { MockAccount } from './accounts';
-import type { ApprovalFlowNode, ApprovalRecord } from './db/approval';
+import type {
+  ApprovalFlowNode,
+  ApprovalNodeStatus,
+  ApprovalRecord,
+} from './db/approval';
+
+import dayjs from 'dayjs';
 
 import { accountPersons, APPROVAL_DB, MOCK_TODAY } from './db/approval';
 import { NOTICE_DB } from './db/notice';
@@ -57,7 +61,7 @@ const LEVEL_SEED: ApprovalLevelRule[] = [
 ].map((item, index) => ({
   ...item,
   autoAction: 'approve' as const,
-  autoMaxAmount: 10000,
+  autoMaxAmount: 10_000,
   enabled: 'enabled' as const,
   id: index + 1,
   level: 1,
@@ -138,14 +142,10 @@ export function saveLevelRule(
 
   const level = Number(data.level ?? 1);
   const timeoutHours = Number(data.timeoutHours ?? 24);
-  const autoMaxAmount = Number(data.autoMaxAmount ?? 10000);
+  const autoMaxAmount = Number(data.autoMaxAmount ?? 10_000);
   if (!Number.isInteger(level) || level < 1 || level > 9)
     return fail(400, '审批层级需为 1-9 的整数');
-  if (
-    !Number.isFinite(timeoutHours) ||
-    timeoutHours < 1 ||
-    timeoutHours > 720
-  )
+  if (!Number.isFinite(timeoutHours) || timeoutHours < 1 || timeoutHours > 720)
     return fail(400, '处理时限需在 1-720 小时之间');
   if (
     !Number.isFinite(autoMaxAmount) ||
@@ -240,7 +240,7 @@ function archived(record: ApprovalRecord): boolean {
 
 /** 大额申请在直属上级之后自动追加一层复核节点，演示多级审批 */
 function needUpperReview(record: ApprovalRecord): boolean {
-  return amountValue(record) > 10000;
+  return amountValue(record) > 10_000;
 }
 
 function makeNode(
@@ -269,7 +269,8 @@ export function buildFlowNodes(
   round = 1,
 ): ApprovalFlowNode[] {
   const submittedAt = record.date || record.updatedAt || MOCK_TODAY;
-  const leader = resolveLeader(record.applicant) || record.approver || '待指定上级';
+  const leader =
+    resolveLeader(record.applicant) || record.approver || '待指定上级';
   const timeoutHours = findLevelRule(record.applicant)?.timeoutHours ?? 24;
   const firstDueAt = baseTime(record)
     .add(timeoutHours, 'hour')
@@ -409,7 +410,10 @@ export function canApproveRecord(
   const person = approverPerson(account);
   if (!person) return false;
   if (node.approver === person) return true;
-  if (node.title === '直属上级审批' && resolveLeader(record.applicant) === person)
+  if (
+    node.title === '直属上级审批' &&
+    resolveLeader(record.applicant) === person
+  )
     return true;
   return false;
 }
@@ -438,18 +442,20 @@ export function enrichRecord(
   const current = currentApprovalNode(record);
   const overdue = Boolean(
     current?.dueAt &&
-      record.status === 'pending' &&
-      dayjs(current.dueAt).isBefore(dayjs()),
+    record.status === 'pending' &&
+    dayjs(current.dueAt).isBefore(dayjs()),
   );
   // 旧行里可能残留已下线的 AI 研判字段，出参统一剥掉，避免重新流回前端
   const plain = { ...record } as Record<string, unknown>;
   delete plain.aiAssessment;
   return {
     ...plain,
-    canApprove: record.status === 'pending' && canApproveRecord(record, account),
+    canApprove:
+      record.status === 'pending' && canApproveRecord(record, account),
     canEdit: canEditRecord(record, account),
     canResubmit: canResubmitRecord(record, account),
-    currentNode: current?.title ?? (record.status === 'approved' ? '已完结' : '已驳回'),
+    currentNode:
+      current?.title ?? (record.status === 'approved' ? '已完结' : '已驳回'),
     currentRound: record.currentRound ?? 1,
     overdue,
     // DataPage 的进度列需要一个展示串；按当前轮次内的步骤展示
@@ -478,7 +484,9 @@ function applyNodeDecision(
           approver: actor || node.approver,
           auto,
           comment: reason,
-          status: action,
+          status: (action === 'approve'
+            ? 'approved'
+            : 'rejected') as ApprovalNodeStatus,
         }
       : node,
   );
@@ -503,7 +511,9 @@ function applyNodeDecision(
         node.kind === 'approval' &&
         node.status === 'pending',
     );
-    const sameStep = pendingApprovals.some((node) => node.step === current.step);
+    const sameStep = pendingApprovals.some(
+      (node) => node.step === current.step,
+    );
     if (pendingApprovals.length === 0) {
       status = 'approved';
       message = auto ? '已按超时规则自动通过' : '已通过审批';
@@ -573,9 +583,11 @@ export function resubmitApproval(
   reason: unknown,
   account: MockAccount,
 ): AdvancedResult<Record<string, unknown>> {
-  if (!canResubmitRecord(record, account))
+  // 先判身份再判状态：非发起人始终 403，不通过状态码泄露单据状态
+  if (!canEditRecord(record, account))
     return fail(403, '只有发起人可以基于驳回单据重新发起审批');
-  if (record.status !== 'rejected') return fail(409, '只有被驳回的单据可以重新发起');
+  if (record.status !== 'rejected')
+    return fail(409, '只有被驳回的单据可以重新发起');
 
   ensureFlow(record);
   const nextRound = (record.currentRound ?? 1) + 1;
@@ -635,7 +647,7 @@ export function extendApproval(
   const extra = cleanNames(input.additionalApprovers).filter(
     (name) => name !== record.applicant,
   );
-  if (!cc.length && !extra.length)
+  if (cc.length === 0 && extra.length === 0)
     return fail(400, '请至少填写一个抄送对象或追加审批人');
   ensureFlow(record);
   const round = record.currentRound ?? 1;
@@ -643,8 +655,8 @@ export function extendApproval(
   const archiveIndex = nodes.findIndex(
     (node) => node.round === round && node.kind === 'archive',
   );
-  const archive = archiveIndex >= 0 ? nodes[archiveIndex]! : undefined;
-  if (archiveIndex >= 0) nodes.splice(archiveIndex, 1);
+  const archive = archiveIndex !== -1 ? nodes[archiveIndex]! : undefined;
+  if (archiveIndex !== -1) nodes.splice(archiveIndex, 1);
 
   const roundSteps = nodes
     .filter((node) => node.round === round)
@@ -654,7 +666,10 @@ export function extendApproval(
     const node = makeNode({
       approver: person,
       dueAt: baseTime(record)
-        .add((findLevelRule(record.applicant)?.timeoutHours ?? 24) * (index + 2), 'hour')
+        .add(
+          (findLevelRule(record.applicant)?.timeoutHours ?? 24) * (index + 2),
+          'hour',
+        )
         .format('YYYY-MM-DD HH:mm:ss'),
       kind: 'approval',
       round,
@@ -686,8 +701,7 @@ export function extendApproval(
 /* -------------------------------------------------------------------------- */
 
 function pushNotice(title: string, content: string, sender: string): void {
-  const id =
-    NOTICE_DB.reduce((max, item) => Math.max(max, item.id), 0) + 1;
+  const id = NOTICE_DB.reduce((max, item) => Math.max(max, item.id), 0) + 1;
   NOTICE_DB.push({
     content,
     id,
@@ -726,12 +740,13 @@ function decideAutoAction(
   rule: ApprovalLevelRule | undefined,
 ): { action: ApprovalAutoAction; reason: string } {
   const timeoutHours = rule?.timeoutHours ?? 24;
-  const limit = rule?.autoMaxAmount ?? 10000;
+  const limit = rule?.autoMaxAmount ?? 10_000;
   const amount = amountValue(record);
   const text = `${record.title ?? ''} ${record.reason ?? ''}`.toLowerCase();
   const keyword = AUTO_REJECT_KEYWORDS.find((word) => text.includes(word));
   const overLimit = limit > 0 && amount > limit;
-  const forceReject = Boolean(keyword) || overLimit || record.type === '权限申请';
+  const forceReject =
+    Boolean(keyword) || overLimit || record.type === '权限申请';
   const action: ApprovalAutoAction = forceReject
     ? 'reject'
     : (rule?.autoAction ?? 'approve');
@@ -782,8 +797,16 @@ export function scanApprovalTimeouts(): TimeoutReminder[] {
     );
     const notified = active.approver || '超级管理员';
     const detail = `单据 ${record.code}「${record.title}」的「${active.title}」节点已超时，${reason}（${message}）`;
-    pushNotice(`审批超时自动${action === 'approve' ? '通过' : '驳回'}：${record.title}`, detail, notified);
-    pushNotice(`超时结果通知（申请人）：${record.title}`, detail, record.applicant);
+    pushNotice(
+      `审批超时自动${action === 'approve' ? '通过' : '驳回'}：${record.title}`,
+      detail,
+      notified,
+    );
+    pushNotice(
+      `超时结果通知（申请人）：${record.title}`,
+      detail,
+      record.applicant,
+    );
     reminders.push({
       action,
       code: record.code,

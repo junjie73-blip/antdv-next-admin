@@ -6,13 +6,13 @@ import {
   maskPolicySnapshot,
   recordAiCall,
 } from '../../utils/db/security-advanced';
+import { success } from '../../utils/response';
+import { defineMockRoute } from '../../utils/runtime';
 import {
   assessPrompt,
   isRateLimited,
   moderateOutput,
 } from '../../utils/security/ai-guard';
-import { success } from '../../utils/response';
-import { defineMockRoute } from '../../utils/runtime';
 
 /** 单账号调用窗口（Mock 进程内；生产应由网关或 Redis 承担） */
 const callHistory = new Map<string, number[]>();
@@ -65,8 +65,8 @@ function buildReply(messages: ChatMessage[]): string {
   if (/工作流|流程|审批|节点/.test(question)) {
     return [
       '审批流提供发起、分组与监控：',
-      '- 我的审批：发起单据、处理待办、查看节点流转与 AI 研判建议',
-      '- 流程分组 / 流程监控：配置审批层级、查看超时提醒',
+      '- 我的审批：发起单据、处理待办、查看节点流转与驳回重提',
+      '- 流程分组 / 流程监控：配置审批层级与超时自动审批、查看流转记录',
       '',
       '你可以从「审批流」分组进入。需要我给出一段调用示例吗？',
     ].join('\n');
@@ -195,10 +195,15 @@ export default defineMockRoute({
 
     // 4) 输出审核：密钥 / 脚本片段一律不让前端渲染
     const moderated = moderateOutput(rawContent, aiPolicies, maskPolicies);
-    const categories = [...new Set([...guard.categories, ...moderated.categories])];
+    const categories = [
+      ...new Set([...guard.categories, ...moderated.categories]),
+    ];
     if (isPolicyEnabled('call_audit'))
       recordAiCall({
-        action: guard.action === 'mask' || moderated.categories.length ? 'mask' : 'pass',
+        action:
+          guard.action === 'mask' || moderated.categories.length > 0
+            ? 'mask'
+            : 'pass',
         actor,
         categories,
         level: guard.level === 'low' ? moderated.level : guard.level,

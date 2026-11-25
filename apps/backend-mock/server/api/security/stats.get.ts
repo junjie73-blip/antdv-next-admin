@@ -3,8 +3,8 @@
  * 原先每次请求即时取随机数，现在所有数值都来自持久化的事件记录。
  */
 
-import { SECURITY_AI_CALLS } from '../../utils/db/security-advanced';
 import { SECURITY_EVENTS } from '../../utils/db/security';
+import { SECURITY_AI_CALLS } from '../../utils/db/security-advanced';
 import { countByDay, lastNDays } from '../../utils/derive';
 import { envelope } from '../../utils/response';
 import { defineMockRoute } from '../../utils/runtime';
@@ -84,7 +84,13 @@ export default defineMockRoute({
 
     return envelope(
       200,
-      { threatDistribution, attackSources, dailyEvents, responseTime, aiThreats },
+      {
+        threatDistribution,
+        attackSources,
+        dailyEvents,
+        responseTime,
+        aiThreats,
+      },
       'ok',
     );
   },

@@ -30,7 +30,7 @@ export interface CpContext {
   maxHistory: number;
   maxTokens: number;
   name: string;
-  strategy: 'none' | 'drop-oldest' | 'summarize';
+  strategy: 'drop-oldest' | 'none' | 'summarize';
   updatedAt: string;
 }
 
@@ -46,7 +46,7 @@ export interface CpTrace {
   traceId: string;
 }
 
-type Kind = 'context' | 'provider' | 'prompt' | 'trace';
+type Kind = 'context' | 'prompt' | 'provider' | 'trace';
 
 /** Trace 是只读审计日志：不提供 save / delete，免得页面调出不存在的接口 */
 export type WritableCpKind = Exclude<Kind, 'trace'>;

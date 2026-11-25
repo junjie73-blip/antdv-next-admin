@@ -73,7 +73,11 @@ function collectCalls(): Array<{ method: string; path: string }> {
   return calls;
 }
 
-function collectRoutes(): Array<{ file: string; method: string; path: string }> {
+function collectRoutes(): Array<{
+  file: string;
+  method: string;
+  path: string;
+}> {
   return walk(MOCK_API_DIR)
     .filter((file) => ROUTE_SUFFIX.test(path.basename(file)))
     .map((file) => {
@@ -112,8 +116,7 @@ function matches(
   call: { method: string; path: string },
 ) {
   return routes.some(
-    (route) =>
-      route.method === call.method && matchesPath([route], call.path),
+    (route) => route.method === call.method && matchesPath([route], call.path),
   );
 }
 
@@ -123,9 +126,7 @@ function collectPathLiterals(): string[] {
   for (const file of walk(WEB_API_DIR).filter(
     (f) => f.endsWith('.ts') && !f.includes('__tests__'),
   )) {
-    for (const match of fs
-      .readFileSync(file, 'utf8')
-      .matchAll(PATH_LITERAL)) {
+    for (const match of fs.readFileSync(file, 'utf8').matchAll(PATH_LITERAL)) {
       paths.add(normalizeCall(match[2]!));
     }
   }
@@ -136,7 +137,7 @@ function collectPathLiterals(): string[] {
 function declaredRoutePath(file: string): null | string {
   const source = fs.readFileSync(file, 'utf8');
   const start = source.indexOf('defineMockRoute({');
-  if (start < 0) return null;
+  if (start === -1) return null;
   const match = /path:\s*['"]([^'"]+)['"]/.exec(source.slice(start));
   return match?.[1] ?? null;
 }

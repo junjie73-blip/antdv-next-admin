@@ -4,8 +4,8 @@ import { computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 import { layoutRuntime } from '@antdv/layout-ui';
-import { useApiHealthStore, useRouteStore } from '@antdv/stores';
-import { localizeMenus, withoutMenuNames } from '@antdv/utils';
+import { useRouteStore } from '@antdv/stores';
+import { localizeMenus } from '@antdv/utils';
 
 import { createMenuTreeSource } from '../menu-source';
 
@@ -33,27 +33,13 @@ export function useLocalizedMenus() {
  * 各组件独立调用是安全的：所有状态都由「当前路由 + 菜单树」纯推导，
  * 没有任何本地记录，因此导航栏、图标栏、侧边栏、面包屑、标签页的高亮必然一致。
  */
-/**
- * 接口报错期间从导航收起的入口。
- *
- * 只影响这里喂给 `createMenuTreeSource` 的树；route store 的
- * `allowedNames/allowedPaths` 仍由完整菜单树收集，所以直达链接与标签页不会变 403。
- */
-const NAV_HIDDEN_ON_API_ERROR = ['DashboardTasks', 'DashboardTickets'] as const;
-
 export function useMenuTree(): MenuTreeSource {
   const route = useRoute();
   const router = useRouter();
-  const apiHealth = useApiHealthStore();
   const menus = useLocalizedMenus();
-  const navMenus = computed(() =>
-    apiHealth.hasError
-      ? withoutMenuNames(menus.value, NAV_HIDDEN_ON_API_ERROR)
-      : menus.value,
-  );
 
   return createMenuTreeSource({
-    menus: () => navMenus.value,
+    menus: () => menus.value,
     route: () => ({ name: route.name, path: route.path }),
     router,
   });

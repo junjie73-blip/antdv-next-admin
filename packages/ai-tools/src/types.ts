@@ -57,7 +57,7 @@ export interface TableQuery {
 
 export interface FilterSpec {
   field: string;
-  op: 'contains' | 'eq' | 'gt' | 'lt' | 'in';
+  op: 'contains' | 'eq' | 'gt' | 'in' | 'lt';
   value: unknown;
 }
 
@@ -81,7 +81,7 @@ export interface JsonSchemaObject {
   properties: Record<
     string,
     {
-      type: 'string' | 'number' | 'boolean' | 'array';
+      type: 'array' | 'boolean' | 'number' | 'string';
       title: string;
       description?: string;
       enum?: unknown[];
@@ -119,7 +119,7 @@ export interface ToolOutcome<T = unknown> {
 export interface ToolAuditEvent {
   tool: string;
   args: Record<string, unknown>;
-  result: 'success' | 'cancelled' | 'error';
+  result: 'cancelled' | 'error' | 'success';
   ms: number;
   traceId: string;
   route: string;

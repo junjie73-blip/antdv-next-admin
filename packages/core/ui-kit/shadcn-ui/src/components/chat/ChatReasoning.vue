@@ -1,24 +1,28 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
-import { Brain, ChevronRight } from '@lucide/vue'
-import { cn } from '@antdv/shared/utils/cn'
+import { ref, watch } from 'vue';
+
+import { cn } from '@antdv/shared/utils/cn';
+import { Brain, ChevronRight } from '@lucide/vue';
 
 const props = defineProps<{
-  text: string
-  streaming?: boolean
-  class?: string
-}>()
+  text: string;
+  streaming?: boolean;
+  class?: string;
+}>();
 
 // Open while the model thinks, collapse when it starts answering, unless the user toggled it
-const open = ref(!!props.streaming)
-const touched = ref(false)
-watch(() => props.streaming, (streaming) => {
-  if (!touched.value) open.value = !!streaming
-})
+const open = ref(!!props.streaming);
+const touched = ref(false);
+watch(
+  () => props.streaming,
+  (streaming) => {
+    if (!touched.value) open.value = !!streaming;
+  },
+);
 
 function toggle(): void {
-  touched.value = true
-  open.value = !open.value
+  touched.value = true;
+  open.value = !open.value;
 }
 </script>
 
@@ -31,10 +35,17 @@ function toggle(): void {
       @click="toggle"
     >
       <Brain class="size-4" />
-      <span :class="streaming && 'animate-pulse'">{{ streaming ? 'Thinking…' : 'Reasoning' }}</span>
-      <ChevronRight :class="cn('size-4 transition-transform', open && 'rotate-90')" />
+      <span :class="streaming && 'animate-pulse'">{{
+        streaming ? 'Thinking…' : 'Reasoning'
+      }}</span>
+      <ChevronRight
+        :class="cn('size-4 transition-transform', open && 'rotate-90')"
+      />
     </button>
-    <div v-if="open" class="mt-1 whitespace-pre-wrap border-l-2 pl-3 leading-relaxed">
+    <div
+      v-if="open"
+      class="mt-1 whitespace-pre-wrap border-l-2 pl-3 leading-relaxed"
+    >
       {{ text }}
     </div>
   </div>

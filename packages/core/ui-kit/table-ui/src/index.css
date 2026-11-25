@@ -8,3 +8,9 @@
  * 只许登记自己（`./`），不许伸进别的包 —— 守门在 `@antdv/hooks` 的 boundary.test.ts。
  */
 @source './';
+
+/* 操作列表头在截图里曾缺分隔线：工具类 border-b 依赖 Tailwind 扫描顺序，
+   这里补一条兜底规则，保证任何主题下的表头都有可见下边框。 */
+.basic-table-head {
+  border-bottom: 1px solid hsl(var(--border));
+}

@@ -16,8 +16,8 @@ import { defineMockRoute } from '../../../utils/runtime';
 
 /**
  * 我的审批列表：状态 / 关键词 / 审批视角四路筛选 + 统一分页。
- * 每次读取顺带扫描一次超时节点（每个节点只提醒一次），返回行上带
- * `currentNode / currentStep / overdue / canApprove`，列表页无需二次请求即可画进度。
+ * 每次读取顺带扫描一次超时节点（每个节点只处理一次，按规则自动流转），返回行上带
+ * `currentNode / currentRound / overdue / canApprove / canEdit / canResubmit`，列表页无需二次请求即可画进度。
  */
 export default defineMockRoute({
   handler({ headers, query }) {
@@ -31,7 +31,9 @@ export default defineMockRoute({
 
     scanApprovalTimeouts();
 
-    const rows = APPROVAL_DB.map((row) => enrichRecord(ensureFlow(row), account));
+    const rows = APPROVAL_DB.map((row) =>
+      enrichRecord(ensureFlow(row), account),
+    );
     const filtered = rows.filter((row) => {
       const matchKeyword =
         !keyword ||

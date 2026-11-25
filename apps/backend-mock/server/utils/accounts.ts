@@ -104,7 +104,11 @@ export const accounts: [MockAccount, ...MockAccount[]] = [
   },
   {
     password: 'staff123',
-    permissions: ['approval:mine:list', 'approval:mine:save', 'approval:mine:action'],
+    permissions: [
+      'approval:mine:list',
+      'approval:mine:save',
+      'approval:mine:action',
+    ],
     profile: {
       avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=staff',
       email: 'staff@antdv-next.com',

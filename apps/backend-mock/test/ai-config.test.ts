@@ -77,7 +77,7 @@ function restore<T extends { id: number }>(db: T[], seeds: T[]): void {
   });
 }
 
-describe('AI 配置数据闭环', () => {
+describe('aI 配置数据闭环', () => {
   beforeEach(() => {
     restore(AI_AGENT_DB, seedAgents);
     restore(AI_PROVIDER_DB, seedProviders);
@@ -390,7 +390,7 @@ describe('AI 配置数据闭环', () => {
     expect(res.data).toEqual(expected);
   });
 
-  it('Agent 独立 CRUD：只写 Agent 表，字段不混入模型 / 知识库', async () => {
+  it('agent 独立 CRUD：只写 Agent 表，字段不混入模型 / 知识库', async () => {
     const knowledgeBefore = AI_KNOWLEDGE_DB.length;
     const modelBefore = AI_MODEL_DB.length;
 
@@ -439,5 +439,34 @@ describe('AI 配置数据闭环', () => {
     expect(AI_AGENT_DB.some((row) => row.id === agent.id)).toBe(false);
     expect(AI_KNOWLEDGE_DB).toHaveLength(knowledgeBefore);
     expect(AI_MODEL_DB).toHaveLength(modelBefore);
+  });
+
+  it('agent 标签把 VNode / JSON 串洗成纯文本，列表出参也不回吐对象', async () => {
+    const dirty = JSON.stringify([
+      { __v_isVNode: true, children: '报表' },
+      { __v_isVNode: true, children: '推送' },
+    ]);
+    const created = await agentSave(
+      createTestEvent({
+        body: {
+          description: '标签脏数据回归',
+          name: '标签清洗 Agent',
+          owner: '测试组',
+          status: 'draft',
+          tags: dirty,
+        },
+      }),
+    );
+    expect(created.code, created.message).toBe(200);
+    expect(created.data.tags).toEqual(['报表', '推送']);
+
+    // 旧库行不回写，只在出参时兜底清洗
+    const row = AI_AGENT_DB.find((item) => item.id === created.data.id)!;
+    row.tags = [dirty] as any;
+    const listed = await agentList(createTestEvent({ query: {} }));
+    const listedRow = listed.data.list.find(
+      (item: any) => item.id === created.data.id,
+    );
+    expect(listedRow.tags).toEqual(['报表、推送']);
   });
 });

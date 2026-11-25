@@ -19,22 +19,26 @@
 ## 2. 数据全生命周期安全
 
 ### 采集与传输
+
 - 请求统一经 `packages/request` 的 fetcher：自动注入 `X-CSRF-Token`，401 统一登出，业务错误码与非 2xx 分离。
 - Mock 运行时对所有响应强制 `cache-control: no-store` 与 `vary: Authorization`，避免按会话分数据的接口被浏览器缓存串号。
 - 每个请求生成或透传 `X-Request-ID`，响应回写同名头；审计记录里可直接按链路 ID 检索。
 
 ### 存储
+
 - 统一使用 `better-sqlite3`（`node:sqlite` 兜底），业务 id 保持 number，物理主键与软删除由存储层维护。
 - 生产环境（`MOCK_STORE=sqlite` + 生产配置）**不自动播种**演示数据，避免把测试账号和演示 PII 带进生产库。
 - 表结构白名单 `assertTableName()` 防止动态 SQL 注入；所有写操作走白名单 DTO，前端传的 `progress` 等派生字段会被忽略。
 
 ### 使用与脱敏
+
 - 服务端脱敏是唯一真源：`masking.ts` 对手机号、邮箱、证件号、银行卡、密钥按策略打码；`password/token/secret/api-key/authorization/cookie` 等凭据键**无条件整体打码**，不受策略开关影响。
 - 前端 `@antdv/shared/utils/masking` 仅用于二次展示兜底，永远不能替代服务端脱敏。
 - 审计详情与 AI 提示词摘要落库前都经过 `sanitizePayload()`，并有深度/长度上限，防止超大请求体拖垮存储。
 - 策略可在「安全中心 → 脱敏策略」增删改，并提供「策略演练」即时验证判定结果。
 
 ### 审计与销毁
+
 - 每条经 `defineMockRoute` 的请求都生成 `actor / action / target / ip / result / traceId` 五元组记录；审计台账自身读取不产生递归记录。
 - 业务删除使用软删除；审计台账设计为只增不改，满足追责要求。
 

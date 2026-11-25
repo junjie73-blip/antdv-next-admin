@@ -10,19 +10,6 @@ import { useCssVar } from '@vueuse/core';
 
 defineOptions({ name: 'LockScreen' });
 
-/**
- * 解锁的下拉阈值：把手按下去之后要拖过这么多像素才提交密码。
- *
- * 做成入参（而不是写死在指针处理里）有两个理由：单测要在阈值上下两侧各打一次，
- * 以及窄屏（360px 的手机）上手指行程本来就短，宿主可以按视口给一个更小的值。
- * 这是位移量不是圆角，所以用 px —— 圆角才有 rem 的规矩（见下面的样式变量）。
- *
- * 必须声明在 `withDefaults` **之前**：`withDefaults` 的默认值对象会被 `@vue/compiler-sfc`
- * 一起搬进编译产物，晚声明的 `const` 在类型层面就是"使用前未声明"（`pnpm type-check`
- * 报 TS2448 / TS2454）。
- */
-const UNLOCK_PULL_THRESHOLD = 96;
-
 const props = withDefaults(
   defineProps<{
     /** 当前面板模式：首次设置密码 / 输入密码解锁 */
@@ -48,6 +35,19 @@ const emit = defineEmits<{
     payload: { confirm: string; password: string },
   ): void;
 }>();
+
+/**
+ * 解锁的下拉阈值：把手按下去之后要拖过这么多像素才提交密码。
+ *
+ * 做成入参（而不是写死在指针处理里）有两个理由：单测要在阈值上下两侧各打一次，
+ * 以及窄屏（360px 的手机）上手指行程本来就短，宿主可以按视口给一个更小的值。
+ * 这是位移量不是圆角，所以用 px —— 圆角才有 rem 的规矩（见下面的样式变量）。
+ *
+ * 必须声明在 `withDefaults` **之前**：`withDefaults` 的默认值对象会被 `@vue/compiler-sfc`
+ * 一起搬进编译产物，晚声明的 `const` 在类型层面就是"使用前未声明"（`pnpm type-check`
+ * 报 TS2448 / TS2454）。
+ */
+const UNLOCK_PULL_THRESHOLD = 96;
 
 /**
  * 锁屏遮罩：盖住整个视口，把滚动与页面上的默认交互全部挡在下面。

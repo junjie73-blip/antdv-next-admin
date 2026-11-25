@@ -125,7 +125,10 @@ export default defineConfig({
                 { text: '主题', link: '/guide/in-depth/theme' },
                 { text: '权限', link: '/guide/in-depth/access' },
                 { text: '安全中心', link: '/guide/in-depth/security' },
-                { text: 'AI Native 架构', link: '/guide/in-depth/ai-native-architecture' },
+                {
+                  text: 'AI Native 架构',
+                  link: '/guide/in-depth/ai-native-architecture',
+                },
                 {
                   text: '国际化',
                   link: '/guide/in-depth/internationalization',

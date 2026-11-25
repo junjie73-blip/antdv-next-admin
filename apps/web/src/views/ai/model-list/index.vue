@@ -14,7 +14,14 @@ import { computed, onMounted, ref } from 'vue';
 import { DataPage, Popconfirm } from '@antdv/common-ui';
 import { BasicForm, useForm } from '@antdv/form-ui';
 import { BasicModal, message, useModal } from '@antdv/popup-ui';
-import { Button, NativeSelect } from '@antdv/shadcn-ui';
+import {
+  Button,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@antdv/shadcn-ui';
 import { Icon } from '@iconify/vue';
 import {
   deleteAiModel,
@@ -181,8 +188,9 @@ const providerSchemas: FormSchema[] = [
   {
     component: 'Input',
     field: 'key',
+    helpMessage: '写入后服务端立即脱敏，仅回传末四位掩码',
     label: 'API Key',
-    componentProps: { placeholder: '写入后服务端立即脱敏，仅回传掩码' },
+    componentProps: { placeholder: '请输入 API Key（可选）' },
   },
   {
     component: 'Select',
@@ -355,33 +363,56 @@ onMounted(() => {
 
   <BasicModal
     title="配置模型供应商"
-    :width="680"
+    :width="760"
     @register="providerModalRegister"
     @ok="onProviderSubmit"
   >
-    <div class="mb-4 flex items-center gap-3">
-      <span class="text-sm font-medium">配置对象</span>
-      <NativeSelect
-        :model-value="providerSelectId"
-        class="w-56"
-        @update:model-value="onProviderSelect"
-      >
-        <option :value="0">＋ 新增供应商</option>
-        <option v-for="item in providers" :key="item.id" :value="item.id">
-          {{ item.name }}
-        </option>
-      </NativeSelect>
-      <span class="text-xs text-muted-foreground">
-        {{ providerSelectId ? '编辑已有供应商' : '将创建新供应商' }}
-      </span>
+    <div class="space-y-4">
+      <section class="rounded-lg border border-border bg-muted/30 p-4">
+        <div
+          class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+        >
+          <div>
+            <p class="text-sm font-medium">配置对象</p>
+            <p class="mt-0.5 text-xs text-muted-foreground">
+              选择已有供应商进行编辑，或新增一个供应商
+            </p>
+          </div>
+          <Select
+            :model-value="providerSelectId"
+            @update:model-value="onProviderSelect"
+          >
+            <SelectTrigger class="w-full sm:w-64">
+              <SelectValue placeholder="选择供应商" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem :value="0">＋ 新增供应商</SelectItem>
+              <SelectItem
+                v-for="item in providers"
+                :key="item.id"
+                :value="item.id"
+              >
+                {{ item.name }}
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <p class="mt-2 text-xs text-muted-foreground">
+          {{ providerSelectId ? '正在编辑已有供应商' : '将创建新供应商' }}
+        </p>
+      </section>
+
+      <section class="rounded-lg border border-border p-4">
+        <p class="mb-3 text-sm font-medium">连接信息</p>
+        <BasicForm
+          :schemas="providerSchemas"
+          :label-width="112"
+          :show-action-button-group="false"
+          :grid="{ cols: 2, gutter: [20, 18] }"
+          @register="providerFormRegister"
+        />
+      </section>
     </div>
-    <BasicForm
-      :schemas="providerSchemas"
-      :label-width="90"
-      :show-action-button-group="false"
-      :grid="{ cols: 2, gutter: 16 }"
-      @register="providerFormRegister"
-    />
     <template #appendFooter>
       <Popconfirm
         title="删除后关联模型将无法调用该供应商，确定删除吗？"
@@ -390,6 +421,7 @@ onMounted(() => {
       >
         <Button
           variant="destructive"
+          size="sm"
           :disabled="!providerSelectId"
           type="button"
         >

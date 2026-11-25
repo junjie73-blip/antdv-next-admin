@@ -13,7 +13,7 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     AiAssistant: typeof import('./../src/components/ai-assistant/index.vue')['default']
-    ApprovalFlowTimeline: typeof import('./../src/components/approval/ApprovalFlowTimeline.vue')['default']
+    ApprovalFlowChart: typeof import('./../src/components/approval/ApprovalFlowChart.vue')['default']
     ConfirmActionCard: typeof import('./../src/components/ai-assistant/components/ConfirmActionCard.vue')['default']
     FilePreview: typeof import('./../src/components/file-preview/FilePreview.vue')['default']
     FilePreviewDialog: typeof import('./../src/components/file-preview/FilePreviewDialog.vue')['default']
@@ -26,7 +26,7 @@ declare module 'vue' {
 // For TSX support
 declare global {
   const AiAssistant: typeof import('./../src/components/ai-assistant/index.vue')['default']
-  const ApprovalFlowTimeline: typeof import('./../src/components/approval/ApprovalFlowTimeline.vue')['default']
+  const ApprovalFlowChart: typeof import('./../src/components/approval/ApprovalFlowChart.vue')['default']
   const ConfirmActionCard: typeof import('./../src/components/ai-assistant/components/ConfirmActionCard.vue')['default']
   const FilePreview: typeof import('./../src/components/file-preview/FilePreview.vue')['default']
   const FilePreviewDialog: typeof import('./../src/components/file-preview/FilePreviewDialog.vue')['default']

@@ -181,7 +181,7 @@ describe('审批流数据闭环', () => {
         body: {
           title: '验收单据',
           type: '采购',
-          applicant: '测试员',
+          applicant: '王一',
           amount: '¥ 100',
           groupId: 2,
         },

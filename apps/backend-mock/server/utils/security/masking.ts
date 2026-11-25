@@ -29,10 +29,7 @@ export interface MaskPolicyLike {
 const CREDENTIAL_KEY_RE =
   /(authorization|cookie|credential|passwd|password|secret|token|api[-_]?key)/i;
 
-const TYPE_PATTERNS: Record<
-  Exclude<MaskType, 'generic' | 'name'>,
-  RegExp
-> = {
+const TYPE_PATTERNS: Record<Exclude<MaskType, 'generic' | 'name'>, RegExp> = {
   apikey: /(?:sk|ak)-[A-Za-z0-9_-]{8,}/g,
   bankcard: /\d{13,19}/g,
   email: /[^\s@]+@[^\s@][^\s.@]*\.[^\s@]+/g,
@@ -68,7 +65,9 @@ export function maskByType(
     return `${value.slice(0, 3)}****${value.slice(-4)}`;
   if (type === 'email') {
     const [local, domain] = value.split('@');
-    return domain ? `${'*'.repeat(Math.min(local?.length ?? 1, 3))}@${domain}` : '***';
+    return domain
+      ? `${'*'.repeat(Math.min(local?.length ?? 1, 3))}@${domain}`
+      : '***';
   }
   if (type === 'idcard')
     return `${value.slice(0, 6)}***********${value.slice(-4)}`;
@@ -100,7 +99,9 @@ export function maskText(
   if (secretPattern.test(result)) {
     secretPattern.lastIndex = 0;
     if (!categories.includes('密钥')) categories.push('密钥');
-    result = result.replace(secretPattern, (match) => maskByType(match, 'apikey'));
+    result = result.replace(secretPattern, (match) =>
+      maskByType(match, 'apikey'),
+    );
   }
   return { categories, text: result };
 }
@@ -117,7 +118,9 @@ export function sanitizePayload(
   if (value === null || value === undefined) return null;
   if (depth > 4) return '[truncated]';
   if (Array.isArray(value))
-    return value.slice(0, 30).map((item) => sanitizePayload(item, policies, depth + 1));
+    return value
+      .slice(0, 30)
+      .map((item) => sanitizePayload(item, policies, depth + 1));
   if (typeof value !== 'object') {
     if (typeof value !== 'string') return value;
     const clipped = value.length > 500 ? `${value.slice(0, 500)}…` : value;

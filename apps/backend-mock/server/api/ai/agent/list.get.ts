@@ -1,4 +1,4 @@
-import { AI_AGENT_DB } from '../../../utils/db/ai';
+import { AI_AGENT_DB, normalizeAgentTags } from '../../../utils/db/ai';
 import { paginateList } from '../../../utils/pagination';
 import { success } from '../../../utils/response';
 import { defineMockRoute } from '../../../utils/runtime';
@@ -19,7 +19,18 @@ export default defineMockRoute({
       return matchKeyword && matchStatus;
     });
 
-    return success(paginateList(filtered, query), '获取 Agent 成功');
+    // 旧库里可能有 VNode 序列化后的脏标签，出参统一洗成纯文本，不改种子
+    const page = paginateList(filtered, query);
+    return success(
+      {
+        list: page.list.map((row) => ({
+          ...row,
+          tags: normalizeAgentTags(row.tags),
+        })),
+        total: page.total,
+      },
+      '获取 Agent 成功',
+    );
   },
   method: 'GET',
   path: '/ai/agent/list',

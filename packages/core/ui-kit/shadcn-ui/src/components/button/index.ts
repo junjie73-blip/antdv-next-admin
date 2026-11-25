@@ -18,7 +18,8 @@ export const buttonVariants = cva(
           'bg-secondary hover:bg-secondary/80 text-secondary-foreground',
         ghost:
           'dark:hover:bg-accent/50 hover:bg-accent hover:text-accent-foreground',
-        link: 'text-primary underline-offset-4 hover:underline',
+        // 操作型 link 按钮不设置 text-decoration-line，视觉上就是普通文字按钮
+        link: 'text-primary',
       },
       size: {
         default: 'h-9 px-4 py-2 has-[>svg]:px-3',

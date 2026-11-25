@@ -156,10 +156,7 @@ function handleMessage(raw: unknown): void {
   /* ============================================================
    * 通知推送（notice:push / report:notify 统一入口）
    * ============================================================ */
-  if (
-    data.type === 'notice:push' ||
-    data.type === 'report:notify'
-  ) {
+  if (data.type === 'notice:push' || data.type === 'report:notify') {
     const notice = transformNotice(data.data);
     sharedNotice.value = notice;
     eventBus.emit(WS_EVENTS.NOTICE, notice);

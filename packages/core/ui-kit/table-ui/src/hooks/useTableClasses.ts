@@ -147,12 +147,16 @@ export function useTableClasses(options: UseTableClassesOptions) {
    */
   const cellBoxClass = 'px-3 py-2 text-sm leading-6 align-middle';
 
-  /** 对齐：`headerAlign` 缺省跟随 `align`；两者都没写就是靠左 */
+  /**
+   * 对齐：`headerAlign` 缺省跟随 `align`；列没写就是居中。
+   *
+   * BasicTable 的单元格默认水平居中（表格规范），`left` / `right` 仍需显式声明。
+   */
   const alignClass = (col: BasicColumn, header = false) => {
     const align =
-      (header ? (col.headerAlign ?? col.align) : col.align) || 'left';
-    if (align === 'center') return 'text-center';
-    return align === 'right' ? 'text-right' : 'text-left';
+      (header ? (col.headerAlign ?? col.align) : col.align) || 'center';
+    if (align === 'left') return 'text-left';
+    return align === 'right' ? 'text-right' : 'text-center';
   };
 
   /**
@@ -187,6 +191,9 @@ export function useTableClasses(options: UseTableClassesOptions) {
       // 表头底色一律实色：钉住的表头会被数据行从下面滚过，固定列表头还要压住
       // 同行横向滚过去的普通单元格（`bg-inherit` 拿到的就是这条底色）
       'bg-muted',
+      // 表头下边框：shadcn 的 TableHead 出厂不带分隔线，行边框在 border-collapse
+      // 下又不一定画得出来，操作列尤其明显（截图里「操作」下面空一条）
+      'border-border border-b',
       merged.mergedScrollY.value !== undefined && 'sticky top-0 z-10',
       sticky.pinnedHeadClass(col),
       col.sorter && 'cursor-pointer select-none',

@@ -1,4 +1,5 @@
 import type { FormSchema } from '@antdv/form-ui';
+import type { ActionItem } from '@antdv/table-ui';
 
 export type StatTone = 'amber' | 'blue' | 'green' | 'red' | 'violet';
 
@@ -42,6 +43,16 @@ export type DataWriteHook<T = boolean | void> = (
 export interface DataPageProps {
   /** 服务端数据源；提供后替代本地 rows 的过滤与切片 */
   api?: (params: Record<string, any>) => Promise<DataListResult>;
+  /** 行内最多显示几个操作，超出收进「更多」（默认 4） */
+  actionMaxShowCount?: number;
+  /** 详情抽屉宽度（px），流程类页面可传更宽以免节点被挤小 */
+  detailWidth?: number;
+  /** 宿主追加的操作项，统一由 TableAction 渲染，排在「详情」之前 */
+  extraActions?: ((row: DataRow) => ActionItem[]) | ActionItem[];
+  /** 行级编辑权限：返回 false 时隐藏编辑入口（默认全部允许） */
+  canEditRow?: (row: DataRow) => boolean;
+  /** 行级删除权限：返回 false 时隐藏删除入口（默认全部允许） */
+  canDeleteRow?: (row: DataRow) => boolean;
   /** 新建/编辑提交；返回 false 阻止关闭弹层 */
   onSubmit?: DataWriteHook;
   /** 单条删除；返回 false 视为放弃 */

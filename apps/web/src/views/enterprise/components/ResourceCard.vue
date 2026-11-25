@@ -11,9 +11,6 @@ import { Icon } from '@iconify/vue';
  */
 defineOptions({ name: 'EnterpriseResourceCard' });
 
-/** 标题区点击：宿主可用来打开详情页；底部操作区不冒泡，互不干扰 */
-defineEmits<{ open: [] }>();
-
 withDefaults(
   defineProps<{
     description?: string;
@@ -36,6 +33,9 @@ withDefaults(
   },
 );
 
+/** 标题区点击：宿主可用来打开详情页；底部操作区不冒泡，互不干扰 */
+defineEmits<{ open: [] }>();
+
 const STATUS_COLOR: Record<string, string> = {
   error: 'red',
   info: 'blue',
@@ -51,7 +51,7 @@ const iconClassName = cn('text-primary text-lg');
 const titleClassName = cn('text-foreground truncate text-sm font-medium');
 const eyebrowClassName = cn('text-muted-foreground mt-1 text-xs');
 const descClassName = cn(
-  'text-muted-foreground mt-3 line-clamp-2 min-h-10 text-xs/5 ',
+  'text-muted-foreground mt-3 line-clamp-2 min-h-10 text-xs/5',
 );
 const tagsClassName = cn('mt-3 flex flex-wrap gap-1');
 const metricsClassName = cn(
@@ -68,7 +68,7 @@ const footerClassName = cn(
 
 <template>
   <Card :class="cardClassName">
-    <div :class="[headerClassName, 'cursor-pointer']" @click="$emit('open')">
+    <div class="cursor-pointer" :class="[headerClassName]" @click="$emit('open')">
       <div class="min-w-0 flex-1">
         <div :class="titleRowClassName">
           <Icon :icon="icon" :class="iconClassName" />

@@ -110,13 +110,15 @@ const createSchemas = computed<FormSchema[]>(() => [
   {
     component: 'Input',
     field: 'endpoint',
-    label: 'API Endpoint',
+    label: '接口地址',
+    placeholder: 'https://api.example.com/v1',
     required: true,
   },
   {
     component: 'Input',
     field: 'key',
-    label: 'API Key（仅保留末 4 位掩码，明文不落库）',
+    helpMessage: '明文不落库，仅回传末四位掩码',
+    label: 'API Key',
     placeholder: '留空表示沿用已配置密钥',
   },
   {

@@ -14,7 +14,7 @@ import { getAiCallList, getAuditStats } from '~/api/security';
 
 defineOptions({ name: 'SecurityAiCalls' });
 
-const stats = ref<SecurityOperations | null>(null);
+const stats = ref<null | SecurityOperations>(null);
 
 const LEVEL_LABELS: Record<string, string> = {
   critical: '严重',

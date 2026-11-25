@@ -22,13 +22,18 @@ function lastUserText(request: ChatRequest): string {
     if (typeof message.content === 'string') return message.content;
     return message.content
       .filter((part: { type: string }) => part.type === 'text')
-      .map((part: { type: string; text?: string }) => (part.type === 'text' ? part.text ?? '' : ''))
+      .map((part: { type: string; text?: string }) =>
+        part.type === 'text' ? (part.text ?? '') : '',
+      )
       .join('');
   }
   return '';
 }
 
-function pushText(controller: ReadableStreamDefaultController<ChatStreamChunk>, text: string) {
+function pushText(
+  controller: ReadableStreamDefaultController<ChatStreamChunk>,
+  text: string,
+) {
   controller.enqueue({ type: 'text-delta', text });
 }
 
@@ -49,7 +54,11 @@ function emitToolCall(
   args: Record<string, unknown>,
 ) {
   controller.enqueue({ type: 'tool-call-start', toolCallId, toolName });
-  controller.enqueue({ type: 'tool-call-delta', toolCallId, args: JSON.stringify(args) });
+  controller.enqueue({
+    type: 'tool-call-delta',
+    toolCallId,
+    args: JSON.stringify(args),
+  });
   controller.enqueue({ type: 'tool-call-end', toolCallId });
 }
 
@@ -71,7 +80,10 @@ export function createCopilotProvider(): LLMProvider {
 
       const stream = new ReadableStream<ChatStreamChunk>({
         async start(controller) {
-          controller.enqueue({ type: 'message-start', id: `copilot_${Date.now()}` });
+          controller.enqueue({
+            type: 'message-start',
+            id: `copilot_${Date.now()}`,
+          });
 
           try {
             if (/(重启|重试|restart)/iu.test(text)) {
@@ -91,24 +103,36 @@ export function createCopilotProvider(): LLMProvider {
               );
             } else {
               const history = request.messages
-                .filter((message: { role: string }) => message.role !== 'system')
+                .filter(
+                  (message: { role: string }) => message.role !== 'system',
+                )
                 .map((message) => ({
                   content:
                     typeof message.content === 'string'
                       ? message.content
                       : message.content
-                          .filter((part: { type: string }) => part.type === 'text')
-                          .map((part: { type: string; text?: string }) => (part.type === 'text' ? part.text ?? '' : ''))
+                          .filter(
+                            (part: { type: string }) => part.type === 'text',
+                          )
+                          .map((part: { type: string; text?: string }) =>
+                            part.type === 'text' ? (part.text ?? '') : '',
+                          )
                           .join(''),
                   role: message.role,
                 }))
-                .filter((message) => message.role === 'user' || message.role === 'assistant')
+                .filter(
+                  (message) =>
+                    message.role === 'user' || message.role === 'assistant',
+                )
                 .map((message: { content: string; role: string }) => ({
                   content: message.content,
-                  role: message.role as 'user' | 'assistant',
+                  role: message.role as 'assistant' | 'user',
                 }));
               const { title, entity } = pageContextOf(request);
-              if (title && /(这个页面能做什么|页面.*做什么|能做什么)/u.test(text)) {
+              if (
+                title &&
+                /(这个页面能做什么|页面.*做什么|能做什么)/u.test(text)
+              ) {
                 pushText(
                   controller,
                   [
@@ -131,7 +155,8 @@ export function createCopilotProvider(): LLMProvider {
           } catch (error) {
             controller.enqueue({
               type: 'error',
-              error: error instanceof Error ? error : new Error('Copilot 请求失败'),
+              error:
+                error instanceof Error ? error : new Error('Copilot 请求失败'),
             });
           } finally {
             controller.close();

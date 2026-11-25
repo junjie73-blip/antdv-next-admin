@@ -9,6 +9,7 @@ import type {
   AiFieldDescriptor,
   AiLinkDescriptor,
 } from '@antdv/ai-tools';
+
 import type { RouteLocationNormalizedLoaded } from 'vue-router';
 
 import { useRouteStore } from '@antdv/stores';
@@ -57,8 +58,8 @@ function humanizeRoute(route: RouteLocationNormalizedLoaded): string {
   const last = raw.split('/').filter(Boolean).pop() ?? raw;
   return (
     last
-      .replace(/([a-z0-9])([A-Z])/gu, '$1 $2')
-      .replace(/[-_]/gu, ' ')
+      .replaceAll(/([a-z0-9])([A-Z])/gu, '$1 $2')
+      .replaceAll(/[-_]/gu, ' ')
       .trim() || '当前页面'
   );
 }
@@ -90,14 +91,21 @@ export function metaOf(route: RouteLocationNormalizedLoaded): AiContextMeta {
     ...FALLBACK,
     title,
     entity: menuEntity || String(route.name ?? 'page'),
-    prompts: [`分析当前${title}的关键指标`, `列出${title}里最需要关注的 3 项`, '这个页面能做什么？'],
+    prompts: [
+      `分析当前${title}的关键指标`,
+      `列出${title}里最需要关注的 3 项`,
+      '这个页面能做什么？',
+    ],
   };
 }
 
 /** 选中行由页面写入，key 用 route.name，避免跨页串线 */
 const selectionStore = new Map<string, Record<string, unknown>[]>();
 
-export function setPageSelection(routeName: string, rows: Record<string, unknown>[]) {
+export function setPageSelection(
+  routeName: string,
+  rows: Record<string, unknown>[],
+) {
   selectionStore.set(routeName, rows);
 }
 
@@ -105,7 +113,9 @@ export function clearPageSelection(routeName: string) {
   selectionStore.delete(routeName);
 }
 
-export function snapshotOf(route: RouteLocationNormalizedLoaded): AiContextSnapshot {
+export function snapshotOf(
+  route: RouteLocationNormalizedLoaded,
+): AiContextSnapshot {
   const meta = metaOf(route);
   const routeName = String(route.name ?? (route as { path: string }).path);
   return {

@@ -618,23 +618,45 @@ function isImageFile(fileName: string): boolean {
 }
 
 /** 可预览格式交给通用组件判定；这里只挡掉明确不支持的类型并给出提示 */
-const PREVIEWABLE_EXTS = [
-  'png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp',
-  'mp4', 'webm', 'ogg', 'mov', 'mp3', 'wav', 'm4a', 'flac',
-  'pdf', 'md', 'markdown', 'csv', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx',
-];
+const PREVIEWABLE_EXTS = new Set([
+  'bmp',
+  'csv',
+  'doc',
+  'docx',
+  'flac',
+  'gif',
+  'jpeg',
+  'jpg',
+  'm4a',
+  'markdown',
+  'md',
+  'mov',
+  'mp3',
+  'mp4',
+  'ogg',
+  'pdf',
+  'png',
+  'ppt',
+  'pptx',
+  'svg',
+  'wav',
+  'webm',
+  'webp',
+  'xls',
+  'xlsx',
+]);
 
 const previewVisible = ref(false);
-const previewFile = ref<null | File>(null);
+const previewFile = ref<File | null>(null);
 const previewFileName = ref('');
 
 function isPreviewable(fileName: string): boolean {
-  return PREVIEWABLE_EXTS.includes(fileName.split('.').pop()?.toLowerCase() ?? '');
+  return PREVIEWABLE_EXTS.has(fileName.split('.').pop()?.toLowerCase() ?? '');
 }
 
 function handlePreview(item: FileQueueItem) {
   const ext = item.fileName.split('.').pop()?.toLowerCase() ?? '';
-  if (!PREVIEWABLE_EXTS.includes(ext)) {
+  if (!PREVIEWABLE_EXTS.has(ext)) {
     message.info(`暂不支持预览 ${ext.toUpperCase() || '未知'} 格式文件`);
     return;
   }
@@ -1074,7 +1096,11 @@ function handlePreviewOpenChange(value: boolean) {
             </DialogDescription>
           </DialogHeader>
           <!-- 统一走通用预览组件：图片/PDF/Office/Markdown/CSV/音视频共用一套加载与错误态 -->
-          <FilePreview v-if="previewFile" :source="previewFile" :name="previewFileName" />
+          <FilePreview
+            v-if="previewFile"
+            :source="previewFile"
+            :name="previewFileName"
+          />
         </DialogContent>
       </Dialog>
     </Card>

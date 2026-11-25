@@ -11,8 +11,6 @@ import { computed, onMounted, ref } from 'vue';
 
 import { DataPage } from '@antdv/common-ui';
 import { message } from '@antdv/popup-ui';
-import { Button } from '@antdv/shadcn-ui';
-import { Icon } from '@iconify/vue';
 import {
   getApprovalInstanceList,
   getApprovalMonitorSummary,
@@ -109,6 +107,13 @@ async function refreshInstances() {
 
 const config = computed<DataPageProps>(() => ({
   api: listApi,
+  extraActions: [
+    {
+      icon: 'carbon:renew',
+      label: '刷新实例',
+      onClick: () => refreshInstances(),
+    },
+  ],
   columns: columns.value,
   description: '审批流程实例的吞吐、耗时与异常监控。',
   filters: filters.value,
@@ -127,13 +132,7 @@ onMounted(loadSummary);
 
 <template>
   <div class="approval-monitor-page">
-    <DataPage v-bind="config" ref="pageRef">
-      <template #action-extra>
-        <Button variant="link" class="h-auto px-0.5!" @click="refreshInstances">
-          <Icon icon="carbon:renew" /> 刷新实例
-        </Button>
-      </template>
-    </DataPage>
+    <DataPage v-bind="config" ref="pageRef" />
   </div>
 </template>
 

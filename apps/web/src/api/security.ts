@@ -105,7 +105,10 @@ export function getAiCallList(params?: Record<string, unknown>) {
 }
 
 /** 安全策略演练：只判定、不写审计 */
-export function previewSecurityGuard(text: string, mode: 'output' | 'prompt' = 'prompt') {
+export function previewSecurityGuard(
+  text: string,
+  mode: 'output' | 'prompt' = 'prompt',
+) {
   return post<GuardPreviewResult>('/security/guard/preview', { mode, text });
 }
 
@@ -173,7 +176,14 @@ export interface MaskPolicy {
   keepEnd: number;
   keepStart: number;
   scope: string;
-  type: 'apikey' | 'bankcard' | 'email' | 'generic' | 'idcard' | 'name' | 'phone';
+  type:
+    | 'apikey'
+    | 'bankcard'
+    | 'email'
+    | 'generic'
+    | 'idcard'
+    | 'name'
+    | 'phone';
   updatedAt: string;
 }
 

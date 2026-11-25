@@ -250,19 +250,59 @@ export interface BasicColumn {
 // 操作列类型
 // ============================================
 
+/** 操作按钮类型；缺省为 `link` 变体，但表格操作栏统一不显示下划线 */
+export type ActionButtonType =
+  | 'dashed'
+  | 'default'
+  | 'ghost'
+  | 'link'
+  | 'primary'
+  | 'text';
+
+/** 二次确认弹窗配置（文案可覆盖 Popconfirm 的全局默认值） */
+export interface ActionPopConfirm {
+  /** 标题 */
+  title: string | VNode;
+  /** 补充说明 */
+  content?: string | VNode;
+  /** 确认回调 */
+  confirm?: Fn<[Recordable, MouseEvent], void>;
+  /** 取消回调 */
+  cancel?: Fn<[Recordable, MouseEvent], void>;
+  /** 确认按钮文案 */
+  okText?: string;
+  /** 取消按钮文案 */
+  cancelText?: string;
+}
+
+/** 悬浮提示内容；函数形态可按行数据定制 */
+export type ActionTooltip =
+  | ((record: Recordable) => string | VNode)
+  | string
+  | VNode;
+
 /** 操作项 */
 export interface ActionItem {
   /** 操作标签 */
   label?: ((record: Recordable) => string | VNode) | string | VNode;
 
-  /** 操作图标 */
+  /** 操作图标（iconify 名，如 `carbon:edit`） */
   icon?: string;
+
+  /** 悬浮提示；仅无 label 的纯图标按钮展示，默认无提示 */
+  tooltip?: ActionTooltip;
 
   /** 点击事件 */
   onClick?: Fn<[Recordable, MouseEvent], void>;
 
-  /** 权限码；数组表示任一命中即可 */
+  /** 权限码；数组表示任一命中即可。`permission` 的别名，保留兼容旧配置 */
   auth?: string | string[];
+
+  /** 权限码；数组表示任一命中即可。由 `tableRuntime` 的注入实现判定 */
+  permission?: string | string[];
+
+  /** 权限不足时的处理：`hide`（默认，直接不渲染）/ `disable`（渲染但禁用） */
+  permissionMode?: 'disable' | 'hide';
 
   /** 是否显示 */
   ifShow?: ((record: Recordable) => boolean) | boolean;
@@ -270,8 +310,8 @@ export interface ActionItem {
   /** 是否禁用 */
   disabled?: ((record: Recordable) => boolean) | boolean;
 
-  /** 按钮类型 */
-  type?: 'dashed' | 'default' | 'ghost' | 'link' | 'primary' | 'text';
+  /** 按钮类型，默认 `text` */
+  type?: ActionButtonType;
 
   /** 按钮大小 */
   size?: 'large' | 'middle' | 'small';
@@ -282,13 +322,8 @@ export interface ActionItem {
   /** 按钮颜色 */
   color?: 'error' | 'success' | 'warning' | string;
 
-  /** Popconfirm 配置 */
-  popConfirm?: {
-    title: string | VNode;
-    content?: string | VNode;
-    confirm?: Fn<[Recordable, MouseEvent], void>;
-    cancel?: Fn<[Recordable, MouseEvent], void>;
-  };
+  /** 二次确认弹窗配置 */
+  popConfirm?: ActionPopConfirm;
 
   /** Dropdown 配置 */
   dropdown?: ActionItem[];
@@ -300,7 +335,36 @@ export interface ActionItem {
   render?: (record: Recordable) => VNode;
 }
 
-/** 操作列配置 */
+/** 权限判定函数；返回 false 时按 permissionMode 隐藏或禁用 */
+export type ActionPermissionChecker = (
+  action: ActionItem,
+  record: Recordable,
+) => boolean;
+
+/** 权限不足时的处理策略 */
+export type ActionPermissionMode = 'disable' | 'hide';
+
+/** `TableAction` 组件入参 */
+export interface TableActionProps {
+  /** 操作项配置数组，默认 `[]` */
+  actions?: ActionItem[];
+  /** 当前行数据（权限 / ifShow / label 函数都拿它算），默认 `{}` */
+  record?: Recordable;
+  /**
+   * 行内最多显示几个按钮（默认 4）。
+   * 超过时前 `maxCount - 1` 项平铺，第 `maxCount` 位替换为「更多」下拉，
+   * 从第 `maxCount` 项起的操作全部收进下拉。
+   */
+  maxCount?: number;
+  /** `maxCount` 的旧别名；同时传入时以本项为准，方便存量配置平滑迁移 */
+  maxShowCount?: number;
+  /** 组件级权限判定；不传时走 `configureTable()` 注入的 tableRuntime */
+  hasPermission?: ActionPermissionChecker;
+  /** 组件级权限处理策略，默认 `hide`；可被单个 action 的 permissionMode 覆盖 */
+  permissionMode?: ActionPermissionMode;
+}
+
+/** 操作列配置；`actions` 可直接传数组，也可按行返回数组 */
 export interface ActionColumnProps {
   /** 列宽 */
   width?: number;
@@ -317,11 +381,17 @@ export interface ActionColumnProps {
   /** 对齐方式 */
   align?: 'center' | 'left' | 'right';
 
-  /** 操作项 */
-  actions?: (record: Recordable) => ActionItem[];
+  /** 操作项；静态数组或按行生成的函数都由 BasicTable 统一渲染 */
+  actions?: ((record: Recordable) => ActionItem[]) | ActionItem[];
 
-  /** 最多显示数量，超出显示下拉 */
+  /** 最多显示数量（默认 4），超出后插入「更多」下拉 */
+  maxCount?: number;
+  /** `maxCount` 的旧别名 */
   maxShowCount?: number;
+  /** 组件级权限判定 */
+  hasPermission?: ActionPermissionChecker;
+  /** 组件级权限处理策略 */
+  permissionMode?: ActionPermissionMode;
 }
 
 // ============================================

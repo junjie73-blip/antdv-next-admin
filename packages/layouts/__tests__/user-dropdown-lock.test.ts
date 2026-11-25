@@ -85,20 +85,27 @@ function mountLockHarness() {
   return mountWith(() => {
     const state = useLockScreen();
     return () =>
-      h('div', { 'data-artwork': state.artworkUrl.value, 'data-testid': 'lock-harness' }, [
-        h('button', { 'data-testid': 'harness-lock', onClick: state.lock }),
-        state.locked.value
-          ? h(LockScreen, {
-              artworkUrl: state.artworkUrl.value,
-              errorMessageKey: state.errorMessageKey.value,
-              mode: state.mode.value,
-              onSubmitPassword: (payload: {
-                password: string;
-                confirm: string;
-              }) => state.submitPassword(payload.password, payload.confirm),
-            })
-          : null,
-      ]);
+      h(
+        'div',
+        {
+          'data-artwork': state.artworkUrl.value,
+          'data-testid': 'lock-harness',
+        },
+        [
+          h('button', { 'data-testid': 'harness-lock', onClick: state.lock }),
+          state.locked.value
+            ? h(LockScreen, {
+                artworkUrl: state.artworkUrl.value,
+                errorMessageKey: state.errorMessageKey.value,
+                mode: state.mode.value,
+                onSubmitPassword: (payload: {
+                  password: string;
+                  confirm: string;
+                }) => state.submitPassword(payload.password, payload.confirm),
+              })
+            : null,
+        ],
+      );
   });
 }
 

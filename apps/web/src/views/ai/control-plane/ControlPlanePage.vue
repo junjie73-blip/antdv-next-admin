@@ -12,7 +12,6 @@ import { BasicForm, useForm } from '@antdv/form-ui';
 import { BasicDrawer, message, useDrawer } from '@antdv/popup-ui';
 import { Button, Input } from '@antdv/shadcn-ui';
 import { BasicTable, useTable } from '@antdv/table-ui';
-
 import {
   deleteControlPlane,
   listControlPlane,
@@ -22,15 +21,14 @@ import { useTimeFormat } from '~/composables/use-time-format';
 
 defineOptions({ name: 'ControlPlanePage' });
 
-type Kind = 'context' | 'provider' | 'prompt' | 'trace';
-type EditableKind = Exclude<Kind, 'trace'>;
-
 const props = defineProps<{
   description: string;
   icon: string;
   kind: Kind;
   title: string;
 }>();
+type Kind = 'context' | 'prompt' | 'provider' | 'trace';
+type EditableKind = Exclude<Kind, 'trace'>;
 
 const { format: formatTime } = useTimeFormat();
 const rows = ref<Record<string, unknown>[]>([]);
@@ -44,14 +42,27 @@ const reloadKey = ref(0);
 
 const isTrace = computed(() => props.kind === 'trace');
 
-const COLUMN_MAP: Record<Kind, Array<{ dataIndex: string; title: string; width?: number; format?: (text: unknown) => string }>> = {
+const COLUMN_MAP: Record<
+  Kind,
+  Array<{
+    dataIndex: string;
+    title: string;
+    width?: number;
+    format?: (text: unknown) => string;
+  }>
+> = {
   context: [
     { dataIndex: 'name', title: '策略名称' },
     { dataIndex: 'maxTokens', title: 'Token 预算', width: 110 },
     { dataIndex: 'maxHistory', title: '历史轮数', width: 100 },
     { dataIndex: 'strategy', title: '压缩策略', width: 130 },
     { dataIndex: 'maskPii', title: 'PII 脱敏', width: 100 },
-    { dataIndex: 'updatedAt', title: '更新时间', width: 180, format: formatTime },
+    {
+      dataIndex: 'updatedAt',
+      title: '更新时间',
+      width: 180,
+      format: formatTime,
+    },
   ],
   provider: [
     { dataIndex: 'name', title: '供应商' },
@@ -67,7 +78,12 @@ const COLUMN_MAP: Record<Kind, Array<{ dataIndex: string; title: string; width?:
     { dataIndex: 'version', title: '版本', width: 80 },
     { dataIndex: 'variables', title: '变量', width: 180 },
     { dataIndex: 'enabled', title: '启用', width: 80 },
-    { dataIndex: 'updatedAt', title: '更新时间', width: 180, format: formatTime },
+    {
+      dataIndex: 'updatedAt',
+      title: '更新时间',
+      width: 180,
+      format: formatTime,
+    },
   ],
   trace: [
     { dataIndex: 'traceId', title: 'Trace ID', width: 150 },
@@ -83,12 +99,18 @@ const COLUMN_MAP: Record<Kind, Array<{ dataIndex: string; title: string; width?:
 /** 表单必填 + 业务规则：Prompt 的路由与 System Prompt 最容易写出无效配置 */
 const SCHEMAS: Record<EditableKind, FormSchema[]> = {
   context: [
-    { field: 'name', label: '策略名称', component: 'Input', required: true, componentProps: { placeholder: '如：默认上下文策略' } },
+    {
+      field: 'name',
+      label: '策略名称',
+      component: 'Input',
+      required: true,
+      componentProps: { placeholder: '如：默认上下文策略' },
+    },
     {
       field: 'maxTokens',
       label: 'Token 预算',
       component: 'InputNumber',
-      componentProps: { min: 256, max: 200000, class: 'w-full' },
+      componentProps: { min: 256, max: 200_000, class: 'w-full' },
       required: true,
     },
     {
@@ -141,7 +163,9 @@ const SCHEMAS: Record<EditableKind, FormSchema[]> = {
       label: 'Key 引用',
       component: 'Input',
       required: true,
-      componentProps: { placeholder: 'DASHSCOPE_API_KEY（只填环境变量名，不填明文）' },
+      componentProps: {
+        placeholder: 'DASHSCOPE_API_KEY（只填环境变量名，不填明文）',
+      },
       rules: [
         {
           validator: (_rule, value, callback) => {
@@ -182,7 +206,10 @@ const SCHEMAS: Record<EditableKind, FormSchema[]> = {
       field: 'system',
       label: 'System Prompt',
       component: 'InputTextArea',
-      componentProps: { rows: 6, placeholder: '描述这个页面里 Copilot 的角色、可用字段与边界' },
+      componentProps: {
+        rows: 6,
+        placeholder: '描述这个页面里 Copilot 的角色、可用字段与边界',
+      },
       required: true,
       rules: [
         { min: 10, message: 'System Prompt 至少 10 个字符，请写清角色与边界' },
@@ -209,12 +236,15 @@ const SCHEMAS: Record<EditableKind, FormSchema[]> = {
 };
 
 const schemas = computed<FormSchema[]>(() =>
-  isTrace.value ? [] : SCHEMAS[props.kind as EditableKind] ?? [],
+  isTrace.value ? [] : (SCHEMAS[props.kind as EditableKind] ?? []),
 );
 const columns = computed(() =>
   isTrace.value
     ? COLUMN_MAP[props.kind]
-    : [...COLUMN_MAP[props.kind], { title: '操作', key: 'actions', dataIndex: 'actions', width: 130 }],
+    : [
+        ...COLUMN_MAP[props.kind],
+        { title: '操作', key: 'actions', dataIndex: 'actions', width: 130 },
+      ],
 );
 
 async function listApi() {
@@ -224,7 +254,9 @@ async function listApi() {
   rows.value = term
     ? all.filter((row) =>
         Object.values(row).some((value) =>
-          String(value ?? '').toLowerCase().includes(term),
+          String(value ?? '')
+            .toLowerCase()
+            .includes(term),
         ),
       )
     : all;
@@ -253,8 +285,12 @@ async function openEdit(record: Record<string, unknown>) {
   await formMethods.setFieldsValue({
     ...defaults(),
     ...record,
-    models: Array.isArray(record.models) ? record.models.join(', ') : record.models ?? '',
-    variables: Array.isArray(record.variables) ? record.variables.join(', ') : record.variables ?? '',
+    models: Array.isArray(record.models)
+      ? record.models.join(', ')
+      : (record.models ?? ''),
+    variables: Array.isArray(record.variables)
+      ? record.variables.join(', ')
+      : (record.variables ?? ''),
   });
   drawerMethods.openDrawer();
 }
@@ -328,8 +364,12 @@ function onKeywordChange() {
         </template>
         <template v-if="!isTrace" #cell-actions="{ record }">
           <div class="flex gap-1">
-            <Button variant="link" size="sm" @click="openEdit(record)">编辑</Button>
-            <Button variant="link" size="sm" @click="remove(record)">删除</Button>
+            <Button variant="link" size="sm" @click="openEdit(record)">
+编辑
+</Button>
+            <Button variant="link" size="sm" @click="remove(record)">
+删除
+</Button>
           </div>
         </template>
       </BasicTable>

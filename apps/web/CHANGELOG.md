@@ -54,12 +54,12 @@
 
   ## 新增的四页
 
-  | 路径                       | 内容                                                                                                                             |
-  | -------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-  | `/components/overview`     | 卡片墙总览：清单**直接来自菜单**（不自己抄一份），可按名称/路径过滤，点卡片是真链接（走外壳标签页），无匹配给空状态              |
-  | `/components/feedback`     | message / modal / popconfirm / notification / progress / result / watermark / alert                                              |
+  | 路径 | 内容 |
+  | --- | --- |
+  | `/components/overview` | 卡片墙总览：清单**直接来自菜单**（不自己抄一份），可按名称/路径过滤，点卡片是真链接（走外壳标签页），无匹配给空状态 |
+  | `/components/feedback` | message / modal / popconfirm / notification / progress / result / watermark / alert |
   | `/components/data-display` | descriptions / avatar / badge / segmented / tabs(editable-card + card) / collapse / timeline / steps / image / statistic / table |
-  | `/components/directive`    | `v-permission` 判定矩阵 / `v-loading` 三种遮罩 / `v-lazy` 图片墙 / `v-safe-html` + `v-escape`                                    |
+  | `/components/directive` | `v-permission` 判定矩阵 / `v-loading` 三种遮罩 / `v-lazy` 图片墙 / `v-safe-html` + `v-escape` |
 
   菜单在 `apps/backend-mock/server/api/menus.get.ts` 里挂了「反馈与工具」这一组，所以总览页与全站巡检都会自动带上新页，不需要改第二处。
 

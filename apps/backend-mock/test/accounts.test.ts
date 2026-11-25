@@ -69,7 +69,9 @@ describe('mock 账号表', () => {
     expect(names).not.toContain('AiChat');
     expect(names.filter((name) => name.startsWith('Project'))).toEqual([]);
     expect(names).not.toContain('AiWorkflowMonitor');
-    expect(names.filter((name) => name.startsWith('EnterpriseWorkflow'))).toEqual([]);
+    expect(
+      names.filter((name) => name.startsWith('EnterpriseWorkflow')),
+    ).toEqual([]);
 
     const aiGroup = menuTree.find((menu) => menu.name === 'AiDev');
     expect(aiGroup?.menuName).toBe('AI 配置');

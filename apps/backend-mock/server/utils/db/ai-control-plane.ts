@@ -35,7 +35,7 @@ export interface CpContext {
   name: string;
   maxTokens: number;
   maxHistory: number;
-  strategy: 'none' | 'drop-oldest' | 'summarize';
+  strategy: 'drop-oldest' | 'none' | 'summarize';
   maskPii: boolean;
   updatedAt: string;
 }
@@ -46,7 +46,7 @@ export interface CpTrace {
   tool: string;
   route: string;
   args: string;
-  result: 'success' | 'cancelled' | 'error';
+  result: 'cancelled' | 'error' | 'success';
   ms: number;
   tokens: number;
   createdAt: string;
@@ -85,7 +85,8 @@ const SEED_PROMPTS: CpPrompt[] = [
     id: 1,
     name: '审批单 Copilot',
     route: '/approval/mine',
-    system: '你在「我的审批」页面。实体：{{entity}}。选中行：{{selectedRows}}。筛选：{{filters}}。只使用页面声明的字段。',
+    system:
+      '你在「我的审批」页面。实体：{{entity}}。选中行：{{selectedRows}}。筛选：{{filters}}。只使用页面声明的字段。',
     updatedAt: T,
     variables: ['entity', 'selectedRows', 'filters'],
     version: 1,
@@ -95,7 +96,8 @@ const SEED_PROMPTS: CpPrompt[] = [
     id: 2,
     name: '全局默认',
     route: '*',
-    system: '你是企业后台 Copilot。当前页面：{{route}}。回答要简洁，涉及写操作必须请求人工确认。',
+    system:
+      '你是企业后台 Copilot。当前页面：{{route}}。回答要简洁，涉及写操作必须请求人工确认。',
     updatedAt: T,
     variables: ['route'],
     version: 1,
@@ -140,11 +142,13 @@ const SEED_TRACES: CpTrace[] = [
 ];
 
 export const CP_PROVIDER_DB = defineCollection<CpProvider>({
-  seed: () => SEED_PROVIDERS.map((item) => ({ ...item, models: [...item.models] })),
+  seed: () =>
+    SEED_PROVIDERS.map((item) => ({ ...item, models: [...item.models] })),
   table: 'tb_ai_cp_provider',
 });
 export const CP_PROMPT_DB = defineCollection<CpPrompt>({
-  seed: () => SEED_PROMPTS.map((item) => ({ ...item, variables: [...item.variables] })),
+  seed: () =>
+    SEED_PROMPTS.map((item) => ({ ...item, variables: [...item.variables] })),
   table: 'tb_ai_cp_prompt',
 });
 export const CP_CONTEXT_DB = defineCollection<CpContext>({
@@ -180,13 +184,17 @@ function save<T extends { id: number; updatedAt: string }>(
 
 export function saveProvider(input: Writable<CpProvider>): CpProvider {
   const keyRef = String(input.keyRef ?? '').trim();
-  if (!keyRef) throw new Error('API Key 引用不能为空（只填环境变量名或 KMS key id）');
+  if (!keyRef)
+    throw new Error('API Key 引用不能为空（只填环境变量名或 KMS key id）');
   return save(CP_PROVIDER_DB, input, new Date().toISOString());
 }
 
 export function savePrompt(input: Writable<CpPrompt>): CpPrompt {
-  if (!String(input.system ?? '').trim()) throw new Error('System Prompt 不能为空');
-  const current = input.id ? CP_PROMPT_DB.find((item) => item.id === input.id) : undefined;
+  if (!String(input.system ?? '').trim())
+    throw new Error('System Prompt 不能为空');
+  const current = input.id
+    ? CP_PROMPT_DB.find((item) => item.id === input.id)
+    : undefined;
   return save(
     CP_PROMPT_DB,
     { ...input, version: current ? current.version + 1 : 1 },
@@ -195,7 +203,8 @@ export function savePrompt(input: Writable<CpPrompt>): CpPrompt {
 }
 
 export function saveContext(input: Writable<CpContext>): CpContext {
-  if (!input.maxTokens || input.maxTokens < 256) throw new Error('Token 预算不能小于 256');
+  if (!input.maxTokens || input.maxTokens < 256)
+    throw new Error('Token 预算不能小于 256');
   return save(CP_CONTEXT_DB, input, new Date().toISOString());
 }
 

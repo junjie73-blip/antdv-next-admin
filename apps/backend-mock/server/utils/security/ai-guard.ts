@@ -5,7 +5,9 @@
  * 不依赖 Nitro / pinia，接口层与单测共用同一份判定，避免"页面显示已拦截、实际放行"。
  */
 
-import { maskText, type MaskPolicyLike } from './masking';
+import type { MaskPolicyLike } from './masking';
+
+import { maskText } from './masking';
 
 export type AiRiskLevel = 'critical' | 'high' | 'low' | 'medium';
 export type AiGuardAction = 'audit' | 'block' | 'mask' | 'pass';
@@ -81,7 +83,10 @@ const OUTPUT_RISK: Detection[] = [
   },
 ];
 
-function policyOf(policies: AiPolicyLike[], key: string): AiPolicyLike | undefined {
+function policyOf(
+  policies: AiPolicyLike[],
+  key: string,
+): AiPolicyLike | undefined {
   return policies.find((policy) => policy.key === key);
 }
 
@@ -111,7 +116,7 @@ export function assessPrompt(
   }
 
   const masked = maskText(text, maskPolicies);
-  if (masked.categories.length) {
+  if (masked.categories.length > 0) {
     categories.push(...masked.categories);
     reasons.push(`输入中包含敏感信息：${masked.categories.join('、')}`);
     score = Math.min(100, score + masked.categories.length * 30);
@@ -121,9 +126,17 @@ export function assessPrompt(
   const sensitive = policyOf(aiPolicies, 'sensitive_prompt');
   let action: AiGuardAction = 'pass';
 
-  if (injection?.enabled && categories.some((c) => c !== '手机号' && c !== '邮箱') && score >= injection.threshold) {
+  if (
+    injection?.enabled &&
+    categories.some((c) => c !== '手机号' && c !== '邮箱') &&
+    score >= injection.threshold
+  ) {
     action = injection.action === 'mask' ? 'mask' : 'block';
-  } else if (sensitive?.enabled && masked.categories.length && score >= sensitive.threshold) {
+  } else if (
+    sensitive?.enabled &&
+    masked.categories.length > 0 &&
+    score >= sensitive.threshold
+  ) {
     action = sensitive.action === 'block' ? 'block' : 'mask';
   }
 
@@ -152,12 +165,12 @@ export function moderateOutput(
     score = Math.min(100, score + rule.weight);
   }
   const masked = maskText(text, maskPolicies);
-  if (masked.categories.length) {
+  if (masked.categories.length > 0) {
     categories.push(...masked.categories);
     score = Math.min(100, score + masked.categories.length * 20);
   }
   const policy = policyOf(aiPolicies, 'output_moderation');
-  if (!categories.length || !policy?.enabled) {
+  if (categories.length === 0 || !policy?.enabled) {
     return { categories, level: levelOfScore(score), text };
   }
   if (policy.action === 'block') {
@@ -167,7 +180,10 @@ export function moderateOutput(
       text: '输出未通过安全审核，已阻断展示。请调整提问后重试。',
     };
   }
-  const safe = masked.text.replace(/<\s*script\b[^>]*>[\s\S]*?<\s*\/\s*script\s*>/gi, '[已移除脚本]');
+  const safe = masked.text.replaceAll(
+    /<\s*script\b[^>]*>[\s\S]*?<\s*\/\s*script\s*>/gi,
+    '[已移除脚本]',
+  );
   return {
     categories: [...new Set(categories)],
     level: levelOfScore(score),

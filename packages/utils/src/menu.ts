@@ -75,7 +75,7 @@ export function withoutMenuNames(
   list: MenuConfig[],
   names: readonly string[],
 ): MenuConfig[] {
-  if (!names.length) return list;
+  if (names.length === 0) return list;
   const denied = new Set(names);
   const walk = (nodes: MenuConfig[]): MenuConfig[] =>
     nodes

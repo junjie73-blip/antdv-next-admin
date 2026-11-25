@@ -8,7 +8,13 @@
  */
 import type { Component } from 'vue';
 
-import { computed, defineAsyncComponent, onBeforeUnmount, ref, watch } from 'vue';
+import {
+  computed,
+  defineAsyncComponent,
+  onBeforeUnmount,
+  ref,
+  watch,
+} from 'vue';
 
 import { Icon } from '@iconify/vue';
 import MarkdownIt from 'markdown-it';
@@ -17,6 +23,16 @@ import '@vue-office/docx/lib/index.css';
 import '@vue-office/excel/lib/index.css';
 
 defineOptions({ name: 'FilePreview' });
+
+const props = withDefaults(
+  defineProps<{
+    /** 本地文件或远程 URL */
+    source: File | string;
+    /** 文件名为空时从 File.name / URL 末段推断 */
+    name?: string;
+  }>(),
+  { name: '' },
+);
 
 type PreviewKind =
   | 'audio'
@@ -30,16 +46,6 @@ type PreviewKind =
   | 'unsupported'
   | 'video'
   | 'xlsx';
-
-const props = withDefaults(
-  defineProps<{
-    /** 本地文件或远程 URL */
-    source: File | string;
-    /** 文件名为空时从 File.name / URL 末段推断 */
-    name?: string;
-  }>(),
-  { name: '' },
-);
 
 const OfficeDocx = defineAsyncComponent({
   loader: () => import('@vue-office/docx').then((m) => m.default as Component),
@@ -68,9 +74,13 @@ const MAX_ROWS = 1000;
 const fileName = computed(() => {
   if (props.name) return props.name;
   if (props.source instanceof File) return props.source.name;
-  return decodeURIComponent(String(props.source).split('/').pop()?.split('?')[0] ?? '');
+  return decodeURIComponent(
+    String(props.source).split('/').pop()?.split('?')[0] ?? '',
+  );
 });
-const ext = computed(() => fileName.value.split('.').pop()?.toLowerCase() ?? '');
+const ext = computed(
+  () => fileName.value.split('.').pop()?.toLowerCase() ?? '',
+);
 
 const kind = computed<PreviewKind>(() => {
   switch (ext.value) {
@@ -80,41 +90,54 @@ const kind = computed<PreviewKind>(() => {
     case 'gif':
     case 'webp':
     case 'svg':
-    case 'bmp':
+    case 'bmp': {
       return 'image';
+    }
     case 'mp4':
     case 'webm':
     case 'ogg':
-    case 'mov':
+    case 'mov': {
       return 'video';
+    }
     case 'mp3':
     case 'wav':
     case 'm4a':
-    case 'flac':
+    case 'flac': {
       return 'audio';
-    case 'pdf':
+    }
+    case 'pdf': {
       return 'pdf';
+    }
     case 'md':
-    case 'markdown':
+    case 'markdown': {
       return 'markdown';
-    case 'csv':
+    }
+    case 'csv': {
       return 'csv';
-    case 'docx':
+    }
+    case 'docx': {
       return 'docx';
+    }
     case 'xls':
-    case 'xlsx':
+    case 'xlsx': {
       return 'xlsx';
-    case 'pptx':
+    }
+    case 'pptx': {
       return 'pptx';
+    }
     case 'doc':
-    case 'ppt':
+    case 'ppt': {
       return 'legacy';
-    default:
+    }
+    default: {
       return 'unsupported';
+    }
   }
 });
 
-const markdownHtml = computed(() => (kind.value === 'markdown' ? md.render(text.value) : ''));
+const markdownHtml = computed(() =>
+  kind.value === 'markdown' ? md.render(text.value) : '',
+);
 
 /** 简化 CSV 解析：支持引号包裹、逗号与换行，首行当表头，超长只取前 1000 行 */
 function parseCsv(source: string): string[][] {
@@ -144,7 +167,7 @@ function parseCsv(source: string): string[][] {
       cell = '';
     } else if (char !== '\r') cell += char;
   }
-  if (cell || row.length) {
+  if (cell || row.length > 0) {
     row.push(cell);
     rows.push(row);
   }
@@ -171,21 +194,30 @@ function extractLegacyText(buffer: ArrayBuffer): string {
   }
   const readable = (raw: string) =>
     raw
-      .replace(/[^\x20-\x7E\u4e00-\u9fa5\r\n\t]/gu, ' ')
+      .replaceAll(/[^\x20-\x7E\u4E00-\u9FA5\r\n\t]/gu, ' ')
       .split(/[\r\n]+/u)
-      .map((line) => line.replace(/ {2,}/gu, ' ').trim())
+      .map((line) => line.replaceAll(/ {2,}/gu, ' ').trim())
       .filter((line) => line.length >= 3)
       .slice(0, 300);
   return (
-    [...new Set([...readable(ascii.join('')), ...readable(utf16), ...readable(utf8)])].join('\n') ||
-    '未能从文件中提取到可读文本，请下载后用本地软件打开。'
+    [
+      ...new Set([
+        ...readable(ascii.join('')),
+        ...readable(utf16),
+        ...readable(utf8),
+      ]),
+    ].join('\n') || '未能从文件中提取到可读文本，请下载后用本地软件打开。'
   );
 }
 
 /** jsdom 与旧浏览器不一定有 Blob.text/arrayBuffer，统一走 FileReader 兜底 */
-function readLocalFile(file: File, asText: boolean): Promise<string | ArrayBuffer> {
+function readLocalFile(
+  file: File,
+  asText: boolean,
+): Promise<ArrayBuffer | string> {
   if (asText && typeof file.text === 'function') return file.text();
-  if (!asText && typeof file.arrayBuffer === 'function') return file.arrayBuffer();
+  if (!asText && typeof file.arrayBuffer === 'function')
+    return file.arrayBuffer();
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(reader.result ?? '');
@@ -223,7 +255,7 @@ watch(
 
     const current = kind.value;
     if (current === 'unsupported') return;
-    if (['image', 'video', 'audio', 'pdf'].includes(current)) {
+    if (['audio', 'image', 'pdf', 'video'].includes(current)) {
       objectUrl.value =
         props.source instanceof File
           ? URL.createObjectURL(props.source)
@@ -235,10 +267,11 @@ watch(
     try {
       if (current === 'markdown') text.value = await sourceText();
       else if (current === 'csv') table.value = parseCsv(await sourceText());
-      else if (current === 'legacy') text.value = extractLegacyText(await sourceBuffer());
+      else if (current === 'legacy')
+        text.value = extractLegacyText(await sourceBuffer());
       else officeBuffer.value = await sourceBuffer();
-    } catch (cause) {
-      error.value = cause instanceof Error ? cause.message : '文件读取失败';
+    } catch (error) {
+      error.value = error instanceof Error ? error.message : '文件读取失败';
     } finally {
       loading.value = false;
     }
@@ -255,18 +288,29 @@ onBeforeUnmount(revoke);
 defineExpose({
   /** 供外层「下载」按钮复用，避免重复创建 Object URL */
   getUrl: () =>
-    props.source instanceof File ? URL.createObjectURL(props.source) : String(props.source),
+    props.source instanceof File
+      ? URL.createObjectURL(props.source)
+      : String(props.source),
 });
 </script>
 
 <template>
-  <div class="file-preview flex min-h-40 w-full flex-col overflow-hidden" :data-preview-kind="kind">
-    <div v-if="error" class="flex min-h-40 flex-col items-center justify-center gap-2 text-sm text-destructive">
+  <div
+    class="file-preview flex min-h-40 w-full flex-col overflow-hidden"
+    :data-preview-kind="kind"
+  >
+    <div
+      v-if="error"
+      class="flex min-h-40 flex-col items-center justify-center gap-2 text-sm text-destructive"
+    >
       <Icon icon="carbon:warning-alt" class="size-8" />
       <span>{{ error }}</span>
     </div>
 
-    <div v-else-if="loading" class="flex min-h-40 flex-col items-center justify-center gap-2 text-sm text-muted-foreground">
+    <div
+      v-else-if="loading"
+      class="flex min-h-40 flex-col items-center justify-center gap-2 text-sm text-muted-foreground"
+    >
       <Icon icon="carbon:progress-bar-round" class="size-7 animate-spin" />
       <span>正在解析 {{ fileName }}…</span>
     </div>
@@ -283,61 +327,94 @@ defineExpose({
       controls
       preload="metadata"
       class="mx-auto max-h-[70vh] max-w-full"
-    />
-    <audio v-else-if="kind === 'audio'" :src="objectUrl" controls preload="metadata" class="w-full" />
+    ></video>
+    <audio
+      v-else-if="kind === 'audio'"
+      :src="objectUrl"
+      controls
+      preload="metadata"
+      class="w-full"
+    ></audio>
     <iframe
       v-else-if="kind === 'pdf'"
       :src="objectUrl"
       class="min-h-[70vh] w-full rounded border-0"
       :title="fileName"
-    />
+    ></iframe>
 
     <!-- markdown-it 关闭 raw HTML，输出仅来自受控解析结果 -->
     <article
       v-else-if="kind === 'markdown'"
       class="file-preview-markdown max-h-[70vh] overflow-auto px-4 py-2 text-sm leading-relaxed"
       v-html="markdownHtml"
-    />
+    ></article>
 
     <div v-else-if="kind === 'csv'" class="max-h-[70vh] overflow-auto">
       <table v-if="table.length" class="w-full border-collapse text-xs">
         <thead class="bg-muted/60">
           <tr>
-            <th v-for="(cell, index) in table[0]" :key="index" class="border px-2 py-1 text-left font-medium">
+            <th
+              v-for="(cell, index) in table[0]"
+              :key="index"
+              class="border px-2 py-1 text-left font-medium"
+            >
               {{ cell }}
             </th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="(row, rowIndex) in table.slice(1)" :key="rowIndex">
-            <td v-for="(cell, index) in row" :key="index" class="border px-2 py-1 align-top">
+            <td
+              v-for="(cell, index) in row"
+              :key="index"
+              class="border px-2 py-1 align-top"
+            >
               {{ cell }}
             </td>
           </tr>
         </tbody>
       </table>
-      <p v-else class="py-10 text-center text-sm text-muted-foreground">CSV 文件为空</p>
-      <p v-if="table.length >= MAX_ROWS" class="py-2 text-center text-xs text-muted-foreground">
+      <p v-else class="py-10 text-center text-sm text-muted-foreground">
+        CSV 文件为空
+      </p>
+      <p
+        v-if="table.length >= MAX_ROWS"
+        class="py-2 text-center text-xs text-muted-foreground"
+      >
         仅预览前 {{ MAX_ROWS }} 行，完整内容请下载查看
       </p>
     </div>
 
-    <div v-else-if="officeBuffer" class="max-h-[70vh] overflow-auto rounded bg-white p-2" data-office-host>
+    <div
+      v-else-if="officeBuffer"
+      class="max-h-[70vh] overflow-auto rounded bg-white p-2"
+      data-office-host
+    >
       <OfficeDocx v-if="kind === 'docx'" :src="officeBuffer" />
       <OfficeExcel v-else-if="kind === 'xlsx'" :src="officeBuffer" />
       <OfficePptx v-else-if="kind === 'pptx'" :src="officeBuffer" />
     </div>
 
-    <div v-else-if="kind === 'legacy'" class="max-h-[70vh] overflow-auto rounded bg-muted/30 p-3">
+    <div
+      v-else-if="kind === 'legacy'"
+      class="max-h-[70vh] overflow-auto rounded bg-muted/30 p-3"
+    >
       <p class="mb-2 text-xs text-muted-foreground">
         这是旧版二进制格式，仅提取可读文本，排版与图片会丢失；完整内容请下载查看。
       </p>
-      <pre class="whitespace-pre-wrap break-all text-xs leading-relaxed">{{ text }}</pre>
+      <pre class="whitespace-pre-wrap break-all text-xs leading-relaxed">{{
+        text
+      }}</pre>
     </div>
 
-    <div v-else class="flex min-h-40 flex-col items-center justify-center gap-2 text-sm text-muted-foreground">
+    <div
+      v-else
+      class="flex min-h-40 flex-col items-center justify-center gap-2 text-sm text-muted-foreground"
+    >
       <Icon icon="carbon:document-unknown" class="size-8" />
-      <span>{{ ext ? `${ext.toUpperCase()} 暂不支持在线预览` : '无法识别文件类型' }}</span>
+      <span>{{
+        ext ? `${ext.toUpperCase()} 暂不支持在线预览` : '无法识别文件类型'
+      }}</span>
       <span class="text-xs">可下载后用本地软件打开</span>
     </div>
   </div>

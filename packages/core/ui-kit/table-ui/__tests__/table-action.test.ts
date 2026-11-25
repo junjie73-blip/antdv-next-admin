@@ -3,6 +3,7 @@ import type { ActionItem, Recordable } from '../src/types';
 import { mount } from '@vue/test-utils';
 import { h, nextTick } from 'vue';
 
+import { Tooltip } from '@antdv/shadcn-ui';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import TableAction from '../src/components/TableAction.vue';
@@ -284,5 +285,238 @@ describe('tableAction 下拉与"更多"', () => {
       props: { actions: [{ label: '编辑' }] },
     });
     expect(buttonTexts(wrapper as any)).toEqual(['编辑']);
+  });
+});
+
+describe('tableAction 统一操作栏契约', () => {
+  it('默认按钮保留 link 变体，但不设置任何 text-decoration-line 类', () => {
+    const wrapper = mountAction([{ label: '详情' }]);
+    const button = wrapper.find('button');
+    expect(button.attributes('data-variant')).toBe('link');
+    const classes = button.classes();
+    expect(classes).not.toContain('underline');
+    expect(classes).not.toContain('no-underline');
+    expect(classes).not.toContain('hover:underline');
+    expect(classes).not.toContain('hover:no-underline');
+    expect(classes).not.toContain('underline-offset-4');
+
+    // 显式 type: link 同样是 link 变体 + 无 text-decoration-line
+    const link = mountAction([{ label: '外链', type: 'link' }]);
+    expect(link.find('button').attributes('data-variant')).toBe('link');
+    expect(link.find('button').classes()).not.toContain('hover:underline');
+  });
+
+  it('默认底色取主题 primary，不再使用黑色/默认底色', () => {
+    const wrapper = mountAction([{ label: '详情' }]);
+    const classes = wrapper.find('button').classes().join(' ');
+    expect(classes).toContain('bg-primary/10');
+    expect(classes).toContain('text-primary');
+    expect(classes).not.toContain('bg-black');
+  });
+
+  it('tooltip 只在纯图标按钮上出现，并按行数据生成', () => {
+    const tooltipFn = vi.fn((row: Recordable) => `查看 ${row.name}`);
+    const iconOnly = mountAction([
+      { icon: 'ant-design:edit-outlined', tooltip: tooltipFn },
+    ]);
+    expect(iconOnly.findComponent(Tooltip).exists()).toBe(true);
+    expect(tooltipFn).toHaveBeenCalledWith(record);
+
+    // 有 label（含函数形态）时一律不展示 tooltip，避免文字与提示重复
+    const withLabel = mountAction([
+      {
+        icon: 'ant-design:edit-outlined',
+        label: '详情',
+        tooltip: '查看该行',
+      },
+      {
+        icon: 'ant-design:edit-outlined',
+        label: (row: Recordable) => `改名-${row.name}`,
+        tooltip: '查看该行',
+      },
+    ]);
+    expect(withLabel.findAllComponents(Tooltip)).toHaveLength(0);
+
+    // 既无 label 也无 icon 的按钮同样不展示
+    const noIcon = mountAction([{ tooltip: '查看该行' }]);
+    expect(noIcon.findComponent(Tooltip).exists()).toBe(false);
+  });
+
+  it('permission 不通过时默认隐藏，permissionMode=disable 时保留但禁用', () => {
+    authCodes = ['user:edit'];
+    const wrapper = mountAction([
+      { label: '编辑', permission: 'user:edit' },
+      { label: '删除', permission: 'user:remove' },
+      {
+        label: '导出',
+        permission: 'user:export',
+        permissionMode: 'disable',
+      },
+    ]);
+    expect(buttonTexts(wrapper)).toEqual(['编辑', '导出']);
+    expect(wrapper.findAll('button')[1]!.attributes('disabled')).toBeDefined();
+  });
+
+  it('带 label 的 tooltip 不渲染，但确认弹层仍能正常打开', async () => {
+    const wrapper = mountAction([
+      {
+        label: '删除',
+        tooltip: '删除该行',
+        popConfirm: { confirm: vi.fn(), title: '确认删除？' },
+      },
+    ]);
+    expect(wrapper.findComponent(Tooltip).exists()).toBe(false);
+    await wrapper.find('button').trigger('click');
+    await nextTick();
+    expect(document.body.textContent).toContain('确认删除？');
+  });
+
+  it('纯图标按钮的 tooltip 与 popConfirm 可共存', async () => {
+    const wrapper = mountAction([
+      {
+        icon: 'ant-design:delete-outlined',
+        tooltip: '删除该行',
+        popConfirm: { confirm: vi.fn(), title: '确认删除？' },
+      },
+    ]);
+    expect(wrapper.findComponent(Tooltip).exists()).toBe(true);
+    await wrapper.find('button').trigger('click');
+    await nextTick();
+    expect(document.body.textContent).toContain('确认删除？');
+  });
+
+  it('popConfirm 支持自定义确认/取消文案', async () => {
+    const wrapper = mountAction([
+      {
+        label: '删除',
+        popConfirm: {
+          cancelText: '再想想',
+          confirm: vi.fn(),
+          okText: '确认删除',
+          title: '确认？',
+        },
+      },
+    ]);
+    await wrapper.find('button').trigger('click');
+    await nextTick();
+    const labels = bodyFindAll('button').map((b) => b.textContent?.trim());
+    expect(labels).toContain('确认删除');
+    expect(labels).toContain('再想想');
+  });
+
+  it('操作项按配置顺序从左到右渲染，整组在单元格内居中', () => {
+    const wrapper = mountAction([
+      { label: '通过' },
+      { label: '驳回' },
+      { label: '详情' },
+    ]);
+    const root = wrapper.find('[data-table-action]');
+    expect(root.classes().join(' ')).toContain('justify-center');
+    expect(buttonTexts(wrapper)).toEqual(['通过', '驳回', '详情']);
+  });
+});
+
+/** 分隔线数量 = 平铺按钮数 - 1（有「更多」时再 +1） */
+const separatorCount = (wrapper: ReturnType<typeof mountAction>) =>
+  wrapper.findAll('[data-slot="separator"]').length;
+
+function labeledActions(count: number): ActionItem[] {
+  return Array.from({ length: count }, (_, index) => ({
+    label: `操作${index + 1}`,
+    onClick: vi.fn(),
+  }));
+}
+
+async function dropdownTexts(wrapper: ReturnType<typeof mountAction>) {
+  await wrapper.findAll('button').at(-1)!.trigger('click');
+  await nextTick();
+  return bodyFindAll('div.cursor-pointer').map((item) =>
+    item.textContent?.trim(),
+  );
+}
+
+describe('tableAction maxCount 边界', () => {
+  it('默认 maxCount=4：四项全部平铺，三项分隔线，无更多', () => {
+    const wrapper = mountAction(labeledActions(4));
+    expect(buttonTexts(wrapper)).toEqual(['操作1', '操作2', '操作3', '操作4']);
+    expect(separatorCount(wrapper)).toBe(3);
+  });
+
+  it('默认 maxCount=4：五项时前三项平铺，第四项起进入更多', async () => {
+    const wrapper = mountAction(labeledActions(5));
+    expect(buttonTexts(wrapper)).toEqual(['操作1', '操作2', '操作3', '更多']);
+    expect(separatorCount(wrapper)).toBe(3);
+    expect(await dropdownTexts(wrapper)).toEqual(['操作4', '操作5']);
+  });
+
+  it('maxCount=2：一项平铺 + 更多，其余全部进下拉', async () => {
+    const wrapper = mountAction(labeledActions(3), { maxCount: 2 });
+    expect(buttonTexts(wrapper)).toEqual(['操作1', '更多']);
+    expect(separatorCount(wrapper)).toBe(1);
+    expect(await dropdownTexts(wrapper)).toEqual(['操作2', '操作3']);
+  });
+
+  it('maxCount=1：不平铺任何操作，全部进更多且无分隔线', async () => {
+    const wrapper = mountAction(labeledActions(3), { maxCount: 1 });
+    expect(buttonTexts(wrapper)).toEqual(['更多']);
+    expect(separatorCount(wrapper)).toBe(0);
+    expect(await dropdownTexts(wrapper)).toEqual(['操作1', '操作2', '操作3']);
+  });
+
+  it('maxCount 大于操作数量时不折叠', () => {
+    const wrapper = mountAction(labeledActions(4), { maxCount: 6 });
+    expect(buttonTexts(wrapper)).toHaveLength(4);
+    expect(buttonTexts(wrapper)).not.toContain('更多');
+    expect(separatorCount(wrapper)).toBe(3);
+  });
+
+  it('maxCount 与旧 maxShowCount 同时传入时以旧配置为准', () => {
+    const wrapper = mountAction(labeledActions(5), {
+      maxCount: 4,
+      maxShowCount: 3,
+    });
+    expect(buttonTexts(wrapper)).toEqual(['操作1', '操作2', '更多']);
+  });
+
+  it('超出项按权限过滤后再拆分，不会留下空位', async () => {
+    authCodes = ['user:edit'];
+    const actions = labeledActions(5).map((action, index) => ({
+      ...action,
+      permission: index === 1 ? 'user:remove' : 'user:edit',
+    }));
+    const wrapper = mountAction(actions, { maxCount: 3 });
+    expect(buttonTexts(wrapper)).toEqual(['操作1', '操作3', '更多']);
+    expect(await dropdownTexts(wrapper)).toEqual(['操作4', '操作5']);
+  });
+});
+
+describe('tableAction 组件级权限 props', () => {
+  it('hasPermission 覆盖运行时权限判定', () => {
+    authCodes = ['user:edit'];
+    const wrapper = mountAction(
+      [
+        { label: '编辑', permission: 'user:edit' },
+        { label: '删除', permission: 'user:edit' },
+      ],
+      {
+        hasPermission: (action: ActionItem) => action.label === '编辑',
+      },
+    );
+    expect(buttonTexts(wrapper)).toEqual(['编辑']);
+  });
+
+  it('permissionMode=disable 让无权限项保留但禁用', () => {
+    const wrapper = mountAction(
+      [
+        { label: '编辑', permission: 'user:edit' },
+        { label: '删除', permission: 'user:remove' },
+      ],
+      {
+        hasPermission: (action: ActionItem) => action.label === '编辑',
+        permissionMode: 'disable',
+      },
+    );
+    expect(buttonTexts(wrapper)).toEqual(['编辑', '删除']);
+    expect(wrapper.findAll('button')[1]!.attributes('disabled')).toBeDefined();
   });
 });

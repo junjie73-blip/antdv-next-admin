@@ -37,7 +37,7 @@ Vercel 控制台里 New Project → 导仓库 → **Root Directory 填 `apps/web
 
 `--filter @antdv/web...` 末尾那三个点不是排版错误 `apps/web` 依赖 23 个 workspace 包（`dependencies` 里 21 个运行时子包 `apps/web/package.json:20-40`，加上 `devDependencies` 里的 `@antdv/tsconfig` 与 `@antdv/vite-config` `:113-114`），其中 `@antdv/{shared,hooks,directives,preferences,router,types}` 六个是 **`tsdown` 出来的产物**（`main` 指 `./dist/index.js`），`@antdv/{vite-config,node-utils}` 同样是；仓库里不入库 `dist`。pnpm 的 `<pkg>...` 会把这个包**和它的依赖**一起纳入，于是 `... build` 会先构建 `@antdv/shared`、`@antdv/layouts`、`@antdv/vite-config` …再构建 web。只写 `pnpm --filter @antdv/web build` 的话，Vercel 上会得到一堆"找不到 `@antdv/shared/utils/cn`"的构建失败 ——本地不复现，因为你机器上的 `dist` 是上一次构建留下的。另一批（`enums` / `layouts` / `request` / `stores` / `utils` / `icons` / `design` 与 ui-kit 八个，共 15 个）是源码发布 —— `main` 直指 `./src/index.ts`（`design` 是 `./src/index.css`），连 build 脚本都没有，由 web 的 Vite 直接编译，所以它们在不在 `... build` 里都一样。
 
-也可以用 `pnpm turbo build --filter=@antdv/web`（turbo 自己会算 `^build`），代价是要在 Vercel 上多装一遍 turbo 的缓存目录，收益只有远程缓存；真要加速 CI 时再换。
+也可以用 `pnpm turbo build --filter=@antdv/web`，代价是要在 Vercel 上多装一遍 turbo 的缓存目录，收益只有远程缓存。`turbo.json` 现在不再声明 `^build`：ui-kit 三个包（`form-ui` / `table-ui` / `common-ui`）互相引用源码，Turborepo 会把这种源码级互引当成构建依赖成环，直接在 Vercel / Netlify 的 `turbo run build --filter @antdv/web` 上报 `Cyclic dependency detected` 并退出 1。workspace 包都以 `src` 作为 exports 目标、构建时把依赖 externalize，internal/* 又已在 `postinstall` 先构建，所以不需要 `^build` 也能正确出包。
 
 :::
 
@@ -124,7 +124,7 @@ pnpm docs:preview    # 预览 dist
 
 ### type-check 为什么过不了，以及它现在意味着什么
 
-`pnpm check:type`（= `turbo run type-check`，`turbo.json` 里那条任务只声明 `dependsOn: ["^build"]`）**目前跑不完整**：`@antdv/layout-ui` 那条 `vue-tsc --noEmit` 会把默认堆吃满并崩在 `FATAL ERROR: Zone Allocation failed`，整条任务以 134 退出，其余包大约跑到 19/30 就被中断 —— 所以"仓库总错误数"不是一个稳定可复现的数字，别引用任何版本。注意根目录 `build` 脚本带了 `NODE_OPTIONS=--max-old-space-size=8192`，而 `check:type` 没有，这是它比构建更容易 OOM 的直接原因。
+`pnpm check:type`（= `turbo run type-check`，`turbo.json` 里这条任务已去掉 `dependsOn: ["^build"]`（原因见上一节））**目前跑不完整**：`@antdv/layout-ui` 那条 `vue-tsc --noEmit` 会把默认堆吃满并崩在 `FATAL ERROR: Zone Allocation failed`，整条任务以 134 退出，其余包大约跑到 19/30 就被中断 —— 所以"仓库总错误数"不是一个稳定可复现的数字，别引用任何版本。注意根目录 `build` 脚本带了 `NODE_OPTIONS=--max-old-space-size=8192`，而 `check:type` 没有，这是它比构建更容易 OOM 的直接原因。
 
 能稳定复现的是应用侧那一段，手工加大堆单独跑：
 

@@ -133,9 +133,7 @@ export function useLockScreen() {
     const target = event.target;
     if (
       target instanceof Element &&
-      target.closest(
-        '[data-lock-password-input], [data-lock-password-confirm]',
-      )
+      target.closest('[data-lock-password-input], [data-lock-password-confirm]')
     )
       return;
     event.preventDefault();

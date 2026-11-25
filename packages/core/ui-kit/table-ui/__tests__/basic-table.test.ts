@@ -487,3 +487,45 @@ describe('basicTable 实例注册', () => {
     expect(instance.getPaginationRef().current).toBe(1);
   });
 });
+
+describe('basicTable 操作栏与表格规范', () => {
+  it('actionColumn.actions 直接传配置数组就能渲染操作栏', async () => {
+    const onClick = vi.fn();
+    // 用独立数据源：前面的用例会通过表格实例改共享 rows，这里不能继承那份脏数据
+    const wrapper = mountTable({
+      dataSource: [{ id: 101, name: '独立行' }],
+      actionColumn: {
+        actions: [
+          { label: '查看', onClick },
+          { label: '删除', danger: true },
+        ],
+      },
+    });
+    const head = wrapper.findAll('.basic-table-head');
+    expect(head.at(-1)!.text()).toContain('操作');
+    const firstRow = bodyRows(wrapper)[0]!;
+    expect(firstRow.text()).toContain('查看');
+    expect(firstRow.text()).toContain('删除');
+
+    await firstRow.findAll('button')[0]!.trigger('click');
+    expect(onClick).toHaveBeenCalledTimes(1);
+    expect(onClick.mock.calls[0]![0]).toMatchObject({ id: 101 });
+  });
+
+  it('表头带下边框，单元格默认水平居中且显式 align 可覆盖', () => {
+    const wrapper = mountTable({
+      columns: [
+        { dataIndex: 'name', title: '名称' },
+        { align: 'left', dataIndex: 'age', title: '年龄' },
+      ],
+    });
+    for (const head of wrapper.findAll('.basic-table-head')) {
+      expect(head.classes()).toEqual(
+        expect.arrayContaining(['border-b', 'border-border']),
+      );
+    }
+    const cells = bodyRows(wrapper)[0]!.findAll('td');
+    expect(cells[0]!.classes()).toContain('text-center');
+    expect(cells[1]!.classes()).toContain('text-left');
+  });
+});

@@ -23,7 +23,11 @@ const STATUS_WORDS: Record<string, string[]> = {
   terminated: ['终止', '已终止', 'terminated'],
 };
 
-const SORT_WORDS: Array<{ words: string[]; fieldHints: string[]; order: SortSpec['order'] }> = [
+const SORT_WORDS: Array<{
+  words: string[];
+  fieldHints: string[];
+  order: SortSpec['order'];
+}> = [
   {
     words: ['耗时最长', '最慢', '耗时排序', '用时最长'],
     fieldHints: ['duration', 'cost', 'elapsed', '耗时'],
@@ -48,8 +52,12 @@ function findField(
 ): AiFieldDescriptor | undefined {
   const lower = hints.map((item) => item.toLowerCase());
   return (
-    fields.find((field) => lower.some((hint) => field.label.toLowerCase().includes(hint))) ??
-    fields.find((field) => lower.some((hint) => field.key.toLowerCase().includes(hint)))
+    fields.find((field) =>
+      lower.some((hint) => field.label.toLowerCase().includes(hint)),
+    ) ??
+    fields.find((field) =>
+      lower.some((hint) => field.key.toLowerCase().includes(hint)),
+    )
   );
 }
 
@@ -136,7 +144,10 @@ function componentOf(type: string, enumValues?: unknown[]): string {
   if (enumValues?.length) return 'Select';
   if (type === 'number') return 'InputNumber';
   if (type === 'boolean') return 'Switch';
-  if (type === 'string' && /描述|说明|备注|content|description|remark/i.test(type))
+  if (
+    type === 'string' &&
+    /描述|说明|备注|content|description|remark/i.test(type)
+  )
     return 'InputTextArea';
   return 'Input';
 }
@@ -155,15 +166,20 @@ export function inferFormSchema(
       text.toLowerCase().includes(field.key.toLowerCase())
     );
   });
-  const usable = selected.length ? selected : fields;
+  const usable = selected.length > 0 ? selected : fields;
   const properties: JsonSchemaObject['properties'] = {};
 
   for (const field of usable) {
     properties[field.key] = {
-      type: (field.type ?? 'string') as 'string' | 'number' | 'boolean',
+      type: (field.type ?? 'string') as 'boolean' | 'number' | 'string',
       title: field.label,
-      ...(field.options?.length ? { enum: field.options.map((item) => item.value) } : {}),
-      component: componentOf(field.type ?? 'string', field.options?.map((item) => item.value)),
+      ...(field.options?.length
+        ? { enum: field.options.map((item) => item.value) }
+        : {}),
+      component: componentOf(
+        field.type ?? 'string',
+        field.options?.map((item) => item.value),
+      ),
     };
   }
 
@@ -171,7 +187,9 @@ export function inferFormSchema(
     type: 'object',
     title,
     properties,
-    required: usable.filter((field) => field.label.includes('名称')).map((field) => field.key),
+    required: usable
+      .filter((field) => field.label.includes('名称'))
+      .map((field) => field.key),
   };
 }
 
@@ -238,7 +256,7 @@ export function inferFormValues(input: FillInput): FillResult {
 }
 
 function escapeRegExp(value: string): string {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return value.replaceAll(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
 }
 
 /** 受控路由匹配：只在 meta.aiContext.links 声明过的目标里选 */
@@ -248,10 +266,12 @@ export function matchNavigation(
 ): NavigateIntent | undefined {
   const text = utterance.trim().toLowerCase();
   if (!text) return undefined;
-  let best: { score: number; link: AiLinkDescriptor } | undefined;
+  let best: undefined | { score: number; link: AiLinkDescriptor };
 
   for (const link of links) {
-    const candidates = [link.intent, link.name].filter(Boolean).map((item) => item.toLowerCase());
+    const candidates = [link.intent, link.name]
+      .filter(Boolean)
+      .map((item) => item.toLowerCase());
     const score = candidates.reduce(
       (sum, candidate) =>
         sum +
@@ -273,7 +293,9 @@ export function resolveSelection(
   utterance: string,
   snapshot: AiContextSnapshot,
 ): Record<string, unknown>[] {
-  const hasReference = /(它们|这些|这条|当前(行|选中)|selected|它)/iu.test(utterance);
+  const hasReference = /(它们|这些|这条|当前(行|选中)|selected|它)/iu.test(
+    utterance,
+  );
   if (!hasReference) return [];
   return snapshot.selectedRows ?? [];
 }

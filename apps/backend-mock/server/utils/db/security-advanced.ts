@@ -264,20 +264,27 @@ export const SECURITY_AUDITS: AuditRecord[] = defineCollection<AuditRecord>({
   table: 'tb_security_audit',
 });
 
-export const SECURITY_MASK_POLICIES: MaskPolicy[] = defineCollection<MaskPolicy>({
-  seed: () => MASK_POLICY_SEED.map((item) => ({ ...item })),
-  table: 'tb_security_mask_policy',
-});
+export const SECURITY_MASK_POLICIES: MaskPolicy[] =
+  defineCollection<MaskPolicy>({
+    seed: () => MASK_POLICY_SEED.map((item) => ({ ...item })),
+    table: 'tb_security_mask_policy',
+  });
 
 export const SECURITY_AI_POLICIES: AiPolicy[] = defineCollection<AiPolicy>({
   seed: () => AI_POLICY_SEED.map((item) => ({ ...item })),
   table: 'tb_security_ai_policy',
 });
 
-export const SECURITY_AI_CALLS: AiCallRecord[] = defineCollection<AiCallRecord>({
-  seed: () => AI_CALL_SEED.map((item) => ({ ...item, categories: [...item.categories] })),
-  table: 'tb_security_ai_call',
-});
+export const SECURITY_AI_CALLS: AiCallRecord[] = defineCollection<AiCallRecord>(
+  {
+    seed: () =>
+      AI_CALL_SEED.map((item) => ({
+        ...item,
+        categories: [...item.categories],
+      })),
+    table: 'tb_security_ai_call',
+  },
+);
 
 /** 给纯函数用的策略快照（只保留必要字段，避免把 UI 字段带进安全判定） */
 export function maskPolicySnapshot() {
@@ -306,7 +313,9 @@ export function isPolicyEnabled(key: string): boolean {
 }
 
 /** 记录一条全链路审计；写失败不应影响业务响应 */
-export function recordAudit(input: Omit<AuditRecord, 'createdAt' | 'id'>): void {
+export function recordAudit(
+  input: Omit<AuditRecord, 'createdAt' | 'id'>,
+): void {
   try {
     SECURITY_AUDITS.unshift({
       ...input,
@@ -318,7 +327,9 @@ export function recordAudit(input: Omit<AuditRecord, 'createdAt' | 'id'>): void 
   }
 }
 
-export function recordAiCall(input: Omit<AiCallRecord, 'createdAt' | 'id'>): void {
+export function recordAiCall(
+  input: Omit<AiCallRecord, 'createdAt' | 'id'>,
+): void {
   try {
     SECURITY_AI_CALLS.unshift({
       ...input,
@@ -330,7 +341,7 @@ export function recordAiCall(input: Omit<AiCallRecord, 'createdAt' | 'id'>): voi
   }
 }
 
-const MASK_TYPES: MaskType[] = [
+const MASK_TYPES: MaskType[] = new Set([
   'apikey',
   'bankcard',
   'email',
@@ -338,14 +349,16 @@ const MASK_TYPES: MaskType[] = [
   'idcard',
   'name',
   'phone',
-];
+]);
 const AI_ACTIONS: AiGuardAction[] = ['audit', 'block', 'mask', 'pass'];
 
-export function saveMaskPolicy(input: Record<string, unknown>): DbResult<MaskPolicy> {
+export function saveMaskPolicy(
+  input: Record<string, unknown>,
+): DbResult<MaskPolicy> {
   const field = String(input.field ?? '').trim();
   const type = String(input.type ?? '') as MaskType;
   if (!field) return fail(400, '字段标识不能为空');
-  if (!MASK_TYPES.includes(type)) return fail(400, '不支持的脱敏类型');
+  if (!MASK_TYPES.has(type)) return fail(400, '不支持的脱敏类型');
 
   const id = Number(input.id);
   const existing = Number.isFinite(id)
@@ -362,7 +375,9 @@ export function saveMaskPolicy(input: Record<string, unknown>): DbResult<MaskPol
     updatedAt: now(),
   };
   if (existing) {
-    const index = [...SECURITY_MASK_POLICIES].findIndex((item) => item.id === existing.id);
+    const index = [...SECURITY_MASK_POLICIES].findIndex(
+      (item) => item.id === existing.id,
+    );
     SECURITY_MASK_POLICIES[index] = record;
   } else {
     SECURITY_MASK_POLICIES.unshift(record);
@@ -370,7 +385,9 @@ export function saveMaskPolicy(input: Record<string, unknown>): DbResult<MaskPol
   return ok(record, existing ? '脱敏策略已更新' : '脱敏策略已创建');
 }
 
-export function saveAiPolicy(input: Record<string, unknown>): DbResult<AiPolicy> {
+export function saveAiPolicy(
+  input: Record<string, unknown>,
+): DbResult<AiPolicy> {
   const key = String(input.key ?? '').trim();
   const action = String(input.action ?? '') as AiGuardAction;
   if (!key) return fail(400, '策略键不能为空');
@@ -391,7 +408,9 @@ export function saveAiPolicy(input: Record<string, unknown>): DbResult<AiPolicy>
     updatedAt: now(),
   };
   if (existing) {
-    const index = [...SECURITY_AI_POLICIES].findIndex((item) => item.id === existing.id);
+    const index = [...SECURITY_AI_POLICIES].findIndex(
+      (item) => item.id === existing.id,
+    );
     SECURITY_AI_POLICIES[index] = record;
   } else {
     SECURITY_AI_POLICIES.unshift(record);

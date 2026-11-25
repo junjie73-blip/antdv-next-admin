@@ -1022,6 +1022,64 @@ export function deleteFlow(id: number): DbResult<{ id: number }> {
 /* Agent：仅 Agent 自身字段的 CRUD                                             */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * 标签曾经可能被前端 VNode / JSON 串污染（详情里出现 `__v_isVNode` 大段对象）。
+ * 这里统一抽文本：字符串按逗号拆分，VNode / 普通对象只取可展示字段，不回吐 JSON。
+ */
+function tagText(value: unknown): string {
+  if (value === null || value === undefined) return '';
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (trimmed.startsWith('[') || trimmed.startsWith('{')) {
+      try {
+        return tagText(JSON.parse(trimmed) as unknown);
+      } catch {
+        // 非法 JSON 按普通文本处理
+      }
+    }
+    return trimmed;
+  }
+  if (typeof value === 'number') return String(value).trim();
+  if (Array.isArray(value))
+    return value
+      .map((item) => tagText(item))
+      .filter(Boolean)
+      .join('、');
+  if (typeof value === 'object') {
+    const obj = value as Record<string, unknown>;
+    const children = obj.children;
+    if (typeof children === 'string' || typeof children === 'number')
+      return String(children).trim();
+    if (Array.isArray(children)) return tagText(children);
+    for (const key of ['label', 'title', 'name', 'text', 'content'] as const) {
+      const text = tagText(obj[key]);
+      if (text) return text;
+    }
+  }
+  return '';
+}
+
+export function normalizeAgentTags(input: unknown): string[] {
+  let source = input;
+  if (typeof source === 'string') {
+    const trimmed = source.trim();
+    if (trimmed.startsWith('[') || trimmed.startsWith('{')) {
+      try {
+        source = JSON.parse(trimmed) as unknown;
+      } catch {
+        // 不是合法 JSON 就按普通逗号串处理
+      }
+    }
+  }
+  const list = Array.isArray(source)
+    ? source
+    : String(source ?? '').split(/[,，、]/);
+  return list
+    .map((item) => tagText(item))
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
 function pickAgentFields(
   data: Record<string, unknown>,
 ): Partial<AiAgentRecord> {
@@ -1033,14 +1091,7 @@ function pickAgentFields(
   if (data.owner !== undefined) picked.owner = String(data.owner).trim();
   if (data.status !== undefined)
     picked.status = String(data.status).trim() as AiAgentStatus;
-  if (data.tags !== undefined) {
-    picked.tags = Array.isArray(data.tags)
-      ? data.tags.map((tag) => String(tag).trim()).filter(Boolean)
-      : String(data.tags)
-          .split(/[,，、]/)
-          .map((tag) => tag.trim())
-          .filter(Boolean);
-  }
+  if (data.tags !== undefined) picked.tags = normalizeAgentTags(data.tags);
   return picked;
 }
 

@@ -50,7 +50,7 @@ const itemClass = computed(() =>
 const labelClass = computed(() =>
   cn(
     // 宽度统一由列级 --desc-label-width 控制，保证跨行/跨列同宽；右对齐对齐官网
-    'text-muted-foreground shrink-0 text-right font-medium break-words whitespace-normal',
+    'text-muted-foreground shrink-0 text-right font-medium wrap-break-word whitespace-normal',
     cellClass.value,
     bordered.value ? 'bg-muted/40 border-r' : 'pr-2',
     isVertical.value && 'w-full text-left',

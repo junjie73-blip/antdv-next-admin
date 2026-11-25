@@ -603,7 +603,7 @@ describe('isExternalPath', () => {
   });
 });
 
-describe('withoutMenuNames —— 错误态导航降级', () => {
+describe('withoutMenuNames —— 按 name 摘掉导航节点', () => {
   const MENUS: MenuConfig[] = [
     {
       name: 'Dashboard',
@@ -611,8 +611,16 @@ describe('withoutMenuNames —— 错误态导航降级', () => {
       title: '仪表盘',
       children: [
         { name: 'Analysis', path: '/dashboard/analysis', title: '分析看板' },
-        { name: 'DashboardTasks', path: '/dashboard/tasks', title: '任务中心' },
-        { name: 'DashboardTickets', path: '/dashboard/tickets', title: '工单' },
+        {
+          name: 'DashboardExtraA',
+          path: '/dashboard/extra-a',
+          title: '辅助入口 A',
+        },
+        {
+          name: 'DashboardExtraB',
+          path: '/dashboard/extra-b',
+          title: '辅助入口 B',
+        },
       ],
     },
     { name: 'SystemUser', path: '/system/user', title: '用户管理' },
@@ -620,8 +628,8 @@ describe('withoutMenuNames —— 错误态导航降级', () => {
 
   it('按 name 摘掉叶子，父级与其他兄弟原样保留', () => {
     const next = withoutMenuNames(MENUS, [
-      'DashboardTasks',
-      'DashboardTickets',
+      'DashboardExtraA',
+      'DashboardExtraB',
     ]);
 
     expect(next[0]?.children?.map((m) => m.name)).toEqual(['Analysis']);
@@ -629,11 +637,11 @@ describe('withoutMenuNames —— 错误态导航降级', () => {
   });
 
   it('不修改原树（授权集合仍由调用方拿完整树收集）', () => {
-    withoutMenuNames(MENUS, ['DashboardTasks']);
+    withoutMenuNames(MENUS, ['DashboardExtraA']);
     expect(MENUS[0]?.children).toHaveLength(3);
   });
 
-  it('空名单直接返回原数组引用，健康态零拷贝', () => {
+  it('空名单直接返回原数组引用，零拷贝', () => {
     expect(withoutMenuNames(MENUS, [])).toBe(MENUS);
   });
 

@@ -2,9 +2,9 @@ import {
   aiPolicySnapshot,
   maskPolicySnapshot,
 } from '../../../utils/db/security-advanced';
-import { assessPrompt, moderateOutput } from '../../../utils/security/ai-guard';
 import { bizError, success } from '../../../utils/response';
 import { defineMockRoute } from '../../../utils/runtime';
+import { assessPrompt, moderateOutput } from '../../../utils/security/ai-guard';
 
 /** 安全策略演练：不落审计，只返回当前策略下的判定与脱敏结果 */
 export default defineMockRoute({

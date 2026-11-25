@@ -51,7 +51,10 @@ const previewSchemas: FormSchema[] = [
   },
   {
     component: 'InputTextArea',
-    componentProps: { placeholder: '输入一段文案，验证当前策略会如何处理', rows: 4 },
+    componentProps: {
+      placeholder: '输入一段文案，验证当前策略会如何处理',
+      rows: 4,
+    },
     field: 'text',
     label: '待检测文案',
     required: true,
@@ -93,7 +96,7 @@ const statsCards = computed<DataStat[]>(() => [
     tone: 'amber',
     value: String(
       policies.value.filter((row) =>
-        ['phone', 'email', 'idcard', 'bankcard'].includes(String(row.type)),
+        ['bankcard', 'email', 'idcard', 'phone'].includes(String(row.type)),
       ).length,
     ),
   },
@@ -121,7 +124,9 @@ const createSchemas = computed<FormSchema[]>(() => [
 
 function listApi(params: Record<string, any>) {
   return getMaskPolicyList().then((rows) => {
-    const keyword = String(params.keyword ?? '').trim().toLowerCase();
+    const keyword = String(params.keyword ?? '')
+      .trim()
+      .toLowerCase();
     const filtered = rows.filter((row) =>
       [row.field, row.scope, TYPE_LABELS[row.type] ?? row.type]
         .join(' ')
@@ -151,9 +156,14 @@ async function loadPolicies() {
   }
 }
 
-async function onSubmit(values: Record<string, any>, editingKey: null | string) {
+async function onSubmit(
+  values: Record<string, any>,
+  editingKey: null | string,
+) {
   try {
-    await saveMaskPolicy(editingKey ? { ...values, id: Number(editingKey) } : values);
+    await saveMaskPolicy(
+      editingKey ? { ...values, id: Number(editingKey) } : values,
+    );
     message.success(editingKey ? '策略已更新' : '策略已创建');
     await loadPolicies();
     return true;

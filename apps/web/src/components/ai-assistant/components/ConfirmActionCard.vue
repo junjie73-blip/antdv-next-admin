@@ -3,12 +3,16 @@
 import type { ToolComponentProps } from 'vue-llm';
 
 import { ref } from 'vue';
+
 import { Button } from '@antdv/shadcn-ui';
 import { Icon } from '@iconify/vue';
 
 defineOptions({ name: 'CopilotConfirmAction' });
 
-const props = defineProps<ToolComponentProps<{ title: string; impact: string; risks?: string[] }>>();
+const props =
+  defineProps<
+    ToolComponentProps<{ title: string; impact: string; risks?: string[] }>
+  >();
 
 const decided = ref<'cancelled' | 'confirmed' | null>(null);
 
@@ -32,7 +36,9 @@ function confirm() {
     <div class="flex items-start gap-2">
       <Icon icon="carbon:warning" class="mt-0.5 size-4 shrink-0 text-warning" />
       <div class="min-w-0 flex-1">
-        <p class="text-xs font-semibold text-foreground">{{ args?.title ?? '危险操作确认' }}</p>
+        <p class="text-xs font-semibold text-foreground">
+          {{ args?.title ?? '危险操作确认' }}
+        </p>
         <p class="mt-1 text-[11px] leading-relaxed text-muted-foreground">
           {{ args?.impact ?? '该操作会影响线上数据，请确认影响范围。' }}
         </p>
@@ -53,12 +59,21 @@ function confirm() {
       <Button variant="ghost" size="sm" class="h-7 text-xs" @click="cancel">
         取消
       </Button>
-      <Button variant="destructive" size="sm" class="h-7 text-xs" @click="confirm">
+      <Button
+        variant="destructive"
+        size="sm"
+        class="h-7 text-xs"
+        @click="confirm"
+      >
         我已确认
       </Button>
     </div>
     <p v-else class="mt-2 text-[11px] text-muted-foreground">
-      {{ decided === 'confirmed' ? '已记录确认，请到业务页面执行操作。' : '已取消，未产生任何写操作。' }}
+      {{
+        decided === 'confirmed'
+          ? '已记录确认，请到业务页面执行操作。'
+          : '已取消，未产生任何写操作。'
+      }}
     </p>
   </div>
 </template>

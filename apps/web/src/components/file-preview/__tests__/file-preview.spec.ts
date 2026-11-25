@@ -30,7 +30,7 @@ describe('通用文件预览', () => {
     wrapper.unmount();
   });
 
-  it('Markdown 解析成 HTML，原始 script 标签被转义', async () => {
+  it('markdown 解析成 HTML，原始 script 标签被转义', async () => {
     const wrapper = await render(
       file('note.md', '# 标题\n\n<script>alert(1)</script>\n\n- 项目一'),
     );
@@ -40,12 +40,16 @@ describe('通用文件预览', () => {
     wrapper.unmount();
   });
 
-  it('CSV 首行作表头，数据行逐格渲染', async () => {
-    const wrapper = await render(file('rows.csv', 'name,value\n甲,1\n"乙,丙",2'));
+  it('cSV 首行作表头，数据行逐格渲染', async () => {
+    const wrapper = await render(
+      file('rows.csv', 'name,value\n甲,1\n"乙,丙",2'),
+    );
     const headers = wrapper.findAll('th');
     expect(headers.map((node) => node.text())).toEqual(['name', 'value']);
     expect(wrapper.findAll('tbody tr')).toHaveLength(2);
-    expect(wrapper.findAll('tbody tr')[1]?.findAll('td')[0]?.text()).toBe('乙,丙');
+    expect(wrapper.findAll('tbody tr')[1]?.findAll('td')[0]?.text()).toBe(
+      '乙,丙',
+    );
     wrapper.unmount();
   });
 

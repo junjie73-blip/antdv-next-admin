@@ -38,7 +38,8 @@ interface RoleRecord {
 }
 
 /** 表格插槽给到的 record 是宽松 Recordable，这里一处收窄，避免模板里散落断言 */
-const asRole = (record: Record<string, any>): RoleRecord => record as RoleRecord;
+const asRole = (record: Record<string, any>): RoleRecord =>
+  record as RoleRecord;
 
 const containerClassName = cn('space-y-4');
 const cardClassName = cn('shadow-sm');

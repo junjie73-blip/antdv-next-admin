@@ -93,7 +93,7 @@ function handleRefresh() {
 | `fetchSetting` | `{ pageField, sizeField, listField, totalField }` | 默认 `pageNum / pageSize / list / total`（`hooks/useDataSource.ts:18-23`，用 `satisfies FetchSetting` 而不是类型标注） |
 | `useSearchForm` / `formConfig` | `boolean` / `Partial<FormProps>` | 表格自带搜索区，见[表单](/components/form) |
 | `rowSelection` | `boolean \| TableRowSelection` | 传对象即 checkbox，`type: 'radio'` 单选 |
-| `actionColumn` | `ActionColumnProps` | 操作列，`actions(record)` 返回 `ActionItem[]` |
+| `actionColumn` | `ActionColumnProps` | 操作列，`actions` 可直接传 `ActionItem[]`，也可传 `(record) => ActionItem[]`；统一由 `TableAction` 渲染 |
 | `dragSort` / `dragSortConfig` | `boolean` / 对象 | 见下文拖拽排序 |
 | `scroll` | `{ x, y, scrollToFirstRowOnChange }` | 横向/纵向滚动，缺省是 `{ y: 440 }`（`BasicTable.vue:87`），要整高自适应得显式覆盖。`x` 走 CSS 变量（容器上的 `--basic-table-min-width` + `<table>` 的 `min-w-[var(--basic-table-min-width)]`），`y` 变成滚动容器的 `max-height`；两者都作用在 shadcn `Table` 自带的那层 `data-slot="table-container"` 上 |
 | `immediate` | `boolean` | 挂载即请求，默认 `true` |
@@ -172,6 +172,69 @@ dragSortConfig?: {
 ```
 
 中间的分隔条可以拖（`treeMinWidth`/`treeMaxWidth` 就是这个拖拽的夹取值），树的搜索框按标题过滤并自动展开命中路径。
+
+## 操作栏：`TableAction`
+
+`TableAction` 是 `table-ui` 的操作栏专用组件（源码 `src/components/TableAction.vue`，包根导出 `TableAction` 与 `ActionItem` / `ActionColumnProps` / `TableActionProps` / `ActionPopConfirm` / `ActionTooltip` 等类型）。`BasicTable` 的操作列已经内置它：给 `actionColumn.actions` 传配置数组即可，不必再写 `#action` 插槽和重复的按钮/分割线渲染。
+
+```vue
+<script setup lang="ts">
+import type { ActionItem } from '@antdv/table-ui';
+
+import { BasicTable } from '@antdv/table-ui';
+
+const actionColumn = {
+  width: 320,
+  maxCount: 4, // 超出折进「更多」，默认 4
+  actions: (record: Record<string, any>): ActionItem[] => [
+    {
+      icon: 'carbon:checkmark',
+      label: '通过',
+      tooltip: '通过后进入下一节点',
+      permission: 'approval:action',
+      onClick: () => approve(record),
+    },
+    {
+      danger: true,
+      icon: 'carbon:trash-can',
+      label: '删除',
+      popConfirm: {
+        cancelText: '暂不',
+        confirm: () => remove(record),
+        content: '删除后不可恢复',
+        okText: '确认删除',
+        title: '确定删除该记录吗？',
+      },
+    },
+    {
+      label: '导出',
+      permission: 'demo:export',
+      permissionMode: 'disable', // 默认 hide；disable 会保留按钮并置灰
+      onClick: () => exportRow(record),
+    },
+  ],
+};
+</script>
+
+<template>
+  <BasicTable
+    :action-column="actionColumn"
+    :columns="columns"
+    :data-source="rows"
+  />
+</template>
+```
+
+约定：
+
+- `label` 支持字符串、VNode 或 `(record) => string | VNode`；`icon` 填 iconify 名；`tooltip` 同样支持函数形态。
+- `type` 缺省为 `text`（映射 shadcn `ghost` 变体）。按钮底色取主题 `primary` 的浅色值，`link` 只作为兼容别名传入，也按无下划线的 text 按钮渲染。
+- `permission` / `auth` 走 `tableRuntime` 注入的 `checkAuth` / `checkAnyAuth`；也可以在 `actionColumn` 或 `TableAction` 上传 `hasPermission(action, record)` 覆盖运行时判定，`permissionMode: 'hide'`（默认）隐藏、`'disable'` 置灰保留，单项配置优先。
+- `maxCount` 默认 **4**：数量 ≤ 4 时全部平铺；数量 > 4 时前 3 项平铺，第 4 位换成「更多」，第 4 项起全部进下拉。相邻按钮（含「更多」）之间都有垂直分隔线。旧的 `maxShowCount` 仍可用，同时传入时以它为准。
+- `popConfirm` 的 `title` / `content` 支持字符串或 VNode，`okText` / `cancelText` 覆盖全局确认文案；「更多」里的二次确认用内联确认行，避免浮层套浮层。
+- 单元格默认水平居中，操作栏整组也居中；确实要左/右对齐时在列上显式声明 `align: 'left' | 'right'`。表头始终带 `border-b border-border`，操作列不会再出现"表头下面空一条"。
+
+`DataPage` 也走同一条链路：给 `extraActions` 传数组或 `(row) => ActionItem[]`，它会排在「详情 / 编辑 / 删除」之前，由同一个 `TableAction` 渲染。
 
 ## 在线示例
 

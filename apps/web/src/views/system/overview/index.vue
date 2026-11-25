@@ -53,7 +53,7 @@ const itemClassName = cn(
 );
 const itemIconClassName = cn('text-primary mt-0.5 text-lg');
 const itemTitleClassName = cn('text-foreground text-sm font-medium');
-const itemDescClassName = cn('text-muted-foreground mt-0.5 text-xs/5 ');
+const itemDescClassName = cn('text-muted-foreground mt-0.5 text-xs/5');
 const groupHeaderClassName = cn('flex items-center gap-2');
 
 const GROUPS: NavGroup[] = [

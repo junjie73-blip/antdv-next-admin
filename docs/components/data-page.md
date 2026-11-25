@@ -2,7 +2,7 @@
 
 `DataPage`（`packages/core/ui-kit/common-ui/src/components/data-page/DataPage.vue`）是列表型页面的标准模板。它把统计卡、查询表单、工具栏、表格、分页、新增/编辑弹窗与详情抽屉收敛成一份配置，避免在业务页里重复拼装 `BasicTable + BasicModal + BasicForm`。
 
-当前使用它的页面包括 AI 配置五页、审批流、仪表盘任务/工单，以及安全中心的审计与策略页。
+当前使用它的页面包括 AI 配置五页、审批流、分析页，以及安全中心的审计与策略页。
 
 ## 最小示例
 
@@ -34,7 +34,8 @@ const config: DataPageProps = {
 - 配了 `api` 后，服务端必须自己按 `pageNum` / `pageSize` 切片并返回 `{ list, total }`；组件不会再在客户端切片。
 - `readonly: true` 用于审计/台账类页面：隐藏新建、编辑、删除和行选择，只保留查询与详情。
 - `statusKey` + `statusLabels` + `statusColors` 负责状态列渲染；其他列的自定义渲染走 `BasicTable` 的 `cell-<key>` 插槽。
-- `toolbar-extra` 插槽用于放页面特有的工具栏按钮，`action-extra` 用于操作列的额外按钮，`detail-extra` 用于详情抽屉补充内容。
+- `toolbar-extra` 插槽用于放页面特有的工具栏按钮；操作列追加项统一传 `extraActions`（数组或 `(row) => ActionItem[]`），由 `TableAction` 渲染，`detail-extra` 用于详情抽屉补充内容。
+- `actionMaxShowCount` 默认 4，超出后由 `TableAction` 折进「更多」；`detailWidth` 控制详情抽屉宽度，流程类页面（如审批详情）可设成 860 以免 vue-flow 节点被挤小。
 - 写接口成功后调用组件实例的 `reload()` 强制刷新服务端数据。
 
 ## 表单
@@ -43,8 +44,8 @@ const config: DataPageProps = {
 
 ## 插槽
 
-| 插槽 | 作用域 | 用途 |
-| --- | --- | --- |
-| `toolbar-extra` | 无 | 表格工具栏追加按钮 |
-| `action-extra` | `record` | 操作列追加按钮 |
-| `detail-extra` | `record` | 详情抽屉追加内容 |
+| 插槽            | 作用域   | 用途                   |
+| --------------- | -------- | ---------------------- |
+| `toolbar-extra` | 无       | 表格工具栏追加按钮     |
+| `detail-extra`  | `record` | 详情抽屉追加内容       |
+| `detail-footer` | `record` | 详情抽屉底部固定操作区 |

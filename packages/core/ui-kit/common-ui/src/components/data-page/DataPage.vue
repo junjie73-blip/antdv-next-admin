@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import type { FormSchema } from '@antdv/form-ui';
-import type { BasicColumn } from '@antdv/table-ui';
+import type { ActionItem, BasicColumn } from '@antdv/table-ui';
 
 import type { DataPageProps, DataRow } from './types';
 
-import { computed, ref } from 'vue';
+import { computed, isVNode, ref, useSlots } from 'vue';
 
 import { BasicForm, useForm } from '@antdv/form-ui';
 import {
@@ -21,9 +21,7 @@ import { Icon } from '@iconify/vue';
 
 import { Card } from '../card';
 import { Descriptions, DescriptionsItem } from '../descriptions';
-import { Divider } from '../divider';
 import { PageHeader } from '../page-header';
-import { Popconfirm } from '../popconfirm';
 import { Tag } from '../tag';
 
 /**
@@ -40,9 +38,14 @@ import { Tag } from '../tag';
  * `{ list, total }` 端点（配了 api 后 BasicTable 不再做客户端切片，必须自己切）。
  */
 const props = withDefaults(defineProps<DataPageProps>(), {
+  actionMaxShowCount: 4,
   actionWidth: 200,
   api: undefined,
+  canDeleteRow: () => () => true,
+  canEditRow: () => () => true,
   createFields: undefined,
+  detailWidth: 480,
+  extraActions: undefined,
   createSchemas: undefined,
   createLabel: '新建',
   description: '',
@@ -64,6 +67,7 @@ const props = withDefaults(defineProps<DataPageProps>(), {
 
 /** 本地数据源（仅在未提供服务端 api 时参与增删改） */
 const rows = ref<DataRow[]>([...props.rows]);
+const slots = useSlots();
 
 const keywordField = 'keyword';
 
@@ -117,7 +121,7 @@ const tableColumns = computed<BasicColumn[]>(() =>
 async function listApi(params: Record<string, any>) {
   if (props.api) return props.api(params);
   const pageNum = Number(params.pageNum ?? 1);
-  const pageSize = Number(params.pageSize ?? 8);
+  const pageSize = Number(params.pageSize ?? 10);
   const kw = String(params[keywordField] ?? '')
     .trim()
     .toLowerCase();
@@ -181,10 +185,43 @@ function handleSelectionChange(keys: (number | string)[]) {
   selectedCount.value = keys.length;
 }
 
-/** 操作列按钮样式，与参考页 system/user 的 link 按钮保持一致 */
-const actionClassName = cn('flex items-center justify-center');
-const btnClassName = cn('h-auto px-0.5!');
-const dividerClassName = cn('mx-0');
+/**
+ * 操作列统一交给 TableAction：宿主额外项 + 详情 / 编辑 / 删除，
+ * 全部是 ActionItem 配置，页面侧不再手写按钮和分割线。
+ */
+function rowActions(record: DataRow): ActionItem[] {
+  const extra = props.extraActions;
+  const items: ActionItem[] =
+    typeof extra === 'function' ? extra(record) : [...(extra ?? [])];
+  items.push({
+    icon: 'ant-design:eye-outlined',
+    label: '详情',
+    tooltip: '查看详情',
+    onClick: () => openDetail(record),
+  });
+  if (!props.readonly && props.canEditRow(record)) {
+    items.push({
+      icon: 'ant-design:edit-outlined',
+      label: '编辑',
+      tooltip: '编辑记录',
+      onClick: () => openEdit(record),
+    });
+  }
+  if (props.showDelete && !props.readonly && props.canDeleteRow(record)) {
+    items.push({
+      danger: true,
+      icon: 'ant-design:delete-outlined',
+      label: '删除',
+      popConfirm: {
+        confirm: () => removeRow(record),
+        okText: '删除',
+        title: '确定删除该记录吗？',
+      },
+      tooltip: '删除记录',
+    });
+  }
+  return items;
+}
 
 const toneClass: Record<string, string> = {
   amber: 'text-amber-600 bg-amber-500/10',
@@ -257,6 +294,37 @@ async function submitCreate() {
 function openDetail(row: DataRow) {
   detailRow.value = row;
   detailMethods.openDrawer();
+}
+
+/** 详情字段的安全展示：VNode / 数组一律抽文本，避免把对象 JSON 直接糊到页面上 */
+function detailText(value: unknown): string {
+  if (value === null || value === undefined || value === '') return '';
+  if (isVNode(value)) {
+    const children = value.children;
+    if (typeof children === 'string' || typeof children === 'number')
+      return String(children);
+    if (Array.isArray(children))
+      return children.map((child) => detailText(child)).join('');
+    return detailText((value.props as null | Record<string, unknown>)?.content);
+  }
+  if (Array.isArray(value))
+    return value
+      .map((item) => detailText(item))
+      .filter(Boolean)
+      .join('、');
+  if (typeof value === 'object') {
+    const obj = value as Record<string, unknown>;
+    for (const key of ['label', 'title', 'name', 'text'] as const) {
+      const text = detailText(obj[key]);
+      if (text) return text;
+    }
+    return detailText(obj.children);
+  }
+  return String(value);
+}
+
+function displayDetailValue(value: unknown): string {
+  return detailText(value).trim() || '-';
 }
 
 async function removeRow(row: DataRow) {
@@ -350,21 +418,31 @@ defineExpose({
     <Card class="shadow-sm">
       <template #title>{{ title }}列表</template>
       <BasicTable
-        :action-column="{ width: actionWidth, title: '操作', fixed: 'right' }"
+        :action-column="{
+          width: actionWidth,
+          title: '操作',
+          fixed: 'right',
+          actions: rowActions,
+          maxCount: actionMaxShowCount,
+        }"
         :api="listApi"
         :columns="tableColumns"
         :form-config="{ schemas: searchFormSchemas, labelWidth: 80 }"
         :immediate="true"
         :pagination="{
-          pageSize: 8,
-          pageSizeOptions: ['8', '10', '20', '50'],
+          pageSize: 10,
+          pageSizeOptions: ['10', '20', '50', '100'],
           showSizeChanger: true,
         }"
         :row-key="primaryKey"
-        :row-selection="readonly ? undefined : {
-          type: 'checkbox',
-          onChange: handleSelectionChange,
-        }"
+        :row-selection="
+          readonly
+            ? undefined
+            : {
+                type: 'checkbox',
+                onChange: handleSelectionChange,
+              }
+        "
         :scroll="{ x: 1000 }"
         :use-search-form="true"
         @register="tableRegister"
@@ -386,9 +464,15 @@ defineExpose({
 
         <!-- 状态列（statusKey 由页面侧声明，动态插槽名） -->
         <template #[statusCellSlot]="{ record }">
-          <Tag :color="cellColor(record[statusKey] || '')">
-            {{ props.statusLabels[record[statusKey]] ?? record[statusKey] }}
-          </Tag>
+          <div class="flex min-w-[72px] items-center justify-center gap-1">
+            <Tag v-if="record[statusKey]" :color="cellColor(record[statusKey])">
+              {{
+                props.statusLabels[record[statusKey]] ??
+                displayDetailValue(record[statusKey])
+              }}
+            </Tag>
+            <span v-else class="text-xs text-muted-foreground">-</span>
+          </div>
         </template>
 
         <!-- 进度列 -->
@@ -404,59 +488,19 @@ defineExpose({
           </div>
           <span v-else>{{ record.progress || '-' }}</span>
         </template>
-
-        <!-- 操作列：详情 / 编辑 / 删除，样式参考 system/user 列表 -->
-        <template #action="{ record }">
-          <div :class="actionClassName">
-            <slot name="action-extra" :record="record"></slot>
-            <Button
-              variant="link"
-              :class="btnClassName"
-              @click="openDetail(record)"
-            >
-              <Icon icon="ant-design:eye-outlined" /> 详情
-            </Button>
-            <template v-if="!readonly">
-              <Divider type="vertical" :class="dividerClassName" />
-              <Button
-                variant="link"
-                :class="btnClassName"
-                @click="openEdit(record)"
-              >
-                <Icon icon="ant-design:edit-outlined" /> 编辑
-              </Button>
-            </template>
-            <template v-if="showDelete && !readonly">
-              <Divider type="vertical" :class="dividerClassName" />
-              <Popconfirm
-                title="确定删除该记录吗？"
-                danger
-                @confirm="removeRow(record)"
-              >
-                <Button
-                  variant="link"
-                  class="text-destructive hover:text-destructive"
-                  :class="btnClassName"
-                >
-                  <Icon icon="ant-design:delete-outlined" /> 删除
-                </Button>
-              </Popconfirm>
-            </template>
-          </div>
-        </template>
       </BasicTable>
     </Card>
 
     <!-- 新增 / 编辑统一走 Modal + BasicForm，不在页面里直接渲染表单 -->
     <BasicModal
       :title="editingKey !== null ? `编辑${title}` : createLabel"
-      :width="560"
+      :width="640"
       @ok="submitCreate"
       @register="modalRegister"
     >
       <BasicForm
-        :grid="{ cols: 2, gutter: 16 }"
-        :label-width="80"
+        :grid="{ cols: 2, gutter: [20, 18] }"
+        :label-width="112"
         :schemas="modalFormSchemas"
         :show-action-button-group="false"
         @register="formRegister"
@@ -467,7 +511,7 @@ defineExpose({
     <BasicDrawer
       :show-footer="false"
       :title="`${title}详情`"
-      :width="480"
+      :width="props.detailWidth"
       @register="detailRegister"
     >
       <Descriptions v-if="detailRow" :column="1" bordered size="middle">
@@ -476,10 +520,18 @@ defineExpose({
           :key="column.key"
           :label="column.title"
         >
-          {{ detailRow[column.key] || '-' }}
+          {{ displayDetailValue(detailRow[column.key]) }}
         </DescriptionsItem>
       </Descriptions>
       <slot name="detail-extra" :record="detailRow"></slot>
+      <!-- 详情抽屉里的操作按钮统一钉在底部；没有传插槽时不出脚部 -->
+      <template v-if="slots['detail-footer']" #footer>
+        <div
+          class="flex flex-wrap items-center justify-end gap-2 border-t border-border px-4 py-3"
+        >
+          <slot name="detail-footer" :record="detailRow"></slot>
+        </div>
+      </template>
     </BasicDrawer>
   </div>
 </template>

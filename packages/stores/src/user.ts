@@ -146,8 +146,7 @@ export const useUserStore = defineStore('user', () => {
         }
 
         setUserInfo(mockUserInfo);
-        // 一次成功登录 = 一次干净会话。之前输错密码留下的错误态在这里收口，
-        // 否则「任务中心 / 工单」会一直被错误态藏掉，用户找不到恢复入口。
+        // 一次成功登录 = 一次干净会话：之前失败留下的接口错误计数在这里收口。
         useApiHealthStore().reset();
 
         return { success: true };

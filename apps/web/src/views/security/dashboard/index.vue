@@ -6,7 +6,11 @@ import { message } from '@antdv/popup-ui';
 import { Button } from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/utils/cn';
 import { Icon } from '@iconify/vue';
-import { getAuditStats, getSecurityScore, getSecurityStats } from '~/api/security';
+import {
+  getAuditStats,
+  getSecurityScore,
+  getSecurityStats,
+} from '~/api/security';
 
 import RealtimeAlertPanel from './components/RealtimeAlertPanel.vue';
 import SecurityScoreCard from './components/SecurityScoreCard.vue';
@@ -28,7 +32,19 @@ async function exportReport() {
       getAuditStats(),
     ]);
     const blob = new Blob(
-      [JSON.stringify({ exportedAt: new Date().toISOString(), range: range.value, score, stats, operations }, null, 2)],
+      [
+        JSON.stringify(
+          {
+            exportedAt: new Date().toISOString(),
+            range: range.value,
+            score,
+            stats,
+            operations,
+          },
+          null,
+          2,
+        ),
+      ],
       { type: 'application/json' },
     );
     const url = URL.createObjectURL(blob);

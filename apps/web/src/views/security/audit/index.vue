@@ -14,7 +14,7 @@ import { getAuditList, getAuditStats } from '~/api/security';
 
 defineOptions({ name: 'SecurityAudit' });
 
-const stats = ref<SecurityOperations | null>(null);
+const stats = ref<null | SecurityOperations>(null);
 
 const STATUS_LABELS: Record<string, string> = {
   error: '失败',

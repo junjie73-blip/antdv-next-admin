@@ -13,8 +13,6 @@ import { computed, onMounted, ref } from 'vue';
 
 import { DataPage } from '@antdv/common-ui';
 import { message } from '@antdv/popup-ui';
-import { Button } from '@antdv/shadcn-ui';
-import { Icon } from '@iconify/vue';
 import {
   deleteApprovalGroup,
   getApprovalGroupList,
@@ -177,6 +175,14 @@ async function toggleStatus(row: DataRow) {
 const config = computed<DataPageProps>(() => ({
   actionWidth: 280,
   api: listApi,
+  extraActions: (row) => [
+    {
+      icon:
+        row.status === 'enabled' ? 'carbon:warning-alt' : 'carbon:checkmark',
+      label: row.status === 'enabled' ? '停用' : '启用',
+      onClick: () => toggleStatus(row),
+    },
+  ],
   columns: columns.value,
   createLabel: '新增分组',
   createSchemas: createSchemas.value,
@@ -198,22 +204,5 @@ onMounted(loadStats);
 </script>
 
 <template>
-  <DataPage v-bind="config" ref="pageRef">
-    <template #action-extra="{ record }">
-      <Button
-        variant="link"
-        class="h-auto px-0.5!"
-        @click="toggleStatus(record)"
-      >
-        <Icon
-          :icon="
-            record.status === 'enabled'
-              ? 'carbon:warning-alt'
-              : 'carbon:checkmark'
-          "
-        />
-        {{ record.status === 'enabled' ? '停用' : '启用' }}
-      </Button>
-    </template>
-  </DataPage>
+  <DataPage v-bind="config" ref="pageRef" />
 </template>

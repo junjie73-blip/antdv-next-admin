@@ -1,7 +1,6 @@
 import type { ExecuteOptions } from '~/composables';
 
 import { useApiHealthStore } from '@antdv/stores';
-
 import { http } from '~/composables';
 
 export interface R<T = unknown> {
@@ -49,8 +48,7 @@ function unwrap<T>(envelope: R<T>): T {
     return envelope as unknown as T;
   }
   if (envelope.code !== 200) {
-    const message =
-      envelope.message || `请求失败（业务码 ${envelope.code}）`;
+    const message = envelope.message || `请求失败（业务码 ${envelope.code}）`;
     // 第二个错误出口：非 JSON 信封或绕过 fetcher 的调用也会到这里。
     // 单测 / SSR 没有 active pinia 时静默，请求层的 onError 已经上报过一次。
     try {

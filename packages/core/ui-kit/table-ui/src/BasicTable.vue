@@ -3,6 +3,7 @@ import type { ColumnFiltersState, SortingState } from '@tanstack/vue-table';
 
 import type { CellContentHandlers } from './helpers/cellContent';
 import type {
+  ActionItem,
   BasicColumn,
   BasicTableProps,
   Recordable,
@@ -512,10 +513,11 @@ const mergedSummary = computed(() => {
 const getCellText = (col: BasicColumn, record: Recordable) =>
   readCellText(record, col);
 
-function getActions(record: Recordable): any[] {
-  const actionColumn = mergedActionColumn.value;
-  if (!actionColumn?.actions) return [];
-  return actionColumn.actions(record);
+function getActions(record: Recordable): ActionItem[] {
+  const actions = mergedActionColumn.value?.actions;
+  if (!actions) return [];
+  // 配置数组与按行生成的函数都收进同一条渲染链路，页面不必再手写操作列
+  return typeof actions === 'function' ? actions(record) : actions;
 }
 
 /**
@@ -812,7 +814,10 @@ defineExpose(tableActionType);
                   >
                     <TableAction
                       :actions="getActions(row.record)"
-                      :max-show-count="mergedActionColumn?.maxShowCount || 4"
+                      :has-permission="mergedActionColumn?.hasPermission"
+                      :max-count="mergedActionColumn?.maxCount"
+                      :max-show-count="mergedActionColumn?.maxShowCount"
+                      :permission-mode="mergedActionColumn?.permissionMode"
                       :record="row.record"
                     />
                   </slot>

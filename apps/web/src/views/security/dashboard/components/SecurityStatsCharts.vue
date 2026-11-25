@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch, type Ref } from 'vue';
+import type { Ref } from 'vue';
+
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
 import { cn } from '@antdv/shared/utils/cn';
 import { useAppStore } from '@antdv/stores';
@@ -133,7 +135,13 @@ function initPieChart(el: HTMLDivElement) {
           value: item.value,
           name: item.name,
           itemStyle: {
-            color: [PALETTE.danger, PALETTE.primary, PALETTE.warning, PALETTE.info, PALETTE.success][index % 5],
+            color: [
+              PALETTE.danger,
+              PALETTE.primary,
+              PALETTE.warning,
+              PALETTE.info,
+              PALETTE.success,
+            ][index % 5],
           },
         })),
         animationDuration: 1200,
@@ -188,8 +196,15 @@ function initBarChart(el: HTMLDivElement) {
               {
                 offset: 0,
                 color:
-                  [PALETTE.primary, PALETTE.success, PALETTE.warning, PALETTE.info, '#13c2c2', PALETTE.danger, '#ff85c0'][index % 7] ??
-                  PALETTE.primary,
+                  [
+                    PALETTE.primary,
+                    PALETTE.success,
+                    PALETTE.warning,
+                    PALETTE.info,
+                    '#13c2c2',
+                    PALETTE.danger,
+                    '#ff85c0',
+                  ][index % 7] ?? PALETTE.primary,
               },
               { offset: 1, color: 'rgba(255,255,255,0.05)' },
             ]),

@@ -12,25 +12,19 @@
     "scripts/*/src/**/*.json"
   ],
   "ui": "stream",
+  "//": "workspace 包统一以 src 作为 exports 目标，构建只 externalize 依赖、不读依赖产物；internal/* 与 scripts/* 已在 postinstall 先构建。因此这里不再声明 ^build，避免 form-ui/table-ui/common-ui 互相引用时 Turborepo 误判依赖成环导致 Vercel/Netlify 构建失败。",
   "tasks": {
     "build": {
-      "dependsOn": ["^build"],
       "outputs": ["dist/**", ".output/**", ".nitro/**", ".vitepress/dist/**"]
     },
     "dev": {
       "cache": false,
-      "dependsOn": ["^build"],
       "persistent": true
     },
-    "type-check": {
-      "dependsOn": ["^build"]
-    },
-    "test:unit": {
-      "dependsOn": ["^build"]
-    },
+    "type-check": {},
+    "test:unit": {},
     "test:e2e": {
-      "cache": false,
-      "dependsOn": ["^build"]
+      "cache": false
     },
     "clean": {
       "cache": false

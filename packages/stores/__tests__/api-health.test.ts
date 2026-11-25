@@ -1,5 +1,4 @@
 import { createPinia, setActivePinia } from 'pinia';
-
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { useApiHealthStore } from '../src/api-health';

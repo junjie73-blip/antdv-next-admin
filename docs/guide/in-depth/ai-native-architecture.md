@@ -1,7 +1,6 @@
 # AI Native 结构性重构方案
 
-> 目标：把「人找菜单」改造成「AI 指令 + 全局入口 + 上下文感知」的主路径，同时保留菜单作为可回退的安全网。
-> 本文是**落地契约**：模块职责、接口签名、迁移顺序与验收标准都按此执行，避免各页面各写一套 AI 接线。
+> 目标：把「人找菜单」改造成「AI 指令 + 全局入口 + 上下文感知」的主路径，同时保留菜单作为可回退的安全网。本文是**落地契约**：模块职责、接口签名、迁移顺序与验收标准都按此执行，避免各页面各写一套 AI 接线。
 
 ---
 
@@ -57,10 +56,17 @@ export interface ToolRuntime {
 #### `search_table` — 自然语言 → 筛选/排序
 
 ```ts
-interface SearchTableArgs { utterance: string; target?: string }
+interface SearchTableArgs {
+  utterance: string;
+  target?: string;
+}
 interface SearchTableResult {
-  filters: Array<{ field: string; op: 'eq'|'contains'|'gt'|'lt'|'in'; value: unknown }>;
-  sorts: Array<{ field: string; order: 'asc'|'desc' }>;
+  filters: Array<{
+    field: string;
+    op: 'eq' | 'contains' | 'gt' | 'lt' | 'in';
+    value: unknown;
+  }>;
+  sorts: Array<{ field: string; order: 'asc' | 'desc' }>;
   applied: boolean;
   summary: string;
 }
@@ -73,8 +79,15 @@ interface SearchTableResult {
 #### `generate_form` — 自然语言 → JSON Schema + 打开弹窗
 
 ```ts
-interface GenerateFormArgs { description: string; template?: string }
-interface GenerateFormResult { schema: JsonSchema7; opened: boolean; formId: string }
+interface GenerateFormArgs {
+  description: string;
+  template?: string;
+}
+interface GenerateFormResult {
+  schema: JsonSchema7;
+  opened: boolean;
+  formId: string;
+}
 ```
 
 - Schema 由「意图 + 页面声明的实体字段 + 已有模板」合并，字段类型必须落在 form-ui `FormSchema.component` 白名单内。
@@ -83,7 +96,10 @@ interface GenerateFormResult { schema: JsonSchema7; opened: boolean; formId: str
 #### `fill_form_fields` — AI 推断并回填（Smart Fill）
 
 ```ts
-interface FillFormFieldsArgs { fields?: string[]; source?: 'context'|'history'|'description' }
+interface FillFormFieldsArgs {
+  fields?: string[];
+  source?: 'context' | 'history' | 'description';
+}
 interface FillFormFieldsResult {
   values: Record<string, unknown>;
   filled: string[];
@@ -99,8 +115,14 @@ interface FillFormFieldsResult {
 #### `navigate_to` — 意图 → 路由
 
 ```ts
-interface NavigateToArgs { utterance: string }
-interface NavigateIntent { name: string; params?: Record<string, string>; query?: Record<string, string> }
+interface NavigateToArgs {
+  utterance: string;
+}
+interface NavigateIntent {
+  name: string;
+  params?: Record<string, string>;
+  query?: Record<string, string>;
+}
 ```
 
 - 目标路由从 `meta.aiContext.links` 与菜单清单中做受控匹配，禁止自由拼接 path。
@@ -160,10 +182,10 @@ interface ToolOutcome<T = unknown> {
 declare module 'vue-router' {
   interface RouteMeta {
     aiContext?: {
-      entity: string;                        // 实体名，如 approval
-      title: string;                         // 给用户看的上下文 Chip 文案
+      entity: string; // 实体名，如 approval
+      title: string; // 给用户看的上下文 Chip 文案
       fields?: Array<{ key: string; label: string; type?: string }>;
-      tools?: string[];                      // 本页允许的工具白名单
+      tools?: string[]; // 本页允许的工具白名单
       links?: Array<{ name: string; intent: string }>;
     };
   }
@@ -184,7 +206,11 @@ declare module 'vue-router' {
 ```ts
 const system = usePrompt(
   computed(() => templateFor(route.name) ?? DEFAULT_TEMPLATE),
-  () => ({ route: route.name, entity: ctx.entity, selectedRows: serialize(ctx.selectedRows) }),
+  () => ({
+    route: route.name,
+    entity: ctx.entity,
+    selectedRows: serialize(ctx.selectedRows),
+  }),
 );
 const chat = useChat({ provider, model, system, tools, onToolCall });
 ```

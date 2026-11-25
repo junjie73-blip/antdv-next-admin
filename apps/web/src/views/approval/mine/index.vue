@@ -18,8 +18,8 @@ import type {
 import { computed, onMounted, ref } from 'vue';
 
 import { DataPage } from '@antdv/common-ui';
-import { usePermission } from '@antdv/hooks';
 import { BasicForm, useForm } from '@antdv/form-ui';
+import { usePermission } from '@antdv/hooks';
 import {
   BasicDrawer,
   BasicModal,
@@ -29,20 +29,20 @@ import {
 } from '@antdv/popup-ui';
 import { Button } from '@antdv/shadcn-ui';
 import {
-  assessApproval,
   deleteApprovalLevel,
   deleteApprovalRecord,
   extendApprovalNodes,
   getApprovalGroupList,
   getApprovalLevelList,
   getApprovalMineList,
+  resubmitApproval,
   saveApprovalGroup,
   saveApprovalLevel,
   saveApprovalRecord,
   scanApprovalTimeouts,
   submitApprovalAction,
 } from '~/api/approval';
-import ApprovalFlowTimeline from '~/components/approval/ApprovalFlowTimeline.vue';
+import ApprovalFlowChart from '~/components/approval/ApprovalFlowChart.vue';
 
 defineOptions({ name: 'ApprovalMine' });
 
@@ -70,6 +70,10 @@ const TYPE_OPTIONS = ['费用报销', '请假', '采购', '权限申请'].map((v
 const ENABLE_OPTIONS = [
   { label: '启用', value: 'enabled' },
   { label: '停用', value: 'disabled' },
+];
+const AUTO_ACTION_OPTIONS = [
+  { label: '自动通过', value: 'approve' },
+  { label: '自动驳回', value: 'reject' },
 ];
 
 const columns = computed<DataColumn[]>(() => [
@@ -206,6 +210,18 @@ const ruleSchemas: FormSchema[] = [
   },
   {
     component: 'Select',
+    componentProps: { options: AUTO_ACTION_OPTIONS },
+    field: 'autoAction',
+    label: '超时动作',
+  },
+  {
+    component: 'InputNumber',
+    componentProps: { min: 0, max: 1_000_000, addonAfter: '元' },
+    field: 'autoMaxAmount',
+    label: '自动上限',
+  },
+  {
+    component: 'Select',
     componentProps: { options: ENABLE_OPTIONS },
     field: 'enabled',
     label: '状态',
@@ -329,6 +345,13 @@ const editingRuleId = ref<null | number>(null);
 async function openRules() {
   editingRuleId.value = null;
   void ruleFormMethods.resetFields();
+  void ruleFormMethods.setFieldsValue({
+    autoAction: 'approve',
+    autoMaxAmount: 10_000,
+    enabled: 'enabled',
+    level: 1,
+    timeoutHours: 24,
+  });
   await loadRules();
   rulesDrawerMethods.openDrawer();
 }
@@ -368,7 +391,7 @@ async function runTimeoutScan() {
   try {
     const result = await scanApprovalTimeouts();
     message.success(
-      result.count ? `已发送 ${result.count} 条超时提醒` : '暂无新增超时提醒',
+      result.count ? `已自动处理 ${result.count} 个超时节点` : '暂无超时节点',
     );
     await reloadAll();
   } catch (error) {
@@ -439,12 +462,13 @@ async function submitAction() {
   try {
     const ccPersons = splitNames(values.ccPersons);
     const additionalApprovers = splitNames(values.additionalApprovers);
-    if (ccPersons.length || additionalApprovers.length) {
+    if (ccPersons.length > 0 || additionalApprovers.length > 0) {
       await extendApprovalNodes({
         additionalApprovers,
         ccPersons,
         id,
-        signMode: values.signMode === 'countersign' ? 'countersign' : 'sequential',
+        signMode:
+          values.signMode === 'countersign' ? 'countersign' : 'sequential',
       });
     }
     const result = await submitApprovalAction({
@@ -452,7 +476,13 @@ async function submitAction() {
       id,
       reason: String(values.reason ?? ''),
     });
-    message.success(result.approval.status === 'pending' ? '已流转至下一节点' : actionType.value === 'approve' ? '已通过审批' : '已驳回审批');
+    message.success(
+      result.approval.status === 'pending'
+        ? '已流转至下一节点'
+        : actionType.value === 'approve'
+          ? '已通过审批'
+          : '已驳回审批',
+    );
     actionModalMethods.closeModal();
     stats.value = result.stats;
     await pageRef.value?.reload();
@@ -461,11 +491,43 @@ async function submitAction() {
   }
 }
 
-async function reassess(row: DataRow) {
+/* ----------------------------- 驳回重提（底部操作） ----------------------------- */
+
+const resubmitRow = ref<DataRow | null>(null);
+const [resubmitModalRegister, resubmitModalMethods] = useModal();
+const [resubmitFormRegister, resubmitFormMethods] = useForm();
+const resubmitSchemas: FormSchema[] = [
+  {
+    component: 'InputTextArea',
+    componentProps: {
+      placeholder: '可补充本轮说明，留空则沿用原材料',
+      rows: 3,
+    },
+    field: 'reason',
+    label: '补充说明',
+  },
+];
+
+function openResubmit(row: DataRow) {
+  resubmitRow.value = row;
+  void resubmitFormMethods.resetFields();
+  resubmitFormMethods.clearValidate();
+  resubmitModalMethods.openModal();
+}
+
+async function submitResubmit() {
+  const values = await resubmitFormMethods.validate();
+  if (!values || !resubmitRow.value) return;
   try {
-    await assessApproval(Number(row.id));
-    message.success('AI 研判已更新');
-    await pageRef.value?.reload();
+    const result = await resubmitApproval({
+      id: Number(resubmitRow.value.id),
+      reason: String(values.reason ?? ''),
+    });
+    message.success('已重新发起新一轮审批');
+    resubmitModalMethods.closeModal();
+    resubmitRow.value = null;
+    stats.value = result.stats;
+    await reloadAll();
   } catch (error) {
     handleError(error);
   }
@@ -474,8 +536,29 @@ async function reassess(row: DataRow) {
 const config = computed<DataPageProps>(() => ({
   actionWidth: 380,
   api: listApi,
+  extraActions: (row) =>
+    row.status === 'pending' && row.canApprove
+      ? [
+          {
+            icon: 'carbon:checkmark',
+            label: '通过',
+            onClick: () => openAction(row, 'approve'),
+          },
+          {
+            danger: true,
+            icon: 'carbon:close',
+            label: '驳回',
+            onClick: () => openAction(row, 'reject'),
+          },
+        ]
+      : [],
+  canDeleteRow: (row) => Boolean(row.canEdit),
+  canEditRow: (row) => Boolean(row.canEdit),
   columns: columns.value,
-  description: '我发起与待我审批的单据；进度、处理人与 AI 研判可直接查看。',
+  description:
+    '我发起与待我审批的单据；进度、流转路径与超时自动审批结果可直接查看。',
+  // 审批节点会随驳回重提持续追加，窄抽屉会把 vue-flow 缩到看不清
+  detailWidth: 860,
   filters: filters.value,
   icon: 'carbon:checkmark',
   onRemove,
@@ -498,66 +581,46 @@ onMounted(() => {
 <template>
   <DataPage v-bind="config" ref="pageRef">
     <template #toolbar-extra>
-      <Button size="sm" @click="openCreateApproval">发起审批</Button>
-      <Button size="sm" variant="outline" @click="openCreateFlow">
-        新增审批流程
-      </Button>
-      <Button v-if="isAdmin()" size="sm" variant="outline" @click="openRules">
-        层级规则
-      </Button>
-      <Button v-if="isAdmin()" size="sm" variant="outline" @click="runTimeoutScan">
-        检查超时
-      </Button>
-    </template>
-
-    <template #action-extra="{ record }">
-      <template v-if="record.status === 'pending' && record.canApprove">
-        <Button
-          variant="link"
-          class="h-auto px-0.5!"
-          @click="openAction(record, 'approve')"
-        >
-          通过
+      <!-- 工具项统一靠页面右侧，按钮按从左到右的业务顺序排列 -->
+      <div class="flex flex-wrap items-center justify-end gap-2">
+        <Button size="sm" @click="openCreateApproval">发起审批</Button>
+        <Button size="sm" variant="outline" @click="openCreateFlow">
+          新增流程
+        </Button>
+        <Button v-if="isAdmin()" size="sm" variant="outline" @click="openRules">
+          层级规则
         </Button>
         <Button
-          variant="link"
-          class="h-auto px-0.5!"
-          @click="openAction(record, 'reject')"
+          v-if="isAdmin()"
+          size="sm"
+          variant="outline"
+          @click="runTimeoutScan"
         >
-          驳回
+          检查超时
         </Button>
-      </template>
-      <Button
-        v-if="isAdmin() || record.canApprove"
-        variant="link"
-        class="h-auto px-0.5!"
-        @click="reassess(record)"
-      >
-        AI 研判
-      </Button>
+      </div>
     </template>
 
     <template #detail-extra="{ record }">
-      <div v-if="record" class="mt-5 space-y-3">
-        <div class="flex items-center justify-between gap-2">
-          <h3 class="text-sm font-semibold">审批进度</h3>
-          <Button
-            v-if="isAdmin() || record.canApprove"
-            size="sm"
-            variant="outline"
-            @click="reassess(record)"
-          >
-            重新研判
-          </Button>
-        </div>
-        <ApprovalFlowTimeline
-          :assessment="record.aiAssessment"
-          :cc-persons="record.ccPersons || []"
-          :current-step="record.currentStep || 0"
-          :nodes="record.flowNodes || []"
-          :sign-mode="record.signMode"
-        />
-      </div>
+      <ApprovalFlowChart
+        v-if="record"
+        class="mt-5"
+        :cc-persons="record.ccPersons || []"
+        :current-step="record.currentStep || 0"
+        :nodes="record.flowNodes || []"
+        :sign-mode="record.signMode"
+      />
+    </template>
+
+    <!-- 详情内的操作统一固定在底部，从左到右排列 -->
+    <template #detail-footer="{ record }">
+      <Button
+        v-if="record?.canResubmit"
+        size="sm"
+        @click="openResubmit(record)"
+      >
+        重新发起
+      </Button>
     </template>
   </DataPage>
 
@@ -597,7 +660,10 @@ onMounted(() => {
   <BasicDrawer
     title="审批层级规则"
     :width="560"
-    :show-footer="false"
+    :show-ok-btn="isAdmin()"
+    :ok-text="editingRuleId ? '更新规则' : '保存规则'"
+    :show-cancel-btn="false"
+    @ok="submitRule"
     @register="rulesDrawerRegister"
   >
     <div class="space-y-5">
@@ -611,14 +677,24 @@ onMounted(() => {
             {{ rule.employee }} → {{ rule.leader }}
             <span class="text-muted-foreground">
               （L{{ rule.level }} · {{ rule.timeoutHours }}h ·
+              {{ rule.autoAction === 'reject' ? '超时驳回' : '超时通过' }} ·
+              上限 {{ rule.autoMaxAmount ?? 10000 }} 元 ·
               {{ rule.enabled === 'enabled' ? '启用' : '停用' }}）
             </span>
           </span>
           <span v-if="isAdmin()" class="flex gap-2">
-            <Button variant="link" class="h-auto px-0.5!" @click="editRule(rule)">
+            <Button
+              variant="link"
+              class="h-auto px-0.5!"
+              @click="editRule(rule)"
+            >
               编辑
             </Button>
-            <Button variant="link" class="h-auto px-0.5!" @click="removeRule(rule)">
+            <Button
+              variant="link"
+              class="h-auto px-0.5!"
+              @click="removeRule(rule)"
+            >
               删除
             </Button>
           </span>
@@ -638,9 +714,6 @@ onMounted(() => {
           :show-action-button-group="false"
           @register="ruleFormRegister"
         />
-        <div class="mt-3 flex justify-end">
-          <Button size="sm" @click="submitRule">保存规则</Button>
-        </div>
       </div>
     </div>
   </BasicDrawer>
@@ -658,6 +731,23 @@ onMounted(() => {
       :schemas="actionSchemas"
       :show-action-button-group="false"
       @register="actionFormRegister"
+    />
+  </BasicModal>
+
+  <!-- 驳回重提：底部确认按钮由弹层 footer 承载 -->
+  <BasicModal
+    title="重新发起审批"
+    :width="480"
+    ok-text="重新发起"
+    @ok="submitResubmit"
+    @register="resubmitModalRegister"
+  >
+    <BasicForm
+      :grid="{ cols: 1, gutter: 14 }"
+      :label-width="90"
+      :schemas="resubmitSchemas"
+      :show-action-button-group="false"
+      @register="resubmitFormRegister"
     />
   </BasicModal>
 </template>

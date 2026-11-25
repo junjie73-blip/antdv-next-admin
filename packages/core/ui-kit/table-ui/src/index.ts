@@ -66,8 +66,13 @@ export { useTableSorting } from './hooks/useTableSorting';
 export type { SorterPayload } from './hooks/useTableSorting';
 // 类型
 export type {
+  ActionButtonType,
   ActionColumnProps,
   ActionItem,
+  ActionPermissionChecker,
+  ActionPermissionMode,
+  ActionPopConfirm,
+  ActionTooltip,
   ApiFn,
   ArrayElement,
   BasicColumn,
@@ -79,6 +84,7 @@ export type {
   Nullable,
   PaginationProps,
   Recordable,
+  TableActionProps,
   TableActionType,
   TableExpandable,
   TableExpandableConfig,

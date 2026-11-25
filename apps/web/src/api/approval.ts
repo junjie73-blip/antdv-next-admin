@@ -11,40 +11,45 @@ export type ApprovalStatus = 'approved' | 'pending' | 'rejected';
 export type ApprovalGroupStatus = 'disabled' | 'enabled';
 export type ApprovalInstanceStatus = 'done' | 'error' | 'running';
 export type ApprovalAction = 'approve' | 'reject';
-export type ApprovalNodeStatus = 'approved' | 'current' | 'pending' | 'rejected' | 'skipped';
+export type ApprovalNodeStatus =
+  | 'approved'
+  | 'current'
+  | 'pending'
+  | 'rejected'
+  | 'skipped';
 export type ApprovalSignMode = 'countersign' | 'sequential';
 
 /** 审批节点：列表进度与详情时间线共用 */
 export interface ApprovalFlowNode {
   actedAt: string;
   approver: string;
+  /** 超时规则自动流转的节点 */
+  auto?: boolean;
   comment: string;
   dueAt: string;
   kind: 'approval' | 'archive' | 'submit';
+  /** 所属轮次；驳回重提后历史轮次原样保留 */
+  round: number;
   step: number;
   status: ApprovalNodeStatus;
   title: string;
   reminded: boolean;
 }
 
-export interface ApprovalAiAssessment {
-  generatedAt: string;
-  risk: 'critical' | 'high' | 'low' | 'medium';
-  source: string;
-  suggestions: string[];
-  summary: string;
-}
-
 export interface ApprovalRecord {
-  aiAssessment?: ApprovalAiAssessment;
   amount: string;
   applicant: string;
   approver: string;
   /** 派生字段：当前用户能否处理该单据 */
   canApprove?: boolean;
+  /** 派生字段：只有发起人可编辑/删除 */
+  canEdit?: boolean;
+  /** 派生字段：被驳回且由本人发起时可重新发起 */
+  canResubmit?: boolean;
   ccPersons?: string[];
   code: string;
   currentNode?: string;
+  currentRound?: number;
   currentStep?: number;
   date: string;
   dueAt?: string;
@@ -118,6 +123,10 @@ export interface ApprovalInstanceSummary {
 }
 
 export interface ApprovalLevelRule {
+  /** 超时后的默认结论；内容命中红线时强制驳回 */
+  autoAction: 'approve' | 'reject';
+  /** 自动通过金额上限（元），0 表示不限 */
+  autoMaxAmount: number;
   employee: string;
   enabled: 'disabled' | 'enabled';
   id: number;
@@ -143,14 +152,21 @@ export function getApprovalMineList(params?: Params) {
     }
   >('/approval/mine/list', params);
 }
-export function getApprovalDetail(id: number, refresh = false) {
-  return get<ApprovalRecord>(`/approval/mine/${id}`, { refresh: refresh ? '1' : '' });
+export function getApprovalDetail(id: number) {
+  return get<ApprovalRecord>(`/approval/mine/${id}`);
 }
 export function saveApprovalRecord(data: Params) {
   return post<ApprovalRecord>('/approval/mine/save', data);
 }
 export function deleteApprovalRecord(id: number) {
   return del<null>(`/approval/mine/${id}`);
+}
+/** 驳回重提：基于原材料在原单据后追加新一轮完整流程 */
+export function resubmitApproval(data: { id: number; reason?: string }) {
+  return post<{
+    approval: ApprovalRecord;
+    stats: ApprovalStats;
+  }>('/approval/mine/resubmit', data);
 }
 export function submitApprovalAction(data: {
   action: ApprovalAction;
@@ -171,15 +187,19 @@ export function extendApprovalNodes(data: {
   return post<ApprovalRecord>('/approval/mine/extend', data);
 }
 
-/* ---------------------------- AI 研判 / 超时 ---------------------------- */
+/* ------------------------------ 超时自动审批 ------------------------------ */
 
-export function assessApproval(id: number) {
-  return post<ApprovalAiAssessment>('/approval/ai/assess', { id });
-}
 export function scanApprovalTimeouts() {
   return post<{
     count: number;
-    reminders: Array<{ code: string; id: number; node: string; notified: string }>;
+    reminders: Array<{
+      action: 'approve' | 'reject';
+      code: string;
+      id: number;
+      node: string;
+      notified: string;
+      reason: string;
+    }>;
   }>('/approval/timeout/scan', {});
 }
 
