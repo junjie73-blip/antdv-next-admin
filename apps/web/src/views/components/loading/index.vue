@@ -845,8 +845,8 @@ function triggerGlobalLoading() {
             <StatusTag :status="rawStatus" />
             <span :class="hintClassName">
               <code :class="codeClassName">type</code>
-              属性（export / instance / task /
-              workflow）目前是预留分组位，组件还没按它 分表映射
+              属性（export / instance /
+              task）目前是预留分组位，组件还没按它 分表映射
             </span>
           </div>
         </div>

@@ -124,6 +124,8 @@ export default defineConfig({
                 { text: '登录', link: '/guide/in-depth/login' },
                 { text: '主题', link: '/guide/in-depth/theme' },
                 { text: '权限', link: '/guide/in-depth/access' },
+                { text: '安全中心', link: '/guide/in-depth/security' },
+                { text: 'AI Native 架构', link: '/guide/in-depth/ai-native-architecture' },
                 {
                   text: '国际化',
                   link: '/guide/in-depth/internationalization',
@@ -164,6 +166,8 @@ export default defineConfig({
               items: [
                 { text: '总览', link: '/components/' },
                 { text: '公共组件', link: '/components/common-ui' },
+                { text: '数据工作台', link: '/components/data-page' },
+                { text: 'AI 工具 Schema', link: '/components/ai-schema' },
                 { text: '表格', link: '/components/table' },
                 { text: '表单', link: '/components/form' },
                 { text: '弹窗与抽屉', link: '/components/modal-drawer' },

@@ -2,6 +2,9 @@ import type { TestEvent } from './fixtures/nitro-imports';
 
 import { beforeEach, describe, expect, it } from 'vitest';
 
+import agentDeleteRoute from '../server/api/ai/agent/[id].delete';
+import agentListRoute from '../server/api/ai/agent/list.get';
+import agentSaveRoute from '../server/api/ai/agent/save.post';
 import chatRoute from '../server/api/ai/chat.post';
 import flowDeleteRoute from '../server/api/ai/flow/[id].delete';
 import flowListRoute from '../server/api/ai/flow/list.get';
@@ -17,6 +20,7 @@ import providerDeleteRoute from '../server/api/ai/provider/[id].delete';
 import providerListRoute from '../server/api/ai/provider/list.get';
 import providerSaveRoute from '../server/api/ai/provider/save.post';
 import {
+  AI_AGENT_DB,
   AI_FLOW_DB,
   AI_KNOWLEDGE_DB,
   AI_MODEL_DB,
@@ -34,6 +38,9 @@ type Handler = (event: TestEvent) => Promise<{
 }>;
 const as = (route: unknown) => route as Handler;
 
+const agentList = as(agentListRoute);
+const agentSave = as(agentSaveRoute);
+const agentDelete = as(agentDeleteRoute);
 const providerList = as(providerListRoute);
 const providerSave = as(providerSaveRoute);
 const providerDelete = as(providerDeleteRoute);
@@ -50,6 +57,10 @@ const overview = as(overviewRoute);
 const chat = as(chatRoute);
 
 /** 模块加载时抓种子快照：用例会加删行，每条用例前完整还原 */
+const seedAgents = [...AI_AGENT_DB].map((row) => ({
+  ...row,
+  tags: [...row.tags],
+}));
 const seedProviders = [...AI_PROVIDER_DB].map((row) => ({ ...row }));
 const seedModels = [...AI_MODEL_DB].map((row) => ({ ...row }));
 const seedKnowledge = [...AI_KNOWLEDGE_DB].map((row) => ({ ...row }));
@@ -66,8 +77,9 @@ function restore<T extends { id: number }>(db: T[], seeds: T[]): void {
   });
 }
 
-describe('aI 开发配置数据闭环', () => {
+describe('AI 配置数据闭环', () => {
   beforeEach(() => {
+    restore(AI_AGENT_DB, seedAgents);
     restore(AI_PROVIDER_DB, seedProviders);
     restore(AI_MODEL_DB, seedModels);
     restore(AI_KNOWLEDGE_DB, seedKnowledge);
@@ -350,8 +362,11 @@ describe('aI 开发配置数据闭环', () => {
     expect(disabledKnowledge.data.content).not.toContain('[来源]');
   });
 
-  it('overview 统计与四集合实时汇总一致', async () => {
+  it('overview 统计与五集合实时汇总一致', async () => {
     const expected = {
+      agentDraft: 2,
+      agentRunning: 2,
+      agentTotal: 5,
       flowDraft: 2,
       flowNodeCount: 22,
       flowPublished: 2,
@@ -373,5 +388,56 @@ describe('aI 开发配置数据闭环', () => {
     const res = await overview(createTestEvent());
     expect(res.code).toBe(200);
     expect(res.data).toEqual(expected);
+  });
+
+  it('Agent 独立 CRUD：只写 Agent 表，字段不混入模型 / 知识库', async () => {
+    const knowledgeBefore = AI_KNOWLEDGE_DB.length;
+    const modelBefore = AI_MODEL_DB.length;
+
+    const created = await agentSave(
+      createTestEvent({
+        body: {
+          description: '只做 Agent 自身的配置',
+          name: '测试 Agent',
+          owner: '测试组',
+          status: 'draft',
+          tags: ['测试', '专用'],
+        },
+      }),
+    );
+    expect(created.code, created.message).toBe(200);
+    const agent = created.data;
+    expect(agent.code).toBe('AG-06');
+    expect(agent.tags).toEqual(['测试', '专用']);
+    expect(agent).not.toHaveProperty('providerId');
+    expect(agent).not.toHaveProperty('vectorModel');
+
+    const listed = await agentList(
+      createTestEvent({ query: { keyword: '测试 Agent', status: 'draft' } }),
+    );
+    expect(listed.code).toBe(200);
+    expect(listed.data.list.map((row: any) => row.id)).toContain(agent.id);
+
+    const updated = await agentSave(
+      createTestEvent({
+        body: {
+          id: agent.id,
+          name: '测试 Agent（已改）',
+          status: 'running',
+          tags: '单个,标签',
+        },
+      }),
+    );
+    expect(updated.code).toBe(200);
+    expect(updated.data.tags).toEqual(['单个', '标签']);
+    expect(updated.data.status).toBe('running');
+
+    const removed = await agentDelete(
+      createTestEvent({ params: { id: String(agent.id) } }),
+    );
+    expect(removed.code).toBe(200);
+    expect(AI_AGENT_DB.some((row) => row.id === agent.id)).toBe(false);
+    expect(AI_KNOWLEDGE_DB).toHaveLength(knowledgeBefore);
+    expect(AI_MODEL_DB).toHaveLength(modelBefore);
   });
 });

@@ -7,7 +7,7 @@ import type {
 
 import { computed, ref, useTemplateRef } from 'vue';
 
-import { Card, Image, Scrollbar, Upload } from '@antdv/common-ui';
+import { Card, Image, Upload } from '@antdv/common-ui';
 import { AvatarUploader } from '@antdv/common-ui/avatar-uploader';
 // ===== 大文件切片上传 =====
 import { useChunkUpload } from '@antdv/hooks/use-chunk-upload';
@@ -28,6 +28,7 @@ import {
 } from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/utils/cn';
 import { Icon } from '@iconify/vue';
+import FilePreview from '~/components/file-preview/FilePreview.vue';
 import { http } from '~/composables';
 
 /**
@@ -616,74 +617,35 @@ function isImageFile(fileName: string): boolean {
   return imgExts.includes(ext);
 }
 
-/** 判断是否为 PDF 文件 */
-function isPdfFile(fileName: string): boolean {
-  return fileName.split('.').pop()?.toLowerCase() === 'pdf';
-}
-
-/** 判断是否为 Word 文档 */
-function isDocxFile(fileName: string): boolean {
-  const ext = fileName.split('.').pop()?.toLowerCase() || '';
-  return ['doc', 'docx'].includes(ext);
-}
-
-/** 判断是否为 Excel 文件 */
-function isExcelFile(fileName: string): boolean {
-  const ext = fileName.split('.').pop()?.toLowerCase() || '';
-  return ['xls', 'xlsx'].includes(ext);
-}
-
-/** 获取文件预览类型 */
-type PreviewType = 'docx' | 'excel' | 'image' | 'pdf' | null;
-
-function getPreviewType(fileName: string): PreviewType {
-  if (isImageFile(fileName)) return 'image';
-  if (isPdfFile(fileName)) return 'pdf';
-  if (isDocxFile(fileName)) return 'docx';
-  if (isExcelFile(fileName)) return 'excel';
-  return null;
-}
+/** 可预览格式交给通用组件判定；这里只挡掉明确不支持的类型并给出提示 */
+const PREVIEWABLE_EXTS = [
+  'png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp',
+  'mp4', 'webm', 'ogg', 'mov', 'mp3', 'wav', 'm4a', 'flac',
+  'pdf', 'md', 'markdown', 'csv', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx',
+];
 
 const previewVisible = ref(false);
-const previewUrl = ref('');
-const previewType = ref<PreviewType>(null);
+const previewFile = ref<null | File>(null);
 const previewFileName = ref('');
 
-/** 通用预览处理 */
+function isPreviewable(fileName: string): boolean {
+  return PREVIEWABLE_EXTS.includes(fileName.split('.').pop()?.toLowerCase() ?? '');
+}
+
 function handlePreview(item: FileQueueItem) {
-  const type = getPreviewType(item.fileName);
-  if (!type) {
-    message.info(
-      `暂不支持预览 ${item.fileName.split('.').pop()?.toUpperCase()} 格式文件`,
-    );
+  const ext = item.fileName.split('.').pop()?.toLowerCase() ?? '';
+  if (!PREVIEWABLE_EXTS.includes(ext)) {
+    message.info(`暂不支持预览 ${ext.toUpperCase() || '未知'} 格式文件`);
     return;
   }
-
-  previewType.value = type;
+  previewFile.value = item.file;
   previewFileName.value = item.fileName;
-
-  if (type === 'image') {
-    previewUrl.value = URL.createObjectURL(item.file);
-  } else if (type === 'pdf') {
-    previewUrl.value = URL.createObjectURL(item.file);
-  } else {
-    // docx/excel 使用 ArrayBuffer 传给 @vue-office 组件
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      previewUrl.value = e.target?.result as string;
-      previewVisible.value = true;
-    };
-    reader.readAsArrayBuffer(item.file);
-    return; // 等待 FileReader 完成
-  }
   previewVisible.value = true;
 }
 
 function handlePreviewClose() {
   previewVisible.value = false;
-  previewUrl.value = '';
-  previewType.value = null;
-  // 释放 Object URL 避免内存泄漏
+  previewFile.value = null;
 }
 
 /** Dialog 自己会关（遮罩 / Esc / 右上角关闭），只把关闭信号接回页面 */
@@ -1013,7 +975,7 @@ function handlePreviewOpenChange(value: boolean) {
                   />
                 </div>
                 <div
-                  v-else-if="getPreviewType(record.fileName)"
+                  v-else-if="isPreviewable(record.fileName)"
                   class="mx-auto flex h-10 w-10 cursor-pointer items-center justify-center rounded bg-gray-100 transition-colors hover:bg-blue-50 dark:bg-gray-800 dark:hover:bg-blue-900/30"
                   @click="handlePreview(record)"
                 >
@@ -1111,60 +1073,8 @@ function handlePreviewOpenChange(value: boolean) {
               {{ previewFileName }} 的文件预览
             </DialogDescription>
           </DialogHeader>
-          <!-- 图片预览 -->
-          <Image
-            v-if="previewType === 'image'"
-            :src="previewUrl"
-            :style="{ maxHeight: '70vh' }"
-            :preview="{ visible: false }"
-          />
-          <!-- PDF 预览（iframe 嵌入） -->
-          <iframe
-            v-else-if="previewType === 'pdf'"
-            :src="previewUrl"
-            class="w-full rounded border-0"
-            style="height: 70vh"
-          ></iframe>
-          <!-- Word 预览（@vue-office/docx，需安装依赖） -->
-          <!-- view-class="h-full"：Scrollbar 的 slot 容器 scrollbar__view 自身没有高度，
-               不显式撑满的话，内部 h-full 的占位内容会塌成 0 -->
-          <Scrollbar
-            v-else-if="previewType === 'docx'"
-            root-class="w-full rounded bg-gray-50 p-4 dark:bg-gray-900"
-            view-class="h-full"
-            style="height: 70vh"
-          >
-            <div class="flex h-full items-center justify-center text-gray-400">
-              <div class="text-center">
-                <Icon
-                  icon="carbon:document"
-                  :width="48"
-                  class="mb-2 opacity-50"
-                />
-                <p>Word 预览组件加载中...</p>
-                <p class="mt-1 text-xs">
-                  如未显示请确认已安装 @vue-office/docx 依赖
-                </p>
-              </div>
-            </div>
-          </Scrollbar>
-          <!-- Excel 预览（@vue-office/excel，需安装依赖）：view-class 同 Word 场景 -->
-          <Scrollbar
-            v-else-if="previewType === 'excel'"
-            root-class="w-full rounded bg-gray-50 p-4 dark:bg-gray-900"
-            view-class="h-full"
-            style="height: 70vh"
-          >
-            <div class="flex h-full items-center justify-center text-gray-400">
-              <div class="text-center">
-                <Icon icon="carbon:table" :width="48" class="mb-2 opacity-50" />
-                <p>Excel 预览组件加载中...</p>
-                <p class="mt-1 text-xs">
-                  如未显示请确认已安装 @vue-office/excel 依赖
-                </p>
-              </div>
-            </div>
-          </Scrollbar>
+          <!-- 统一走通用预览组件：图片/PDF/Office/Markdown/CSV/音视频共用一套加载与错误态 -->
+          <FilePreview v-if="previewFile" :source="previewFile" :name="previewFileName" />
         </DialogContent>
       </Dialog>
     </Card>

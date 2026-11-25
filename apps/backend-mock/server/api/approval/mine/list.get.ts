@@ -1,5 +1,11 @@
 import { resolveAccount } from '../../../utils/accounts';
 import {
+  enrichRecord,
+  ensureFlow,
+  isApprovalSuperAdmin,
+  scanApprovalTimeouts,
+} from '../../../utils/approval-advanced';
+import {
   accountPersons,
   APPROVAL_DB,
   summarizeApprovals,
@@ -8,21 +14,29 @@ import { paginateList } from '../../../utils/pagination';
 import { success } from '../../../utils/response';
 import { defineMockRoute } from '../../../utils/runtime';
 
-/** 我的审批列表：状态 / 关键词 / 审批视角四路筛选 + 统一分页，附带统计 */
+/**
+ * 我的审批列表：状态 / 关键词 / 审批视角四路筛选 + 统一分页。
+ * 每次读取顺带扫描一次超时节点（每个节点只提醒一次），返回行上带
+ * `currentNode / currentStep / overdue / canApprove`，列表页无需二次请求即可画进度。
+ */
 export default defineMockRoute({
   handler({ headers, query }) {
     const keyword = String(query.keyword ?? '')
       .trim()
       .toLowerCase();
     const mine = String(query.mine ?? '');
-    const username = resolveAccount(headers).profile.username;
+    const account = resolveAccount(headers);
+    const username = account.profile.username;
     const persons = accountPersons(username);
 
-    const filtered = APPROVAL_DB.filter((row) => {
+    scanApprovalTimeouts();
+
+    const rows = APPROVAL_DB.map((row) => enrichRecord(ensureFlow(row), account));
+    const filtered = rows.filter((row) => {
       const matchKeyword =
         !keyword ||
         [row.code, row.title, row.type, row.applicant, row.approver].some(
-          (field) => field.toLowerCase().includes(keyword),
+          (field) => String(field).toLowerCase().includes(keyword),
         );
       const matchStatus = !query.status || row.status === String(query.status);
       const matchMine =
@@ -38,6 +52,11 @@ export default defineMockRoute({
       {
         ...paginateList(filtered, query),
         stats: summarizeApprovals(username),
+        context: {
+          applicant: persons.applicant,
+          approver: persons.approver,
+          isSuperAdmin: isApprovalSuperAdmin(account),
+        },
       },
       '获取审批单据成功',
     );

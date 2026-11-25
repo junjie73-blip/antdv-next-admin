@@ -11,6 +11,9 @@ import { Icon } from '@iconify/vue';
  */
 defineOptions({ name: 'EnterpriseResourceCard' });
 
+/** 标题区点击：宿主可用来打开详情页；底部操作区不冒泡，互不干扰 */
+defineEmits<{ open: [] }>();
+
 withDefaults(
   defineProps<{
     description?: string;
@@ -65,7 +68,7 @@ const footerClassName = cn(
 
 <template>
   <Card :class="cardClassName">
-    <div :class="headerClassName">
+    <div :class="[headerClassName, 'cursor-pointer']" @click="$emit('open')">
       <div class="min-w-0 flex-1">
         <div :class="titleRowClassName">
           <Icon :icon="icon" :class="iconClassName" />

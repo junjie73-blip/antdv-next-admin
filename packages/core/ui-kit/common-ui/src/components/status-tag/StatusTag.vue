@@ -9,7 +9,7 @@ defineOptions({ name: 'StatusTag' });
 
 const props = defineProps<{
   status: string;
-  type?: 'export' | 'instance' | 'task' | 'workflow';
+  type?: 'export' | 'instance' | 'task';
 }>();
 
 const MAP: Record<string, { label: string; color: string }> = {

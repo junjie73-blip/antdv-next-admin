@@ -1,12 +1,6 @@
 {
   "version": 1,
   "skills": {
-    "antdv": {
-      "source": "antdv-next/cli",
-      "sourceType": "github",
-      "skillPath": "skills/antdv/SKILL.md",
-      "computedHash": "03eb1af94f9501f6b9ff2c4a3eb8010840e2492015e31c50402762964be7273e"
-    },
     "shadcn-vue": {
       "source": "unovue/shadcn-vue",
       "sourceType": "github",

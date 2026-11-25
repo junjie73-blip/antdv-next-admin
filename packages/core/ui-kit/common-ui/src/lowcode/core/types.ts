@@ -10,7 +10,7 @@ import type { ExpressionValue } from '@antdv/graph';
  * 本文件**不做**的事：不校验、不求值、不登记物料。它只是形状。
  * 校验在 `dsl.ts` 的 `validatePageSchema`，求值在 `binding.ts`，登记在 `registry.ts`。
  *
- * 与 workflow-ui 一致的口径：所有用户数据都是 `Record<string, unknown>`，
+ * 统一口径：所有用户数据都是 `Record<string, unknown>`，
  * 全链路不出现 `any`，把「宿主传进来什么形状」的不确定性留在运行边界上处理。
  */
 
@@ -190,7 +190,7 @@ export type IssueCode =
   | 'unknown-type'
   | 'unsafe-path';
 
-/** 与 workflow-ui 的 `WorkflowIssue` 同一口径：设计期体检的输出，不带异常语义 */
+/** 与各域 Issue 同一口径：设计期体检的输出，不带异常语义 */
 export interface LowcodeIssue {
   code: IssueCode;
   level: IssueLevel;

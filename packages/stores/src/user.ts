@@ -7,6 +7,7 @@ import { http } from '@antdv/request';
 import { cache, decryptToken, encryptToken } from '@antdv/shared/cache';
 import { defineStore } from 'pinia';
 
+import { useApiHealthStore } from './api-health';
 import { useRouteStore } from './route';
 import { notifySessionReset } from './session';
 import { useTabsStore } from './tabs';
@@ -145,6 +146,9 @@ export const useUserStore = defineStore('user', () => {
         }
 
         setUserInfo(mockUserInfo);
+        // 一次成功登录 = 一次干净会话。之前输错密码留下的错误态在这里收口，
+        // 否则「任务中心 / 工单」会一直被错误态藏掉，用户找不到恢复入口。
+        useApiHealthStore().reset();
 
         return { success: true };
       }

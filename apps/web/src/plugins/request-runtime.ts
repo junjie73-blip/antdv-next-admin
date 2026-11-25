@@ -1,7 +1,7 @@
 import { CacheKey } from '@antdv/enums';
 import { configureRequest } from '@antdv/request';
 import { cache } from '@antdv/shared/cache';
-import { useUserStore } from '@antdv/stores';
+import { useApiHealthStore, useUserStore } from '@antdv/stores';
 import { LOGIN_PATH } from '~/config/constants';
 
 /**
@@ -16,6 +16,7 @@ export function configureRequestRuntime(): void {
     baseUrl: import.meta.env.VITE_APP_BASE_API ?? '',
     loginPath: LOGIN_PATH,
     onLogout: () => useUserStore().logout(),
+    onError: (error) => useApiHealthStore().markError(error.message),
     tokens: {
       // store 里是解密后的明文凭证；缓存里是 JWE 密文，不能当凭证用
       access: () => useUserStore().token,

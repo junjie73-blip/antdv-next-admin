@@ -34,7 +34,8 @@ const accountDrawerRef = ref<InstanceType<typeof AccountDrawer> | null>(null);
  * 锁屏：下拉里多点一项，其余交互与之前完全一致（状态机见 `use-lock-screen.ts`）。
  * 首次锁屏进「设置密码」模式，此后每次解锁都要过密码校验才放行。
  */
-const { errorMessageKey, lock, locked, mode, submitPassword } = useLockScreen();
+const { artworkUrl, errorMessageKey, lock, locked, mode, submitPassword } =
+  useLockScreen();
 
 /**
  * 头像下拉是"个人中心"唯一的入口。
@@ -193,6 +194,7 @@ const triggerLabel = computed(() => userStore.username || t('shell.user'));
   <!-- 锁屏遮罩自己 Teleport 到 body，这里只决定挂不挂；解锁由密码校验结果驱动 -->
   <LockScreen
     v-if="locked"
+    :artwork-url="artworkUrl"
     :error-message-key="errorMessageKey"
     :mode="mode"
     @submit-password="submitPassword($event.password, $event.confirm)"

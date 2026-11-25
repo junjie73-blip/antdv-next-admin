@@ -23,6 +23,36 @@ export type ApprovalStatus = 'approved' | 'pending' | 'rejected';
 export type ApprovalGroupStatus = 'disabled' | 'enabled';
 export type ApprovalInstanceStatus = 'done' | 'error' | 'running';
 
+/**
+ * 审批节点的流转状态。
+ * - `current`：当前待处理节点；`approved/rejected`：已处理；`skipped`：被驳回后跳过的后续节点。
+ */
+export type ApprovalNodeStatus =
+  | 'approved'
+  | 'current'
+  | 'pending'
+  | 'rejected'
+  | 'skipped';
+
+/** 审批节点：进度可视化的最小单元（列表与 vue-flow 画布共用） */
+export interface ApprovalFlowNode {
+  actedAt: string;
+  approver: string;
+  /** 超时自动流转的节点打标记，前端画布显示「自动」角标 */
+  auto?: boolean;
+  comment: string;
+  dueAt: string;
+  /** 提交 / 审批 / 归档：只有审批节点参与权限与流转判定 */
+  kind: 'approval' | 'archive' | 'submit';
+  /** 所属轮次：驳回重提时追加新一轮，历史轮次原样保留 */
+  round: number;
+  /** 会签组内多个节点共用一个 step；顺序审批各自递增 */
+  step: number;
+  status: ApprovalNodeStatus;
+  title: string;
+  reminded: boolean;
+}
+
 export interface ApprovalRecord {
   /** 金额 / 天数，展示串 */
   amount: string;
@@ -38,6 +68,20 @@ export interface ApprovalRecord {
   title: string;
   type: string;
   updatedAt: string;
+
+  /* ---- 以下字段由 approval-advanced.ts 在首次读/写时补齐，旧数据兼容 ---- */
+  /** 抄送对象 */
+  ccPersons?: string[];
+  /** 当前步骤序号（1 起） */
+  currentStep?: number;
+  /** 当前审批轮次（1 起），驳回重提只递增不回退 */
+  currentRound?: number;
+  /** 当前节点截止时间 */
+  dueAt?: string;
+  /** 审批节点明细 */
+  flowNodes?: ApprovalFlowNode[];
+  /** 追加审批人的组织方式 */
+  signMode?: 'countersign' | 'sequential';
 }
 
 export interface ApprovalGroupRecord {
@@ -101,7 +145,9 @@ export const APPROVAL_ACCOUNT_PERSONS: Record<
   { applicant: string; approver: string }
 > = {
   admin: { applicant: '王一', approver: '周珂' },
-  custom: { applicant: '周珂', approver: '林晓' },
+  // custom 演示「部门负责人周珂」：能审批下属王一/林晓的单据，但越级审批会被挡住
+  custom: { applicant: '林晓', approver: '周珂' },
+  staff: { applicant: '李珊', approver: '李珊' },
 };
 
 export function accountPersons(username: string): {

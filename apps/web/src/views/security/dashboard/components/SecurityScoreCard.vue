@@ -14,11 +14,18 @@ const isDark = computed(() => appStore.themeMode === 'dark');
 
 // 安全评分数据
 const totalScore = ref(86);
-const dimensions = ref([
-  { name: '身份认证', score: 92, status: 'excellent' as const },
-  { name: '数据安全', score: 78, status: 'good' as const },
-  { name: '访问控制', score: 85, status: 'good' as const },
-  { name: '审计合规', score: 68, status: 'warning' as const },
+const dimensions = ref<
+  Array<{
+    name: string;
+    score: number;
+    status: 'critical' | 'excellent' | 'good' | 'warning';
+  }>
+>([
+  { name: '身份认证', score: 92, status: 'excellent' },
+  { name: '数据安全', score: 78, status: 'good' },
+  { name: '访问控制', score: 85, status: 'good' },
+  { name: '审计合规', score: 68, status: 'warning' },
+  { name: 'AI 安全', score: 88, status: 'excellent' },
 ]);
 const trendData = ref<{ date: string; score: number }[]>([]);
 
@@ -37,7 +44,7 @@ function getStatusColor(status: string): string {
     warning: '#faad14',
     critical: '#ff4d4f',
   };
-  return map[status] ?? map.good;
+  return map[status] ?? '#1677ff';
 }
 
 /** 状态背景色 */
@@ -48,7 +55,7 @@ function getStatusBg(status: string): string {
     warning: 'bg-warning/10',
     critical: 'bg-destructive/10',
   };
-  return map[status] ?? map.good;
+  return map[status] ?? 'bg-primary/10';
 }
 
 /** 评分等级文字 */
@@ -126,7 +133,7 @@ function initTrendChart() {
 onMounted(async () => {
   try {
     const res = await getSecurityScore();
-    const data = res?.data ?? res;
+    const data = res;
     totalScore.value = data.totalScore;
     dimensions.value = data.dimensions;
     trendData.value = data.trend;

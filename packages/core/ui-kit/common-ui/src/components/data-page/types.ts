@@ -56,12 +56,16 @@ export interface DataPageProps {
   createSchemas?: FormSchema[];
   /** 是否展示删除类操作（阶段/里程碑属于项目排期的一部分，默认页面不单独删） */
   showDelete?: boolean;
+  /** 页面侧改用自定义操作入口时，可隐藏标题栏的默认新建按钮 */
+  showCreate?: boolean;
   /** 新建面板的字段（默认取 columns 前三项） */
   createFields?: string[];
   createLabel?: string;
   description?: string;
   icon?: string;
   primaryKey?: string;
+  /** 只读台账：隐藏新建/编辑/删除，仅保留查询与详情 */
+  readonly?: boolean;
   rows?: DataRow[];
   stats?: DataStat[];
   statusColors?: Record<string, string>;

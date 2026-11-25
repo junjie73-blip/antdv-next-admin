@@ -119,7 +119,7 @@ export const MONITOR_SNAPSHOT: MonitorSnapshot = {
     },
     {
       id: 'P-1003',
-      name: 'workflow-engine',
+      name: 'approval-engine',
       version: '3.2.0',
       uptime: '6 天 12 小时',
       cpu: 24.6,
@@ -249,7 +249,7 @@ export function generateClientLogs(count = 88): ClientLogRecord[] {
           '/system/user',
           '/system/role',
           '/dashboard/analysis',
-          '/enterprise/workflow',
+          '/approval/mine',
         ],
         random,
       ),

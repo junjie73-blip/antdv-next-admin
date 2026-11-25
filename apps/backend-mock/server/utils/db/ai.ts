@@ -1,8 +1,8 @@
 /**
- * AI 开发数据层 —— 「模型供应商 / 模型列表 / 知识库 / AI 工作流编排」四页共用同一份 SQLite 数据。
+ * AI 配置数据层 —— Agent / 模型供应商 / 模型列表 / 知识库 / 编排应用各自独立存储。
  *
- * 设计口径与 approval.ts / project.ts 一致：
- * - 四张表由 defineCollection 声明，业务 id 为 number，_pk 交给 defineCollection 内部管理；
+ * 设计口径与 approval.ts 一致：
+ * - 五张表由 defineCollection 声明，业务 id 为 number，_pk 交给 defineCollection 内部管理；
  * - 种子是手写的确定性数据（零 faker / Math.random / Date.now），只在库为空时写入一次；
  * - 所有字段白名单、关联补全与状态流转都收敛在这里，handler 只负责把失败结果转成 bizError。
  *
@@ -28,6 +28,7 @@ export type AiProviderStatus = 'disabled' | 'enabled';
 export type AiModelStatus = 'error' | 'offline' | 'online';
 export type AiKnowledgeStatus = 'disabled' | 'enabled';
 export type AiFlowStatus = 'draft' | 'published';
+export type AiAgentStatus = 'disabled' | 'draft' | 'running';
 
 export interface AiProviderRecord {
   code: string;
@@ -69,6 +70,21 @@ export interface AiKnowledgeRecord {
   /** 已向量化分片数 */
   vectors: number;
   vectorModel: string;
+  updatedAt: string;
+}
+
+/**
+ * Agent 自身配置：只存身份、职责、负责人、状态与标签。
+ * 不存模型/供应商/知识库字段——那些分别由各自模块维护，避免两份真源。
+ */
+export interface AiAgentRecord {
+  code: string;
+  description: string;
+  id: number;
+  name: string;
+  owner: string;
+  status: AiAgentStatus;
+  tags: string[];
   updatedAt: string;
 }
 
@@ -393,10 +409,67 @@ const FLOW_SEED: AiFlowRecord[] = [
   },
 ];
 
+const AGENT_SEED: AiAgentRecord[] = [
+  {
+    code: 'AG-01',
+    description: '分析销售漏斗与商机转化，输出跟进建议。',
+    id: 1,
+    name: '销售洞察 Agent',
+    owner: '销售运营',
+    status: 'running',
+    tags: ['分析', '销售'],
+    updatedAt: '2026-11-19 10:20:00',
+  },
+  {
+    code: 'AG-02',
+    description: '识别工单意图与紧急度，生成标准回复草稿。',
+    id: 2,
+    name: '客服助手 Agent',
+    owner: '客户成功',
+    status: 'running',
+    tags: ['客服', '分诊'],
+    updatedAt: '2026-11-18 15:40:00',
+  },
+  {
+    code: 'AG-03',
+    description: '校验合同条款并标注风险点，结果需要人工复核。',
+    id: 3,
+    name: '合同审查 Agent',
+    owner: '法务部',
+    status: 'draft',
+    tags: ['法务', '审阅'],
+    updatedAt: '2026-11-17 11:05:00',
+  },
+  {
+    code: 'AG-04',
+    description: '汇总每日指标并推送到订阅群。',
+    id: 4,
+    name: '日报摘要 Agent',
+    owner: '数据平台',
+    status: 'draft',
+    tags: ['报表', '推送'],
+    updatedAt: '2026-11-16 09:12:00',
+  },
+  {
+    code: 'AG-05',
+    description: '面向新员工的制度问答，答案需标注出处。',
+    id: 5,
+    name: '制度问答 Agent',
+    owner: '人力资源',
+    status: 'disabled',
+    tags: ['问答', '制度'],
+    updatedAt: '2026-11-12 14:30:00',
+  },
+];
+
 /* -------------------------------------------------------------------------- */
 /* 集合声明必须在种子之后：defineCollection 会立刻调用 seed()，提前声明会踩 TDZ   */
 /* -------------------------------------------------------------------------- */
 
+export const AI_AGENT_DB: AiAgentRecord[] = defineCollection<AiAgentRecord>({
+  seed: () => AGENT_SEED.map((item) => ({ ...item, tags: [...item.tags] })),
+  table: 'tb_ai_agent',
+});
 export const AI_PROVIDER_DB: AiProviderRecord[] =
   defineCollection<AiProviderRecord>({
     seed: () => PROVIDER_SEED.map((item) => ({ ...item })),
@@ -434,6 +507,10 @@ export function findKnowledge(id: number): AiKnowledgeRecord | undefined {
 
 export function findFlow(id: number): AiFlowRecord | undefined {
   return AI_FLOW_DB.find((item) => item.id === id);
+}
+
+export function findAgent(id: number): AiAgentRecord | undefined {
+  return AI_AGENT_DB.find((item) => item.id === id);
 }
 
 /**
@@ -531,6 +608,9 @@ export function summarizeFlows(): FlowStats {
 
 /** 总览：四个页面共用一个接口拿 stats，字段扁平便于各页各取所需 */
 export interface AiOverview {
+  agentDraft: number;
+  agentRunning: number;
+  agentTotal: number;
   flowDraft: number;
   flowNodeCount: number;
   flowPublished: number;
@@ -555,6 +635,9 @@ export function summarizeAiOverview(): AiOverview {
   const knowledge = summarizeKnowledge();
   const flow = summarizeFlows();
   return {
+    agentDraft: AI_AGENT_DB.filter((row) => row.status === 'draft').length,
+    agentRunning: AI_AGENT_DB.filter((row) => row.status === 'running').length,
+    agentTotal: AI_AGENT_DB.length,
     flowDraft: flow.draft,
     flowNodeCount: flow.nodeCount,
     flowPublished: flow.published,
@@ -578,7 +661,7 @@ export function summarizeAiOverview(): AiOverview {
 /* 供应商：字段白名单 + 写入时脱敏                                               */
 /* -------------------------------------------------------------------------- */
 
-const PROVIDER_PROTOCOLS: AiProviderProtocol[] = new Set([
+const PROVIDER_PROTOCOLS = new Set<AiProviderProtocol>([
   'dashscope',
   'http',
   'openai-compatible',
@@ -933,4 +1016,85 @@ export function deleteFlow(id: number): DbResult<{ id: number }> {
   if (index === -1) return fail(404, '编排不存在或已被删除');
   AI_FLOW_DB.splice(index, 1);
   return ok({ id }, '编排已删除');
+}
+
+/* -------------------------------------------------------------------------- */
+/* Agent：仅 Agent 自身字段的 CRUD                                             */
+/* -------------------------------------------------------------------------- */
+
+function pickAgentFields(
+  data: Record<string, unknown>,
+): Partial<AiAgentRecord> {
+  const picked: Partial<AiAgentRecord> = {};
+  if (data.code !== undefined) picked.code = String(data.code).trim();
+  if (data.name !== undefined) picked.name = String(data.name).trim();
+  if (data.description !== undefined)
+    picked.description = String(data.description).trim();
+  if (data.owner !== undefined) picked.owner = String(data.owner).trim();
+  if (data.status !== undefined)
+    picked.status = String(data.status).trim() as AiAgentStatus;
+  if (data.tags !== undefined) {
+    picked.tags = Array.isArray(data.tags)
+      ? data.tags.map((tag) => String(tag).trim()).filter(Boolean)
+      : String(data.tags)
+          .split(/[,，、]/)
+          .map((tag) => tag.trim())
+          .filter(Boolean);
+  }
+  return picked;
+}
+
+function validAgent(row: AiAgentRecord): string {
+  if (!row.name) return '请输入 Agent 名称';
+  if (!row.owner) return '请输入负责人';
+  if (!['disabled', 'draft', 'running'].includes(row.status))
+    return 'Agent 状态不合法';
+  return '';
+}
+
+export function saveAgent(
+  data: Record<string, unknown>,
+): DbResult<AiAgentRecord> {
+  const rawId = data.id;
+  const editing = rawId !== undefined && rawId !== null && rawId !== '';
+  const id = Number(rawId);
+
+  if (editing) {
+    if (!Number.isFinite(id) || id <= 0) return fail(400, '无效的 Agent ID');
+    const index = AI_AGENT_DB.findIndex((item) => item.id === id);
+    if (index === -1) return fail(404, 'Agent 不存在或已被删除');
+    const merged: AiAgentRecord = {
+      ...AI_AGENT_DB[index]!,
+      ...pickAgentFields(data),
+      updatedAt: now(),
+    };
+    const invalid = validAgent(merged);
+    if (invalid) return fail(400, invalid);
+    AI_AGENT_DB[index] = merged;
+    return ok(merged, 'Agent 已保存');
+  }
+
+  const nextId = nextBizId('tb_ai_agent');
+  const created: AiAgentRecord = {
+    code: `AG-${String(nextId).padStart(2, '0')}`,
+    description: '',
+    id: nextId,
+    name: '',
+    owner: '',
+    status: 'draft',
+    tags: [],
+    updatedAt: now(),
+    ...pickAgentFields(data),
+  };
+  const invalid = validAgent(created);
+  if (invalid) return fail(400, invalid);
+  AI_AGENT_DB.push(created);
+  return ok(created, 'Agent 已创建');
+}
+
+export function deleteAgent(id: number): DbResult<{ id: number }> {
+  const index = AI_AGENT_DB.findIndex((item) => item.id === id);
+  if (index === -1) return fail(404, 'Agent 不存在或已被删除');
+  AI_AGENT_DB.splice(index, 1);
+  return ok({ id }, 'Agent 已删除');
 }

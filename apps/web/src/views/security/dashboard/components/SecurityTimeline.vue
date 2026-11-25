@@ -134,9 +134,7 @@ onMounted(async () => {
   loading.value = true;
   try {
     const res = await getSecurityEvents({ page: 1, pageSize: 15 });
-    // 兼容直接返回 { list } 或包装为 { data: { list } }
-    const data = res && 'list' in res ? res : (res?.data ?? res);
-    events.value = data?.list || [];
+    events.value = res?.list ?? [];
   } catch {
     events.value = [];
   } finally {

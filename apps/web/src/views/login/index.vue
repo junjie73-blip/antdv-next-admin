@@ -252,7 +252,7 @@ function handleSocial(item: AuthSocialItem) {
       :description="t('login.welcomeDesc')"
       :title="t('login.welcome')"
     >
-      <form @submit.prevent="handleLogin">
+      <div @keydown.enter="handleLogin">
         <div class="space-y-4" data-auth="fields">
           <!--
             前缀图标锚在 `top-5`（输入框 h-10 的中线）而不是 `top-1/2`：
@@ -295,21 +295,23 @@ function handleSocial(item: AuthSocialItem) {
                   data-auth="password"
                   @blur="validateNames(['password'])"
                 />
-                <button
+                <AButton
                   :aria-label="
                     passwordVisible
                       ? t('login.hidePassword')
                       : t('login.showPassword')
                   "
-                  class="text-foreground/50 hover:text-foreground absolute top-1/2 right-2 flex size-7 -translate-y-1/2 items-center justify-center"
+                  class="text-foreground/50 hover:text-foreground absolute top-1/2 right-2 size-7 -translate-y-1/2"
                   type="button"
+                  variant="ghost"
+                  size="icon-sm"
                   @click="passwordVisible = !passwordVisible"
                 >
                   <Icon
                     :icon="passwordVisible ? 'carbon:view-off' : 'carbon:view'"
                     class="size-4"
                   />
-                </button>
+                </AButton>
               </div>
               <p
                 v-if="errors.password"
@@ -409,11 +411,12 @@ function handleSocial(item: AuthSocialItem) {
           :disabled="loading"
           class="w-full"
           data-auth="submit"
-          type="submit"
+          type="button"
+          @click="handleLogin"
         >
           {{ t('login.loginBtn') }}
         </AButton>
-      </form>
+      </div>
 
       <!-- 登录方式切换：参考实现放在主按钮之下，两个等宽描边按钮两端对齐 -->
       <div class="mb-2 mt-4 flex items-center justify-between gap-4">

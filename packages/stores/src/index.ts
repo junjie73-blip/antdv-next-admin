@@ -1,3 +1,4 @@
+export * from './api-health';
 export * from './app';
 export * from './route';
 export * from './session';

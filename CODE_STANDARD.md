@@ -624,7 +624,7 @@ function parse(data: unknown): User {
 - 路由与重组件懒加载（`defineAsyncComponent` / 动态 `import()`）
 - 不在 `setup` 顶层做重计算；用 `computed` 工厂函数
 - 表格列定义、表单 schema 用 `computed`，避免每次渲染重建
-- `@antdv/common-ui` 的重依赖按域走子路径导出（`ai-flow` / `workflow` / `lowcode` / `report` / `im`），不要从根入口整包引入
+- `@antdv/common-ui` 的重依赖按域走子路径导出（`ai-flow` / `lowcode` / `report` / `im`），不要从根入口整包引入
 
 ---
 

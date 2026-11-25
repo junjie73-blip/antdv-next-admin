@@ -79,15 +79,17 @@ function clearAll() {
     <div v-if="tags.length > 0" :class="tagsClassName">
       <Tag v-for="tag in tags" :key="tag" color="blue">
         {{ tag }}
-        <button
+        <Button
           v-if="!disabled"
           type="button"
+          variant="ghost"
+          size="icon-xs"
           aria-label="移除标签"
-          class="ml-0.5 inline-flex cursor-pointer items-center opacity-60 hover:opacity-100"
+          class="ml-0.5 opacity-60 hover:opacity-100"
           @click="removeTag(tag)"
         >
           <Icon icon="carbon:close" class="size-2.5" />
-        </button>
+        </Button>
       </Tag>
       <Button
         v-if="!disabled"

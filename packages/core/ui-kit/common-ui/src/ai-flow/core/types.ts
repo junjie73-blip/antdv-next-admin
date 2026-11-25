@@ -10,16 +10,16 @@ import type {
  *
  * 分层位置：`core/types.ts` 是本包类型的唯一出处，纯 TS，不 import vue。
  *
- * 两条边界（与同批的 `@antdv/common-ui/workflow` 一起说清楚）：
+ * 两条边界：
  * 1. 与 `@antdv/graph` 是「复用骨架、不共用语义」—— 顶点/边/位置与受限表达式都来自 graph，
  *    但 `type` 与 `data` 里装什么由本包解释；
- * 2. 与 `@antdv/common-ui/workflow` **共享上面那份图骨架，但不共享节点语义** ——
+ * 2. 与审批流 **沿用同一套图骨架，但不共享节点语义** ——
  *    审批流的「加签/会签/驳回」和这里的「模型/工具/流式 token」没有任何理由出现在同一个类型里，
  *    两边各自演进，谁也不会因为一个字段名牵制对方。
  */
 
 /**
- * 内置节点类型。尾部 `(string & {})` 与 workflow-ui 的 `WorkflowNodeKind` 同一口径：
+ * 内置节点类型。尾部 `(string & {})` 保留自定义节点字面量的扩展口径：
  * 宿主注册自定义处理器时可以直接写 `'rag'`、`'agent'` 这样的字面量而不必改本包，
  * 同时八个内置值仍然享有自动补全。
  */
@@ -391,7 +391,7 @@ export type AiNodeEmitPayload = DistributiveOmit<AiFlowEvent, 'runId'>;
  * 处理器能看到的运行现场。
  *
  * 刻意不放 `definition`/`index`：节点处理器只该关心「我这一步」，能看见整张图的处理器
- * 迟早会长出「顺手替别人跑一下」的写法，那正是 workflow-ui 把路由留在引擎里的原因。
+ * 迟早会长出「顺手替别人跑一下」的写法，那正是我们把路由留在业务层的原因。
  */
 export interface AiNodeHandlerContext {
   /** 取消信号：任何耗时操作（Provider、工具）都要把它传下去 */
@@ -449,7 +449,7 @@ export interface AiNodeHandler {
   run: (ctx: AiNodeHandlerContext) => AiNodeResult | Promise<AiNodeResult>;
 }
 
-/** 注册表条目形状与 workflow-ui 的 `createNodeHandlerRegistry` 保持一致 */
+/** 注册表条目形状与本包其他域的注册表保持一致 */
 export interface AiNodeHandlerRegistry {
   get: (kind: string) => AiNodeHandler | undefined;
   has: (kind: string) => boolean;

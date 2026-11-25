@@ -393,7 +393,7 @@ Tabs 事件：`change: [number | string]`、`update:activeKey: [number \| string
 
 四个"应用侧原来各写一份"的小组件，现在都在包里。
 
-**StatusTag**（`status-tag/StatusTag.vue`，54 行）：props `status`（**必填**，`string`）、`type?: 'export' | 'instance' | 'task' | 'workflow'`。语义映射 `MAP`（`:15-26`）：`'0'` 处理中 / `'1'` 已完成 / `'2'` 已终止 / `'3'` 已挂起，加 `pending` / `processing` / `completed` / `failed` / `cancelled` / `timeout`；再由 `PRESET_BY_SEMANTIC`（`:33-39`）把状态语义色对齐到 `Tag` 的预设色名（processing→blue、success→green、error→red、warning→gold、default→default）。**认不出的 status 直接原样当文本、色走 default**（`:41-45`，用 `isNil` 而不是 `??`，避免空串被兜掉）。渲染结果就是 `<Tag :color>`。
+**StatusTag**（`status-tag/StatusTag.vue`，54 行）：props `status`（**必填**，`string`）、`type?: 'export' | 'instance' | 'task'`。语义映射 `MAP`（`:15-26`）：`'0'` 处理中 / `'1'` 已完成 / `'2'` 已终止 / `'3'` 已挂起，加 `pending` / `processing` / `completed` / `failed` / `cancelled` / `timeout`；再由 `PRESET_BY_SEMANTIC`（`:33-39`）把状态语义色对齐到 `Tag` 的预设色名（processing→blue、success→green、error→red、warning→gold、default→default）。**认不出的 status 直接原样当文本、色走 default**（`:41-45`，用 `isNil` 而不是 `??`，避免空串被兜掉）。渲染结果就是 `<Tag :color>`。
 
 **EmptyState**（`empty-state/EmptyState.vue`，32 行）：props `title`（`'暂无数据'`）、`description`（`''`）、`icon`（`'ant-design:inbox-outlined'`，Iconify 名）+ 默认插槽（放操作按钮）。配色全部是语义 token（底盘 `bg-muted`、图标 `text-muted-foreground`、标题 `text-foreground`）—— 早先写死的 `bg-gray-50` / `text-gray-900` 在深色下是黑底黑字，已经换掉。与 `Empty` 的分工：`Empty` 是组件库语义的空数据占位（`description?: false | string`、`image?: false | string`），`EmptyState` 是页面级的"这里什么都没有 + 你可以做点什么"。`Listy` 的默认空状态就是它。
 

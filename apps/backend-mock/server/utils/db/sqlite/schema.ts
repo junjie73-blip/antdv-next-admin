@@ -15,7 +15,7 @@
  */
 
 /** 播种版本戳：DDL 或种子规则变更后 +1，服务启动检测不匹配会自动重建 */
-export const SEED_VERSION = 3;
+export const SEED_VERSION = 9;
 
 /** 元数据表：存放 seed_version 等 */
 export const META_TABLE = '__meta';
@@ -38,18 +38,14 @@ export const ENTITY_TABLES = [
   'tb_settings',
   'tb_config',
   'tb_task',
-  'tb_workflow',
-  // 项目管理：项目 / 阶段(含里程碑) / 任务 / 成员 / 进度流水
-  'tb_project',
-  'tb_project_phase',
-  'tb_project_task',
-  'tb_project_member',
-  'tb_project_progress_log',
   // 审批流：审批单据 / 流程分组 / 流程实例
   'tb_approval',
   'tb_approval_group',
   'tb_approval_instance',
-  // AI 开发：供应商 / 模型 / 知识库 / 编排应用
+  // 审批层级规则：员工的直接上级 / 审批时限，供权限与超时提醒共用
+  'tb_approval_level',
+  // AI 配置：Agent / 供应商 / 模型 / 知识库 / 编排应用（各类数据独立存储）
+  'tb_ai_agent',
   'tb_ai_provider',
   'tb_ai_model',
   'tb_ai_knowledge',
@@ -58,6 +54,16 @@ export const ENTITY_TABLES = [
   'tb_table_demo',
   'tb_security_event',
   'tb_security_alert',
+  // 安全中心增强：全链路审计 / 脱敏策略 / AI 安全策略 / AI 调用审计
+  'tb_security_audit',
+  'tb_security_mask_policy',
+  'tb_security_ai_policy',
+  'tb_security_ai_call',
+  // AI 管理 Control Plane：Provider / Prompt 模板 / Context 治理 / Trace
+  'tb_ai_cp_provider',
+  'tb_ai_cp_prompt',
+  'tb_ai_cp_context',
+  'tb_ai_cp_trace',
 ] as const;
 
 export type EntityTable = (typeof ENTITY_TABLES)[number];

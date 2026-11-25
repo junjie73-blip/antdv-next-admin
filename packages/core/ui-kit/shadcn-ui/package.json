@@ -53,6 +53,7 @@
     "vee-validate": "catalog:",
     "vue": "catalog:",
     "vue-input-otp": "catalog:",
+    "vue-llm": "catalog:",
     "vue-sonner": "catalog:",
     "zod": "catalog:"
   },

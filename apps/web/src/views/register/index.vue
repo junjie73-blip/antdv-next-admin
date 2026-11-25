@@ -226,7 +226,7 @@ function handleSocial(item: AuthSocialItem) {
       :description="t('register.welcomeDesc')"
       :title="t('register.title')"
     >
-      <form @submit.prevent="handleRegister">
+      <div @keydown.enter="handleRegister">
         <div class="space-y-4" data-auth="fields">
           <div class="relative">
             <Icon
@@ -286,21 +286,23 @@ function handleSocial(item: AuthSocialItem) {
                 data-auth="password"
                 @blur="validateNames(['password'])"
               />
-              <button
+              <AButton
                 :aria-label="
                   passwordVisible
                     ? t('login.hidePassword')
                     : t('login.showPassword')
                 "
-                class="text-foreground/50 hover:text-foreground absolute top-1/2 right-2 flex size-7 -translate-y-1/2 items-center justify-center"
+                class="text-foreground/50 hover:text-foreground absolute top-1/2 right-2 size-7 -translate-y-1/2"
                 type="button"
+                variant="ghost"
+                size="icon-sm"
                 @click="passwordVisible = !passwordVisible"
               >
                 <Icon
                   :icon="passwordVisible ? 'carbon:view-off' : 'carbon:view'"
                   class="size-4"
                 />
-              </button>
+              </AButton>
             </div>
             <p
               v-if="errors.password"
@@ -325,14 +327,16 @@ function handleSocial(item: AuthSocialItem) {
                 data-auth="confirm-password"
                 @blur="validateNames(['confirmPassword'])"
               />
-              <button
+              <AButton
                 :aria-label="
                   confirmPasswordVisible
                     ? t('login.hidePassword')
                     : t('login.showPassword')
                 "
-                class="text-foreground/50 hover:text-foreground absolute top-1/2 right-2 flex size-7 -translate-y-1/2 items-center justify-center"
+                class="text-foreground/50 hover:text-foreground absolute top-1/2 right-2 size-7 -translate-y-1/2"
                 type="button"
+                variant="ghost"
+                size="icon-sm"
                 @click="confirmPasswordVisible = !confirmPasswordVisible"
               >
                 <Icon
@@ -341,7 +345,7 @@ function handleSocial(item: AuthSocialItem) {
                   "
                   class="size-4"
                 />
-              </button>
+              </AButton>
             </div>
             <p
               v-if="errors.confirmPassword"
@@ -379,12 +383,13 @@ function handleSocial(item: AuthSocialItem) {
             :disabled="loading"
             class="w-full"
             data-auth="submit"
-            type="submit"
+            type="button"
+            @click="handleRegister"
           >
             {{ t('register.submit') }}
           </AButton>
         </div>
-      </form>
+      </div>
 
       <AuthSocialLogin
         :divider-text="t('login.otherLoginMethods')"

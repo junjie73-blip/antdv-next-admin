@@ -117,6 +117,21 @@ export const NOTIFICATION_POSITION_OPTIONS = [
 /* ============================================================
  * 时区
  * ============================================================ */
+/**
+ * 时间展示格式预设。值是 dayjs 格式串，另有两个语义值：
+ * relative = 相对时间（如「3 小时前」）、iso = 原样展示服务端 ISO 串。
+ * custom 由偏好里的 customTimeFormat 提供规则。
+ */
+export const TIME_FORMAT_OPTIONS = [
+  { value: 'YYYY-MM-DD HH:mm:ss', label: '2026-11-25 10:30:00' },
+  { value: 'YYYY-MM-DD HH:mm', label: '2026-11-25 10:30' },
+  { value: 'YYYY/MM/DD HH:mm:ss', label: '2026/11/25 10:30:00' },
+  { value: 'MM-DD HH:mm', label: '11-25 10:30' },
+  { value: 'relative', label: '相对时间（3 小时前）' },
+  { value: 'iso', label: '原始 ISO（2026-11-25T02:30:00Z）' },
+  { value: 'custom', label: '自定义格式' },
+];
+
 export const TIMEZONE_OPTIONS = [
   {
     value: 'Asia/Shanghai',

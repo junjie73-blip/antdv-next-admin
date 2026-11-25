@@ -57,7 +57,7 @@ test/               # 跨包共享测试工具
 - **@antdv/layout-ui** —— 布局渲染层（布局壳 + 六区域 + 折叠 / 拖拽 hook），纯表现层。禁止：pinia / vue-router / 业务 store；菜单形态蓝图与面包屑（属 `layouts`）。
 - **@antdv/menu-ui** —— 菜单渲染（`BasicMenu` 内联 / 水平），数据取自 `@antdv/shared/menu`。禁止：pinia / vue-router；读路由实例判激活项。
 - **@antdv/tabs-ui** —— 多标签页受控组件（`TabList` / `TabItem` / `TabActions` / `TabContextMenu`）。禁止：依赖任何 store（状态在 `useTabsStore`）；依赖 vue-router。
-- **@antdv/common-ui** —— 公共组件层 + 五个业务域（`ai-flow` / `im` / `lowcode` / `report` / `workflow`），重依赖按域走独立子路径导出。禁止：pinia / vue-router / 应用配置（一律注入或 props）；域之间互 import。
+- **@antdv/common-ui** —— 公共组件层 + 四个业务域（`ai-flow` / `im` / `lowcode` / `report`），重依赖按域走独立子路径导出。禁止：pinia / vue-router / 应用配置（一律注入或 props）；域之间互 import。
 
 ### 装配层
 

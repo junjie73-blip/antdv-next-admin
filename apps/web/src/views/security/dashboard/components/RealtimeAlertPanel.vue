@@ -1,14 +1,13 @@
 <script setup lang="ts">
 import type { AlertItem, SecurityEventLevel } from '~/api/security';
 
-import { onMounted, ref } from 'vue';
+import { onBeforeUnmount, onMounted, ref } from 'vue';
 
 import { Empty, Loading, Scrollbar, Tag } from '@antdv/common-ui';
 import { Button } from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/utils/cn';
 import { Icon } from '@iconify/vue';
 import { getAlertList, handleAlert } from '~/api/security';
-import { deterministicRatio } from '~/utils/deterministic';
 
 defineOptions({ name: 'RealtimeAlertPanel' });
 
@@ -73,47 +72,29 @@ async function onHandle(alertId: string, action: string) {
   }
 }
 
-onMounted(async () => {
-  loading.value = true;
+let pollTimer: ReturnType<typeof setInterval> | undefined;
+
+async function loadAlerts() {
   try {
-    const res = await getAlertList();
-    // 兼容多种返回格式：{ list: [] } | 直接数组 | { data: { list: [] } }
-    const rawData = res?.data ?? res;
-    const listData = rawData?.list ?? (Array.isArray(rawData) ? rawData : []);
-    alerts.value = Array.isArray(listData) ? listData : [];
+    const result = await getAlertList();
+    alerts.value = Array.isArray(result.list) ? result.list : [];
   } catch {
     alerts.value = [];
-  } finally {
-    loading.value = false;
   }
+}
 
-  // 模拟实时推送：每15秒可能新增一条告警
-  setInterval(() => {
-    if (deterministicRatio() > 0.6) {
-      // 60% 概率新增
-      const levels: SecurityEventLevel[] = [
-        'critical',
-        'high',
-        'medium',
-        'low',
-      ];
-      const messages = [
-        '检测到异常登录尝试',
-        '敏感接口调用频率异常',
-        '发现新的可疑IP访问',
-        '用户权限变更通知',
-      ];
-      const newAlert: AlertItem = {
-        id: `alert-${Date.now()}`,
-        level: levels[Math.floor(deterministicRatio() * levels.length)]!,
-        message: messages[Math.floor(deterministicRatio() * messages.length)]!,
-        source: `192.168.${Math.floor(deterministicRatio() * 255)}.${Math.floor(deterministicRatio() * 255)}`,
-        timestamp: new Date().toISOString(),
-        actions: ['查看详情', '忽略'],
-      };
-      alerts.value = [newAlert, ...alerts.value].slice(0, 10);
-    }
+onMounted(async () => {
+  loading.value = true;
+  await loadAlerts();
+  loading.value = false;
+  // 真实轮询后端告警台账，不再在前端伪造告警
+  pollTimer = setInterval(() => {
+    void loadAlerts();
   }, 15_000);
+});
+
+onBeforeUnmount(() => {
+  if (pollTimer) clearInterval(pollTimer);
 });
 </script>
 

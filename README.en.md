@@ -39,6 +39,12 @@ The mock server is started **in-process** by the dev process (Nitro, port 5320),
 
 ---
 
+## Security
+
+The template ships a Security Center (overview / audit trail / masking policies / AI security policies / AI call audit) with five-field request auditing, policy-driven server-side masking, menu and button level authorization, prompt injection detection, output moderation, rate limiting and risk grading. See [SECURITY.md](./SECURITY.md) for scope, compliance mapping and extension points.
+
+---
+
 ## Screenshots
 
 > Captured from the local dev environment (`admin` / `admin123`), light theme, 1440×900.

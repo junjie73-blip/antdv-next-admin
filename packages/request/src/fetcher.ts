@@ -301,24 +301,23 @@ export function createFetcher(opts: CreateFetcherOptions = {}) {
       },
 
       async onFetchError({ error, response }) {
-        // 已经是业务层错误（afterFetch 抛出的），保持原样
-        if (error instanceof RequestError) {
-          if (!error.handled) reportRequestError(error);
-          throw error;
-        }
-
+        // 所有失败都从这一个口子收口：afterFetch 抛出的业务码错误、HTTP 非 2xx、
+        // 网络异常，以及 beforeFetch 的会话失效。旧的早退分支会让业务码错误
+        // 绕过错误上报，登录密码输错时全局状态就一直是「健康」。
         const status = response?.status ?? 0;
-        const err = new RequestError(
-          resolveErrorMessage(
-            null,
-            (error as any)?.message || '请求失败',
-            status,
-          ),
-          {
-            status,
-            code: status,
-          },
-        );
+        const err =
+          error instanceof RequestError
+            ? error
+            : new RequestError(
+                resolveErrorMessage(
+                  null,
+                  (error as any)?.message || '请求失败',
+                  status,
+                ),
+                { status, code: status },
+              );
+
+        getRequestRuntime().onError?.(err);
         reportRequestError(err);
         throw err;
       },

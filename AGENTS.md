@@ -70,7 +70,7 @@ test/               # 跨包共享的测试工具
 
 **@antdv/graph**
 
-- 作用：图内核（纯 TS，无 vue、无模板）——DAG 索引与拓扑、Tarjan 找环、结构体检，以及一套**不 eval** 的受限表达式求值器；工作流引擎与 AI 编排共用它的顶点/边语义。
+- 作用：图内核（纯 TS，无 vue、无模板）——DAG 索引与拓扑、Tarjan 找环、结构体检，以及一套**不 eval** 的受限表达式求值器；AI 编排与低代码搭建共用它的顶点/边语义。
 - 允许：纯函数 + 纯 TS 类型。
 - 禁止：禁止 import vue / 任何 UI 包；**禁止引入 `eval` / `new Function` / `with`**（表达式求值必须走受限解析器）；禁止在这里写具体业务的节点语义。
 
@@ -140,7 +140,7 @@ test/               # 跨包共享的测试工具
 
 **@antdv/common-ui**
 
-- 作用：公共组件层——通用展示件（Card / PageHeader / Tag / Tree 等）+ AI 对话 / 数据工作台封装 + 五个业务域能力：`ai-flow`（AI 编排）、`im`（即时通讯）、`lowcode`（低代码）、`report`（报表）、`workflow`（工作流）。重依赖按域走独立子路径导出，宿主只为自己用到的域付解析成本。
+- 作用：公共组件层——通用展示件（Card / PageHeader / Tag / Tree 等）+ AI 对话 / 数据工作台封装 + 四个业务域能力：`ai-flow`（AI 编排）、`im`（即时通讯）、`lowcode`（低代码）、`report`（报表）。重依赖按域走独立子路径导出，宿主只为自己用到的域付解析成本。
 - 允许：依赖全部下层 `ui-kit`、`@antdv/shared`、`@antdv/graph`。
 - 禁止：**禁止依赖 pinia / vue-router / 应用配置**，宿主能力一律走注入或 props；禁止把五个业务域的实现细节从一个域的入口导出（域之间互不 import，共享能力下沉到 `shared`）。
 

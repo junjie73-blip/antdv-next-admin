@@ -14,6 +14,7 @@ import { useAppStore } from '@antdv/stores';
 
 import {
   NOTIFICATION_POSITION_OPTIONS,
+  TIME_FORMAT_OPTIONS,
   TIMEZONE_OPTIONS,
   TRANSITION_OPTIONS,
 } from '../constants';
@@ -55,6 +56,46 @@ const { t } = useLayoutI18n();
             </SelectItem>
           </SelectContent>
         </Select>
+      </SettingItem>
+      <!-- 时间格式：预设之外允许直接写 dayjs 规则，例如 `YYYY年M月D日 HH点mm分` -->
+      <SettingItem
+        :label="t('preferences.timeFormat')"
+        :desc="t('preferences.timeFormatDesc')"
+      >
+        <Select
+          :model-value="appStore.timeFormat"
+          @update:model-value="
+            (v: unknown) => appStore.updateSetting({ timeFormat: String(v) })
+          "
+        >
+          <SelectTrigger class="w-48">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem
+              v-for="opt in TIME_FORMAT_OPTIONS"
+              :key="opt.value"
+              :value="opt.value"
+            >
+              {{ opt.label }}
+            </SelectItem>
+          </SelectContent>
+        </Select>
+      </SettingItem>
+      <SettingItem
+        v-if="appStore.timeFormat === 'custom'"
+        :label="t('preferences.customTimeFormat')"
+        :desc="t('preferences.customTimeFormatDesc')"
+      >
+        <Input
+          :model-value="appStore.customTimeFormat"
+          placeholder="YYYY-MM-DD HH:mm:ss"
+          class="h-8 w-52"
+          @update:model-value="
+            (v: string | number) =>
+              appStore.updateSetting({ customTimeFormat: String(v) })
+          "
+        />
       </SettingItem>
     </SettingGroup>
 

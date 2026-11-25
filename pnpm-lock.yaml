@@ -5,6 +5,10 @@ settings:
   excludeLinksFromLockfile: false
 
 catalogs:
+  conflicts_better-sqlite3_h13_2_0:
+    better-sqlite3:
+      specifier: ^13.2.0
+      version: 13.2.0
   default:
     '@changesets/changelog-git':
       specifier: ^1.0.0
@@ -78,6 +82,9 @@ catalogs:
     '@manypkg/get-packages':
       specifier: ^3.1.0
       version: 3.1.0
+    '@paralleldrive/cuid2':
+      specifier: ^3.3.0
+      version: 3.3.0
     '@playwright/test':
       specifier: ^1.65.0
       version: 1.65.0
@@ -150,6 +157,9 @@ catalogs:
     '@types/archiver':
       specifier: ^7.0.0
       version: 7.0.0
+    '@types/better-sqlite3':
+      specifier: ^9.6.0
+      version: 9.6.0
     '@types/dompurify':
       specifier: ^3.2.0
       version: 3.2.0
@@ -480,6 +490,9 @@ catalogs:
     spark-md5:
       specifier: ^3.0.2
       version: 3.0.2
+    sqlite:
+      specifier: ^5.1.1
+      version: 5.1.1
     stylelint:
       specifier: ^17.16.0
       version: 17.16.0
@@ -621,6 +634,9 @@ catalogs:
     vue-input-otp:
       specifier: 0.4.0
       version: 0.4.0
+    vue-llm:
+      specifier: ^1.11.0
+      version: 1.11.0
     vue-pdf-embed:
       specifier: ^2.1.7
       version: 2.1.7
@@ -668,10 +684,10 @@ importers:
         specifier: 'catalog:'
         version: 0.11.2(vue@3.5.43(typescript@6.0.3))
       better-sqlite3:
-        specifier: ^13.2.0
+        specifier: catalog:conflicts_better-sqlite3_h13_2_0
         version: 13.2.0
       sqlite:
-        specifier: ^5.1.1
+        specifier: 'catalog:'
         version: 5.1.1
     devDependencies:
       '@antdv/commitlint-config':
@@ -768,7 +784,7 @@ importers:
         specifier: workspace:*
         version: link:../../packages/core/base/typings
       '@paralleldrive/cuid2':
-        specifier: ^3.3.0
+        specifier: 'catalog:'
         version: 3.3.0
       better-sqlite3:
         specifier: 'catalog:'
@@ -787,7 +803,7 @@ importers:
         specifier: workspace:*
         version: link:../../internal/tsconfig
       '@types/better-sqlite3':
-        specifier: ^9.6.0
+        specifier: 'catalog:'
         version: 9.6.0
       cross-env:
         specifier: 'catalog:'
@@ -804,6 +820,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@antdv/ai-tools':
+        specifier: workspace:*
+        version: link:../../packages/ai-tools
       '@antdv/common-ui':
         specifier: workspace:*
         version: link:../../packages/core/ui-kit/common-ui
@@ -1056,6 +1075,9 @@ importers:
       vue-i18n:
         specifier: 'catalog:'
         version: 11.4.18(vue@3.5.43(typescript@6.0.3))
+      vue-llm:
+        specifier: 'catalog:'
+        version: 1.11.0(@nuxt/kit@3.21.11(magicast@0.5.5))(@vue/devtools-api@8.2.1)(vue@3.5.43(typescript@6.0.3))
       vue-pdf-embed:
         specifier: 'catalog:'
         version: 2.1.7(vue@3.5.43(typescript@6.0.3))
@@ -1561,6 +1583,28 @@ importers:
       vue-router:
         specifier: 'catalog:'
         version: 5.4.0(@vue/compiler-sfc@3.5.43)(esbuild@0.28.2)(pinia@3.0.4(typescript@6.0.3)(vue@3.5.43(typescript@6.0.3)))(rolldown@1.3.0)(rollup@4.67.5)(vite@8.3.6)(vue@3.5.43(typescript@6.0.3))
+
+  packages/ai-tools:
+    dependencies:
+      vue-llm:
+        specifier: 'catalog:'
+        version: 1.11.0(@nuxt/kit@3.21.11(magicast@0.5.5))(@vue/devtools-api@8.2.1)(vue@3.5.43(typescript@6.0.3))
+    devDependencies:
+      '@antdv/tsconfig':
+        specifier: workspace:*
+        version: link:../../internal/tsconfig
+      rimraf:
+        specifier: 'catalog:'
+        version: 6.1.4
+      typescript:
+        specifier: 'catalog:'
+        version: 6.0.3
+      vitest:
+        specifier: 'catalog:'
+        version: 4.1.12(@types/node@26.6.4)(happy-dom@21.0.4)(jsdom@27.4.0(@noble/hashes@2.4.0))(vite@8.3.6)
+      vue-tsc:
+        specifier: 'catalog:'
+        version: 3.3.12(typescript@6.0.3)
 
   packages/core/base/design:
     dependencies:
@@ -2345,6 +2389,9 @@ importers:
       vue-input-otp:
         specifier: 'catalog:'
         version: 0.4.0(typescript@6.0.3)(vue@3.5.43(typescript@6.0.3))
+      vue-llm:
+        specifier: 'catalog:'
+        version: 1.11.0(@nuxt/kit@3.21.11(magicast@0.5.5))(@vue/devtools-api@8.2.1)(vue@3.5.43(typescript@6.0.3))
       vue-sonner:
         specifier: 'catalog:'
         version: 2.0.9
@@ -13353,6 +13400,22 @@ packages:
     peerDependencies:
       vue: 3.5.43
 
+  vue-llm@1.11.0:
+    resolution: {integrity: sha512-nkR9h+4tmm+zYlDAbBUDmk1beZbFC0YqisVpr3/TlFsgcmli/w2SgHhveAvpdUnnY6HpR5+Jkxf4BUfJ0U0Gfw==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      '@mlc-ai/web-llm': '>=0.2.70'
+      '@nuxt/kit': ^3.0.0 || ^4.0.0
+      '@vue/devtools-api': ^6.6.0 || ^7.0.0 || ^8.0.0
+      vue: 3.5.43
+    peerDependenciesMeta:
+      '@mlc-ai/web-llm':
+        optional: true
+      '@nuxt/kit':
+        optional: true
+      '@vue/devtools-api':
+        optional: true
+
   vue-pdf-embed@2.1.7:
     resolution: {integrity: sha512-hBtlTsqkAg93s8erZUCeVSFAqqfBtsLzpmS9NAiWOGQ5ZZa0FksGNgzSI79cvGJBkYqGPpNqIlazbImZnb/2wA==}
     peerDependencies:
@@ -15200,7 +15263,7 @@ snapshots:
       cac: 7.1.0
       devframe: 1.3.2(@devframes/agentic@1.3.2)(cac@7.1.0)(srvx@1.0.8)
     optionalDependencies:
-      vite: 8.3.6(@types/node@25.9.9)(@vitejs/devtools@0.8.2)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(yaml@2.9.1)
+      vite: 8.3.6(@types/node@26.6.4)(@vitejs/devtools@0.8.2)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(yaml@2.9.1)
 
   '@devframes/plugin-messages@1.3.2(@devframes/hub@1.3.2(@devframes/agentic@1.3.2)(crossws@0.4.17(srvx@1.0.8))(devframe@1.3.2))(devframe@1.3.2)(vite@8.3.6)':
     dependencies:
@@ -15209,7 +15272,7 @@ snapshots:
       cac: 7.1.0
       devframe: 1.3.2(@devframes/agentic@1.3.2)(cac@7.1.0)(srvx@1.0.8)
     optionalDependencies:
-      vite: 8.3.6(@types/node@25.9.9)(@vitejs/devtools@0.8.2)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(yaml@2.9.1)
+      vite: 8.3.6(@types/node@26.6.4)(@vitejs/devtools@0.8.2)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(yaml@2.9.1)
 
   '@devframes/plugin-terminals@1.3.2(@devframes/hub-ui@1.3.2(@devframes/hub@1.3.2(@devframes/agentic@1.3.2)(crossws@0.4.17(srvx@1.0.8))(devframe@1.3.2))(@devframes/json-render@1.3.2(@devframes/hub@1.3.2(@devframes/agentic@1.3.2)(crossws@0.4.17(srvx@1.0.8))(devframe@1.3.2))(devframe@1.3.2))(devframe@1.3.2))(@devframes/hub@1.3.2(@devframes/agentic@1.3.2)(crossws@0.4.17(srvx@1.0.8))(devframe@1.3.2))(devframe@1.3.2)(vite@8.3.6)':
     dependencies:
@@ -15218,7 +15281,7 @@ snapshots:
       devframe: 1.3.2(@devframes/agentic@1.3.2)(cac@7.1.0)(srvx@1.0.8)
       zigpty: 0.2.1
     optionalDependencies:
-      vite: 8.3.6(@types/node@25.9.9)(@vitejs/devtools@0.8.2)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(yaml@2.9.1)
+      vite: 8.3.6(@types/node@26.6.4)(@vitejs/devtools@0.8.2)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(yaml@2.9.1)
     transitivePeerDependencies:
       - '@devframes/hub'
       - '@devframes/hub-ui'
@@ -15235,7 +15298,7 @@ snapshots:
     optionalDependencies:
       '@devframes/hub': 1.3.2(@devframes/agentic@1.3.2)(crossws@0.4.17(srvx@1.0.8))(devframe@1.3.2)
       '@devframes/hub-ui': 1.3.2(@devframes/hub@1.3.2(@devframes/agentic@1.3.2)(crossws@0.4.17(srvx@1.0.8))(devframe@1.3.2))(@devframes/json-render@1.3.2(@devframes/hub@1.3.2(@devframes/agentic@1.3.2)(crossws@0.4.17(srvx@1.0.8))(devframe@1.3.2))(devframe@1.3.2))(devframe@1.3.2)
-      vite: 8.3.6(@types/node@25.9.9)(@vitejs/devtools@0.8.2)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(yaml@2.9.1)
+      vite: 8.3.6(@types/node@26.6.4)(@vitejs/devtools@0.8.2)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(yaml@2.9.1)
 
   '@docsearch/css@3.8.2': {}
 
@@ -17132,7 +17195,7 @@ snapshots:
       enhanced-resolve: 5.26.0
       jiti: 2.7.0
       lightningcss: 1.33.0
-      magic-string: 1.4.3
+      magic-string: 1.4.5
       source-map-js: 1.2.2
       tailwindcss: 4.3.4
 
@@ -17779,7 +17842,7 @@ snapshots:
       local-pkg: 2.0.0
       nostics: 1.3.0
       package-manager-detector: 1.9.0
-      vite: 8.3.6(@types/node@25.9.9)(@vitejs/devtools@0.8.2)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(yaml@2.9.1)
+      vite: 8.3.6(@types/node@26.6.4)(@vitejs/devtools@0.8.2)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(yaml@2.9.1)
     transitivePeerDependencies:
       - '@devframes/agentic'
       - cac
@@ -17805,7 +17868,7 @@ snapshots:
       nostics: 1.3.0
       obug: 3.0.0
       pathe: 2.0.3
-      vite: 8.3.6(@types/node@25.9.9)(@vitejs/devtools@0.8.2)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(yaml@2.9.1)
+      vite: 8.3.6(@types/node@26.6.4)(@vitejs/devtools@0.8.2)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(yaml@2.9.1)
     transitivePeerDependencies:
       - '@devframes/plugin-inspect--assets'
       - '@devframes/plugin-messages--assets'
@@ -17883,7 +17946,7 @@ snapshots:
       estree-walker: 3.0.3
       magic-string: 0.30.21
     optionalDependencies:
-      vite: 8.3.6(@types/node@25.9.9)(@vitejs/devtools@0.8.2)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(yaml@2.9.1)
+      vite: 8.3.6(@types/node@26.6.4)(@vitejs/devtools@0.8.2)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(yaml@2.9.1)
 
   '@vitest/pretty-format@4.1.12':
     dependencies:
@@ -24109,7 +24172,7 @@ snapshots:
       escape-string-regexp: 5.0.0
       estree-walker: 3.0.3
       local-pkg: 1.2.1
-      magic-string: 1.4.3
+      magic-string: 1.4.5
       mlly: 1.8.2
       pathe: 2.0.3
       picomatch: 4.0.7
@@ -24797,6 +24860,13 @@ snapshots:
       vue: 3.5.43(typescript@6.0.3)
     transitivePeerDependencies:
       - typescript
+
+  vue-llm@1.11.0(@nuxt/kit@3.21.11(magicast@0.5.5))(@vue/devtools-api@8.2.1)(vue@3.5.43(typescript@6.0.3)):
+    dependencies:
+      vue: 3.5.43(typescript@6.0.3)
+    optionalDependencies:
+      '@nuxt/kit': 3.21.11(magicast@0.5.5)
+      '@vue/devtools-api': 8.2.1
 
   vue-pdf-embed@2.1.7(vue@3.5.43(typescript@6.0.3)):
     dependencies:

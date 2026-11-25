@@ -7,9 +7,11 @@ import {
 } from '@antdv/common-ui';
 import { useLocaleSync } from '@antdv/hooks/use-locale';
 import { NOTIFICATION_TOASTER_ID } from '@antdv/popup-ui';
-import { useAppStore } from '@antdv/stores';
+import { useAppStore, useUserStore } from '@antdv/stores';
+import AiAssistant from '~/components/ai-assistant/index.vue';
 
 const appStore = useAppStore();
+const userStore = useUserStore();
 /** locale 效应的唯一出口：i18n 文案、`<html lang>`、dayjs 格式化都在这一步展开 */
 useLocaleSync();
 
@@ -50,6 +52,8 @@ const globalConfig = computed(() => ({
     :locale="globalConfig.locale"
   >
     <router-view />
+    <!-- 全局 AI 助手：右下角悬浮按钮，登录后全站可见；登录页不显示 -->
+    <AiAssistant v-if="userStore.isLoggedIn" />
     <!--
       两只 toaster 的分工见 `@antdv/popup-ui` 的 message 模块：不带 id 的收轻提示，
       带 `NOTIFICATION_TOASTER_ID` 的收通知。这里**都不开 `close-button`**：

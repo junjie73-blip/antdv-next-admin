@@ -204,6 +204,46 @@ const list: BackendMenu[] = [
     ],
   },
   {
+    // 安全中心：面向 AI 场景的全链路安全能力集中入口。
+    // 审计与 AI 调用台账只读，策略页开放配置；细粒度按钮权限由 security:* 权限码控制。
+    menuName: '安全中心',
+    name: 'SecurityCenter',
+    icon: 'carbon:security',
+    path: '/security',
+    children: [
+      {
+        menuName: '安全总览',
+        name: 'SecurityDashboard',
+        icon: 'carbon:chart-line-data',
+        path: '/security/dashboard',
+      },
+      {
+        menuName: '审计日志',
+        name: 'SecurityAudit',
+        icon: 'carbon:document',
+        path: '/security/audit',
+      },
+      {
+        menuName: '脱敏策略',
+        name: 'SecurityMaskPolicy',
+        icon: 'carbon:password',
+        path: '/security/mask-policy',
+      },
+      {
+        menuName: 'AI 安全策略',
+        name: 'SecurityAiPolicy',
+        icon: 'carbon:api',
+        path: '/security/ai-policy',
+      },
+      {
+        menuName: 'AI 调用审计',
+        name: 'SecurityAiCalls',
+        icon: 'carbon:bot',
+        path: '/security/ai-calls',
+      },
+    ],
+  },
+  {
     menuName: '组件示例',
     name: 'Demo',
     icon: 'carbon:game-console',
@@ -434,61 +474,7 @@ const list: BackendMenu[] = [
     ],
   },
   {
-    // 项目管理：子菜单共用同一份 SQLite 数据，按业务链顺序排列 ——
-    // 创建/查看项目 → 里程碑 → 任务分配 → 进度看板。
-    // 排期页（/project/schedule）不在侧栏露出，从项目列表/里程碑的「排期」按钮进入。
-    // 页面之间用 projectId / phaseId 互跳，不再各自维护一份静态演示数据。
-    menuName: '项目管理',
-    name: 'Project',
-    icon: 'carbon:collaborate',
-    path: '',
-    children: [
-      {
-        menuName: '我的项目',
-        name: 'ProjectMine',
-        icon: 'carbon:user',
-        path: '/project/my',
-      },
-      {
-        menuName: '项目列表',
-        name: 'ProjectList',
-        icon: 'carbon:list',
-        path: '/project/list',
-      },
-      {
-        menuName: '进度看板',
-        name: 'ProjectProgress',
-        icon: 'carbon:chart-line-data',
-        path: '/project/progress',
-      },
-      {
-        menuName: '我的任务',
-        name: 'ProjectTasks',
-        icon: 'carbon:task',
-        path: '/project/tasks',
-      },
-      {
-        menuName: '任务管理',
-        name: 'ProjectTaskManage',
-        icon: 'carbon:edit',
-        path: '/project/task-manage',
-      },
-      {
-        menuName: '里程碑',
-        name: 'ProjectMilestone',
-        icon: 'carbon:milestone',
-        path: '/project/milestone',
-      },
-      {
-        menuName: '项目成员',
-        name: 'ProjectMembers',
-        icon: 'carbon:group',
-        path: '/project/members',
-      },
-    ],
-  },
-  {
-    // 审批流：参考实现的审批分组，流程监控复用企业工作流监控台。
+    // 审批流：发起、分组与监控均为独立实现。
     menuName: '审批流',
     name: 'Approval',
     icon: 'carbon:task-approved',
@@ -515,13 +501,25 @@ const list: BackendMenu[] = [
     ],
   },
   {
-    // AI 开发：参考实现的 AI 分组，Chat 复用同一套 shadcn-vue 对话组件，
-    // 工作流挂在三级子菜单下，与参考实现的「工作流」可展开层级一致。
-    menuName: 'AI 开发',
+    // AI 配置：模型供应商 / 模型 / Agent / 知识库 / AI 工作流编排各自独立维护。
+    // 对话能力以全局右下角 AI 助手承载，不再在导航里占一个 Chat 入口。
+    menuName: 'AI 配置',
     name: 'AiDev',
     icon: 'carbon:machine-learning',
     path: '',
     children: [
+      {
+        menuName: 'Control Plane',
+        name: 'AiControlPlane',
+        icon: 'carbon:settings',
+        path: '',
+        children: [
+          { menuName: 'Provider 管理', name: 'CpProvider', icon: 'carbon:api', path: '/ai/control-plane/provider' },
+          { menuName: 'Prompt 模板', name: 'CpPrompt', icon: 'carbon:document', path: '/ai/control-plane/prompt' },
+          { menuName: 'Context 治理', name: 'CpContext', icon: 'carbon:filter', path: '/ai/control-plane/context' },
+          { menuName: '调用 Trace', name: 'CpTrace', icon: 'carbon:chart-line-data', path: '/ai/control-plane/trace' },
+        ],
+      },
       {
         menuName: '模型列表',
         name: 'AiModelList',
@@ -541,36 +539,10 @@ const list: BackendMenu[] = [
         path: '/enterprise/ai',
       },
       {
-        menuName: 'Chat',
-        name: 'AiChat',
-        icon: 'carbon:chat',
-        path: '/ai/chat',
-      },
-      {
         menuName: '知识库',
         name: 'AiKnowledge',
         icon: 'carbon:book',
         path: '/ai/knowledge',
-      },
-      {
-        menuName: '工作流',
-        name: 'EnterpriseWorkflow',
-        icon: 'carbon:flow',
-        path: '/enterprise/workflow',
-        children: [
-          {
-            menuName: '流程列表',
-            name: 'EnterpriseWorkflowList',
-            icon: 'carbon:list',
-            path: '/enterprise/workflow/list',
-          },
-          {
-            menuName: '流程监控',
-            name: 'AiWorkflowMonitor',
-            icon: 'carbon:activity',
-            path: '/enterprise/workflow/monitor',
-          },
-        ],
       },
       {
         menuName: 'AI 工作流编排',

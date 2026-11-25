@@ -1,0 +1,33 @@
+{
+  "name": "@antdv/ai-tools",
+  "version": "0.1.0",
+  "description": "AI 工具层：search_table / generate_form / fill_form_fields / navigate_to。不依赖 pinia、vue-router 与任何 UI 包，运行时能力由应用层通过 ToolRuntime 注入。",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "clean": "rimraf dist .turbo",
+    "test:unit": "vitest run",
+    "type-check": "vue-tsc --noEmit"
+  },
+  "files": [
+    "src"
+  ],
+  "main": "./src/index.ts",
+  "module": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*.ts",
+    "./package.json": "./package.json"
+  },
+  "dependencies": {
+    "vue-llm": "catalog:"
+  },
+  "devDependencies": {
+    "@antdv/tsconfig": "workspace:*",
+    "rimraf": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:",
+    "vue-tsc": "catalog:"
+  }
+}

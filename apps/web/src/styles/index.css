@@ -8,7 +8,7 @@
  * - 下面每一条 `@import '<pkg>/style.css'` 是那个包自己的 `@source './';`：
  *   工具类的扫描范围跟着功能模块走，新增一个 ui 子包时改的是它自己的文件，
  *   外加在这里补一行 —— 漏补的症状是那个包的工具类静默不生成（构建照样绿）。
- *   ai-flow / im / lowcode / report / workflow 五个业务域已收编进 common-ui，
+ *   ai-flow / im / lowcode / report 四个业务域已收编进 common-ui，
  *   由 `@antdv/common-ui/style.css` 一句 `@source './'` 统一登记，不再各占一行。
  *
  * 为什么必须是 CSS `@import` 而不是在 main.ts 里逐条 JS `import`：

@@ -1,11 +1,10 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch, type Ref } from 'vue';
 
 import { cn } from '@antdv/shared/utils/cn';
 import { useAppStore } from '@antdv/stores';
 import * as echarts from 'echarts';
 import { getSecurityStats } from '~/api/security';
-import { deterministicRatio } from '~/utils/deterministic';
 
 defineOptions({ name: 'SecurityStatsCharts' });
 
@@ -23,6 +22,7 @@ const barRef = ref<HTMLDivElement>();
 const lineRef = ref<HTMLDivElement>();
 
 const charts = new Map<string, echarts.ECharts>();
+const stats = ref<Awaited<ReturnType<typeof getSecurityStats>> | null>(null);
 
 // 主题色
 const PALETTE = {
@@ -46,7 +46,7 @@ function borderColor() {
 /** 安全初始化图表 */
 function safeInit(
   name: string,
-  refEl: ref<HTMLDivElement | undefined>,
+  refEl: Ref<HTMLDivElement | undefined>,
   initFn: (el: HTMLDivElement) => void,
 ) {
   const el = refEl.value;
@@ -127,20 +127,15 @@ function initPieChart(el: HTMLDivElement) {
           scaleSize: 6,
         },
         data: [
-          { value: 45, name: 'XSS攻击', itemStyle: { color: PALETTE.danger } },
-          { value: 28, name: 'SQL注入', itemStyle: { color: PALETTE.primary } },
-          {
-            value: 35,
-            name: 'CSRF攻击',
-            itemStyle: { color: PALETTE.warning },
+          ...(stats.value?.threatDistribution ?? []),
+          ...(stats.value?.aiThreats ?? []),
+        ].map((item, index) => ({
+          value: item.value,
+          name: item.name,
+          itemStyle: {
+            color: [PALETTE.danger, PALETTE.primary, PALETTE.warning, PALETTE.info, PALETTE.success][index % 5],
           },
-          { value: 52, name: '暴力破解', itemStyle: { color: PALETTE.info } },
-          {
-            value: 68,
-            name: '扫描探测',
-            itemStyle: { color: PALETTE.success },
-          },
-        ],
+        })),
         animationDuration: 1200,
       },
     ],
@@ -169,7 +164,7 @@ function initBarChart(el: HTMLDivElement) {
     },
     xAxis: {
       type: 'category',
-      data: ['北京', '上海', '广州', '深圳', '杭州', '成都', '海外'],
+      data: (stats.value?.attackSources ?? []).map((item) => item.region),
       axisLabel: { color: subTextColor(), fontSize: 11 },
       axisLine: { lineStyle: { color: borderColor() } },
       axisTick: { show: false },
@@ -185,78 +180,21 @@ function initBarChart(el: HTMLDivElement) {
       {
         type: 'bar',
         barWidth: 20,
-        data: [
-          {
-            value: 320,
-            itemStyle: {
-              borderRadius: [4, 4, 0, 0],
-              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                { offset: 0, color: '#1677ff' },
-                { offset: 1, color: 'rgba(22,119,255,0.2)' },
-              ]),
-            },
+        data: (stats.value?.attackSources ?? []).map((item, index) => ({
+          value: item.value,
+          itemStyle: {
+            borderRadius: [4, 4, 0, 0],
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+              {
+                offset: 0,
+                color:
+                  [PALETTE.primary, PALETTE.success, PALETTE.warning, PALETTE.info, '#13c2c2', PALETTE.danger, '#ff85c0'][index % 7] ??
+                  PALETTE.primary,
+              },
+              { offset: 1, color: 'rgba(255,255,255,0.05)' },
+            ]),
           },
-          {
-            value: 280,
-            itemStyle: {
-              borderRadius: [4, 4, 0, 0],
-              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                { offset: 0, color: '#52c41a' },
-                { offset: 1, color: 'rgba(82,196,26,0.2)' },
-              ]),
-            },
-          },
-          {
-            value: 180,
-            itemStyle: {
-              borderRadius: [4, 4, 0, 0],
-              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                { offset: 0, color: '#faad14' },
-                { offset: 1, color: 'rgba(250,173,20,0.2)' },
-              ]),
-            },
-          },
-          {
-            value: 220,
-            itemStyle: {
-              borderRadius: [4, 4, 0, 0],
-              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                { offset: 0, color: '#722ed1' },
-                { offset: 1, color: 'rgba(114,46,209,0.2)' },
-              ]),
-            },
-          },
-          {
-            value: 140,
-            itemStyle: {
-              borderRadius: [4, 4, 0, 0],
-              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                { offset: 0, color: '#13c2c2' },
-                { offset: 1, color: 'rgba(19,194,194,0.2)' },
-              ]),
-            },
-          },
-          {
-            value: 110,
-            itemStyle: {
-              borderRadius: [4, 4, 0, 0],
-              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                { offset: 0, color: '#f5222d' },
-                { offset: 1, color: 'rgba(245,34,45,0.2)' },
-              ]),
-            },
-          },
-          {
-            value: 450,
-            itemStyle: {
-              borderRadius: [4, 4, 0, 0],
-              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                { offset: 0, color: '#ff85c0' },
-                { offset: 1, color: 'rgba(255,133,192,0.2)' },
-              ]),
-            },
-          },
-        ],
+        })),
         animationDuration: 1000,
       },
     ],
@@ -293,6 +231,7 @@ function initLineChart(el: HTMLDivElement) {
     xAxis: {
       type: 'category',
       boundaryGap: false,
+      data: (stats.value?.dailyEvents ?? []).map((item) => item.date),
       axisLabel: { color: subTextColor(), fontSize: 10, interval: 2 },
       axisLine: { lineStyle: { color: borderColor() } },
       axisTick: { show: false },
@@ -325,9 +264,7 @@ function initLineChart(el: HTMLDivElement) {
         type: 'line',
         smooth: true,
         symbol: 'none',
-        data: Array.from({ length: 14 }, () =>
-          Math.floor(deterministicRatio() * 30 + 10),
-        ),
+        data: (stats.value?.dailyEvents ?? []).map((item) => item.count),
         lineStyle: { color: PALETTE.danger, width: 2 },
         areaStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
@@ -342,9 +279,7 @@ function initLineChart(el: HTMLDivElement) {
         smooth: true,
         symbol: 'none',
         yAxisIndex: 1,
-        data: Array.from({ length: 14 }, () =>
-          Math.floor(deterministicRatio() * 400 + 80),
-        ),
+        data: (stats.value?.responseTime ?? []).map((item) => item.avgMs),
         lineStyle: { color: PALETTE.primary, width: 2, type: 'dashed' },
       },
     ],
@@ -354,9 +289,9 @@ function initLineChart(el: HTMLDivElement) {
 
 onMounted(async () => {
   try {
-    await getSecurityStats();
+    stats.value = await getSecurityStats();
   } catch {
-    /* 使用默认数据 */
+    /* 接口不可用时退化为静态空数据，不阻塞页面 */
   }
 
   // 延迟初始化确保容器已渲染

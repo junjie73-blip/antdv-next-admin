@@ -18,7 +18,7 @@ import { renderPrompt } from './prompt';
  *
  * 分层位置：`core/registry.ts`，纯 TS，被 `runner.ts` 消费。
  *
- * 与 workflow-ui 的 `createNodeHandlerRegistry` 同一条口径：**内置的八种节点本身就是
+ * 注册表口径：**内置的八种节点本身就是
  * 注册表里的条目，不是引擎里的 switch** —— 想把 `llm` 换成「带缓存的模型网关调用」，
  * 注册一个同名 kind 的处理器覆盖掉即可，不必 fork 运行器，也不必它开配置开关。
  * 反过来，运行器里因此不许出现任何 `if (node.type === 'llm')`。

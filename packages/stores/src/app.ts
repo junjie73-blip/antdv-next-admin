@@ -88,6 +88,8 @@ export const useAppStore = defineStore('app', () => {
   /* ---------- 通用 ---------- */
   const componentSize = pick('componentSize');
   const timezone = pick('timezone');
+  const timeFormat = pick('timeFormat');
+  const customTimeFormat = pick('customTimeFormat');
   const enableWatermark = pick('enableWatermark');
   const watermarkContent = pick('watermarkContent');
   const notificationPosition = pick('notificationPosition');
@@ -185,6 +187,8 @@ export const useAppStore = defineStore('app', () => {
     locale,
     componentSize,
     timezone,
+    timeFormat,
+    customTimeFormat,
     enableWatermark,
     watermarkContent,
     notificationPosition,

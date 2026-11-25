@@ -64,6 +64,17 @@ describe('mock 账号表', () => {
     expect(CUSTOM.visibleMenus?.filter((name) => !known.has(name))).toEqual([]);
   });
 
+  it('导航不带 chat、项目管理与工作流引擎，AI 分组统一叫 AI 配置', () => {
+    const names = flatten(menuTree);
+    expect(names).not.toContain('AiChat');
+    expect(names.filter((name) => name.startsWith('Project'))).toEqual([]);
+    expect(names).not.toContain('AiWorkflowMonitor');
+    expect(names.filter((name) => name.startsWith('EnterpriseWorkflow'))).toEqual([]);
+
+    const aiGroup = menuTree.find((menu) => menu.name === 'AiDev');
+    expect(aiGroup?.menuName).toBe('AI 配置');
+  });
+
   it('按用户名+密码取账号，任一不符就不给身份', () => {
     expect(authenticate('admin', 'admin123')).toBe(ADMIN);
     expect(authenticate('custom', 'custom123')).toBe(CUSTOM);

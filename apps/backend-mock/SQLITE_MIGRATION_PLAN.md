@@ -1,6 +1,8 @@
 # backend-mock：从内存 Mock 数据迁移到 SQLite — 实施方案与可行性评估
 
 > 适用范围：`apps/backend-mock`（基于 Nitro 的 Mock 服务）关联改动约束：前端 `apps/web` 与 `packages/*` 的契约（响应信封 `ApiEnvelope<T>`）**必须保持不变**
+>
+> **历史文档**：下文提到的 `enterprise/workflow`、`tb_workflow`、`WORKFLOW_STORE` 与 `db-workflow-config-e2e.test.ts` 均已随「工作流引擎」模块删除；相关段落只用于说明当时的迁移方法，不再代表当前代码。配置域持久化测试现为 `test/config-persistence-e2e.test.ts`。
 
 ---
 

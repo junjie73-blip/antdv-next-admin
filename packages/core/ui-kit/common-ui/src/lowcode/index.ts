@@ -1,7 +1,7 @@
 /**
  * `@antdv/common-ui/lowcode` —— 低代码搭建：Schema 渲染 + 组件物料注册表 + 属性面板。
  *
- * 分层与依赖口径（与 `@antdv/common-ui/workflow` 同一套骨架）：
+ * 分层与依赖口径（与 `@antdv/common-ui/ai-flow` 同一套骨架）：
  * - `core/*` 是纯 TypeScript 运行时，不认识 vue 也不认识 shadcn-ui，可以被 Node 侧
  *   （保存前体检、Schema 迁移脚本、批量生成页面）直接复用；
  * - `components/*` 只画在 core 的形状上，全部基础控件来自 `@antdv/shadcn-ui`，不引入第二个 UI 库；

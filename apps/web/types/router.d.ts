@@ -45,9 +45,37 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
-    '/ai/chat/': RouteRecordInfo<
-      '/ai/chat/',
-      '/ai/chat',
+    '/ai/control-plane/context': RouteRecordInfo<
+      '/ai/control-plane/context',
+      '/ai/control-plane/context',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/ai/control-plane/ControlPlanePage': RouteRecordInfo<
+      '/ai/control-plane/ControlPlanePage',
+      '/ai/control-plane/ControlPlanePage',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/ai/control-plane/prompt': RouteRecordInfo<
+      '/ai/control-plane/prompt',
+      '/ai/control-plane/prompt',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/ai/control-plane/provider': RouteRecordInfo<
+      '/ai/control-plane/provider',
+      '/ai/control-plane/provider',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/ai/control-plane/trace': RouteRecordInfo<
+      '/ai/control-plane/trace',
+      '/ai/control-plane/trace',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -339,27 +367,6 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
-    '/enterprise/workflow/': RouteRecordInfo<
-      '/enterprise/workflow/',
-      '/enterprise/workflow',
-      Record<never, never>,
-      Record<never, never>,
-      | never
-    >,
-    '/enterprise/workflow/list/': RouteRecordInfo<
-      '/enterprise/workflow/list/',
-      '/enterprise/workflow/list',
-      Record<never, never>,
-      Record<never, never>,
-      | never
-    >,
-    '/enterprise/workflow/monitor/': RouteRecordInfo<
-      '/enterprise/workflow/monitor/',
-      '/enterprise/workflow/monitor',
-      Record<never, never>,
-      Record<never, never>,
-      | never
-    >,
     '/error/403': RouteRecordInfo<
       '/error/403',
       '/error/403',
@@ -395,62 +402,6 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
-    '/project/list/': RouteRecordInfo<
-      '/project/list/',
-      '/project/list',
-      Record<never, never>,
-      Record<never, never>,
-      | never
-    >,
-    '/project/members/': RouteRecordInfo<
-      '/project/members/',
-      '/project/members',
-      Record<never, never>,
-      Record<never, never>,
-      | never
-    >,
-    '/project/milestone/': RouteRecordInfo<
-      '/project/milestone/',
-      '/project/milestone',
-      Record<never, never>,
-      Record<never, never>,
-      | never
-    >,
-    '/project/my/': RouteRecordInfo<
-      '/project/my/',
-      '/project/my',
-      Record<never, never>,
-      Record<never, never>,
-      | never
-    >,
-    '/project/progress/': RouteRecordInfo<
-      '/project/progress/',
-      '/project/progress',
-      Record<never, never>,
-      Record<never, never>,
-      | never
-    >,
-    '/project/schedule/': RouteRecordInfo<
-      '/project/schedule/',
-      '/project/schedule',
-      Record<never, never>,
-      Record<never, never>,
-      | never
-    >,
-    '/project/task-manage/': RouteRecordInfo<
-      '/project/task-manage/',
-      '/project/task-manage',
-      Record<never, never>,
-      Record<never, never>,
-      | never
-    >,
-    '/project/tasks/': RouteRecordInfo<
-      '/project/tasks/',
-      '/project/tasks',
-      Record<never, never>,
-      Record<never, never>,
-      | never
-    >,
     '/redirect/': RouteRecordInfo<
       '/redirect/',
       '/redirect',
@@ -472,9 +423,37 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/security/ai-calls/': RouteRecordInfo<
+      '/security/ai-calls/',
+      '/security/ai-calls',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/security/ai-policy/': RouteRecordInfo<
+      '/security/ai-policy/',
+      '/security/ai-policy',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/security/audit/': RouteRecordInfo<
+      '/security/audit/',
+      '/security/audit',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/security/dashboard/': RouteRecordInfo<
       '/security/dashboard/',
       '/security/dashboard',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/security/mask-policy/': RouteRecordInfo<
+      '/security/mask-policy/',
+      '/security/mask-policy',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -641,9 +620,41 @@ declare module 'vue-router/auto-routes' {
       pathParamNames:
         | never
     }
-    'src/views/ai/chat/index.vue': {
+    'src/views/ai/control-plane/context.vue': {
       routes:
-        | '/ai/chat/'
+        | '/ai/control-plane/context'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
+    'src/views/ai/control-plane/ControlPlanePage.vue': {
+      routes:
+        | '/ai/control-plane/ControlPlanePage'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
+    'src/views/ai/control-plane/prompt.vue': {
+      routes:
+        | '/ai/control-plane/prompt'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
+    'src/views/ai/control-plane/provider.vue': {
+      routes:
+        | '/ai/control-plane/provider'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
+    'src/views/ai/control-plane/trace.vue': {
+      routes:
+        | '/ai/control-plane/trace'
       views:
         | never
       pathParamNames:
@@ -977,30 +988,6 @@ declare module 'vue-router/auto-routes' {
       pathParamNames:
         | never
     }
-    'src/views/enterprise/workflow/index.vue': {
-      routes:
-        | '/enterprise/workflow/'
-      views:
-        | never
-      pathParamNames:
-        | never
-    }
-    'src/views/enterprise/workflow/list/index.vue': {
-      routes:
-        | '/enterprise/workflow/list/'
-      views:
-        | never
-      pathParamNames:
-        | never
-    }
-    'src/views/enterprise/workflow/monitor/index.vue': {
-      routes:
-        | '/enterprise/workflow/monitor/'
-      views:
-        | never
-      pathParamNames:
-        | never
-    }
     'src/views/error/403.vue': {
       routes:
         | '/error/403'
@@ -1041,70 +1028,6 @@ declare module 'vue-router/auto-routes' {
       pathParamNames:
         | never
     }
-    'src/views/project/list/index.vue': {
-      routes:
-        | '/project/list/'
-      views:
-        | never
-      pathParamNames:
-        | never
-    }
-    'src/views/project/members/index.vue': {
-      routes:
-        | '/project/members/'
-      views:
-        | never
-      pathParamNames:
-        | never
-    }
-    'src/views/project/milestone/index.vue': {
-      routes:
-        | '/project/milestone/'
-      views:
-        | never
-      pathParamNames:
-        | never
-    }
-    'src/views/project/my/index.vue': {
-      routes:
-        | '/project/my/'
-      views:
-        | never
-      pathParamNames:
-        | never
-    }
-    'src/views/project/progress/index.vue': {
-      routes:
-        | '/project/progress/'
-      views:
-        | never
-      pathParamNames:
-        | never
-    }
-    'src/views/project/schedule/index.vue': {
-      routes:
-        | '/project/schedule/'
-      views:
-        | never
-      pathParamNames:
-        | never
-    }
-    'src/views/project/task-manage/index.vue': {
-      routes:
-        | '/project/task-manage/'
-      views:
-        | never
-      pathParamNames:
-        | never
-    }
-    'src/views/project/tasks/index.vue': {
-      routes:
-        | '/project/tasks/'
-      views:
-        | never
-      pathParamNames:
-        | never
-    }
     'src/views/redirect/index.vue': {
       routes:
         | '/redirect/'
@@ -1129,9 +1052,41 @@ declare module 'vue-router/auto-routes' {
       pathParamNames:
         | never
     }
+    'src/views/security/ai-calls/index.vue': {
+      routes:
+        | '/security/ai-calls/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
+    'src/views/security/ai-policy/index.vue': {
+      routes:
+        | '/security/ai-policy/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
+    'src/views/security/audit/index.vue': {
+      routes:
+        | '/security/audit/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
     'src/views/security/dashboard/index.vue': {
       routes:
         | '/security/dashboard/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
+    'src/views/security/mask-policy/index.vue': {
+      routes:
+        | '/security/mask-policy/'
       views:
         | never
       pathParamNames:

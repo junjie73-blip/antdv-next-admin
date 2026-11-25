@@ -17,8 +17,8 @@ export interface NotificationItem {
   createdAt: string;
   isRead: 0 | 1;
   priority: number;
-  /** 消息来源：notice | workflow | report | system */
-  source?: 'notice' | 'report' | 'system' | 'workflow';
+  /** 消息来源：notice | report | system */
+  source?: 'notice' | 'report' | 'system';
   /** 工作流通知：跳转参数 */
   bizType?: null | string;
   bizId?: null | string;
@@ -154,11 +154,10 @@ function handleMessage(raw: unknown): void {
   }
 
   /* ============================================================
-   * 通知推送（notice:push / workflow:notify 统一入口）
+   * 通知推送（notice:push / report:notify 统一入口）
    * ============================================================ */
   if (
     data.type === 'notice:push' ||
-    data.type === 'workflow:notify' ||
     data.type === 'report:notify'
   ) {
     const notice = transformNotice(data.data);
@@ -195,7 +194,7 @@ function handleMessage(raw: unknown): void {
    * ============================================================
    * 处理：
    *  1. 若撤回的正是当前共享的 sharedNotice → 清空
-   *  2. 广播给所有订阅方（useNotice 会移除列表项）
+   *  2. 广播给所有订阅方（由页面自行移除列表项）
    */
   if (data.type === 'notice:revoke') {
     const noticeId = extractRevokeId(data.data);

@@ -12,11 +12,18 @@ export interface ChatTurn {
  * 不传时行为与旧版完全一致（向后兼容），「模板中心 / Chat」入口无需改动。
  * 接真实模型时只改这一个函数的请求地址 / 协议即可，Chat 组件不用动。
  */
+export interface ChatResponse {
+  blocked?: boolean;
+  categories?: string[];
+  content: string;
+  risk?: 'critical' | 'high' | 'low' | 'medium';
+}
+
 export function chatWithAi(
   messages: ChatTurn[],
   modelId?: number,
-): Promise<{ content: string }> {
-  return post<{ content: string }>(
+): Promise<ChatResponse> {
+  return post<ChatResponse>(
     '/ai/chat',
     modelId === undefined ? { messages } : { messages, modelId },
   );

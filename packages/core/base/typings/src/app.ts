@@ -140,6 +140,12 @@ export interface AppSetting {
   /* ---------- 通用 ---------- */
   componentSize: ComponentSize;
   timezone: string;
+  /**
+   * 时间展示格式：dayjs 格式串，或 `relative`（相对时间）/ `iso`（保持原始 ISO 串）。
+   * `custom` 表示采用 `customTimeFormat` 里用户自己写的规则。
+   */
+  timeFormat: string;
+  customTimeFormat: string;
   enableWatermark: boolean;
   watermarkContent: string;
   notificationPosition: NotificationPosition;

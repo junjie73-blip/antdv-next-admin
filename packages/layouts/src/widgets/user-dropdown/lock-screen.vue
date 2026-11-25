@@ -10,29 +10,6 @@ import { useCssVar } from '@vueuse/core';
 
 defineOptions({ name: 'LockScreen' });
 
-const props = withDefaults(
-  defineProps<{
-    /** 当前面板模式：首次设置密码 / 输入密码解锁 */
-    mode?: LockScreenMode;
-    /** 校验失败的 i18n key；空表示无错误 */
-    errorMessageKey?: string;
-    /** 向下拖过多少像素算提交密码 */
-    threshold?: number;
-  }>(),
-  {
-    errorMessageKey: '',
-    mode: 'unlock',
-    threshold: UNLOCK_PULL_THRESHOLD,
-  },
-);
-
-const emit = defineEmits<{
-  (
-    event: 'submit-password',
-    payload: { confirm: string; password: string },
-  ): void;
-}>();
-
 /**
  * 解锁的下拉阈值：把手按下去之后要拖过这么多像素才提交密码。
  *
@@ -45,6 +22,32 @@ const emit = defineEmits<{
  * 报 TS2448 / TS2454）。
  */
 const UNLOCK_PULL_THRESHOLD = 96;
+
+const props = withDefaults(
+  defineProps<{
+    /** 当前面板模式：首次设置密码 / 输入密码解锁 */
+    mode?: LockScreenMode;
+    /** 校验失败的 i18n key；空表示无错误 */
+    errorMessageKey?: string;
+    /** 本次锁屏生成的背景图；由 useLockScreen 在解锁时收回 */
+    artworkUrl?: string;
+    /** 向下拖过多少像素算提交密码 */
+    threshold?: number;
+  }>(),
+  {
+    artworkUrl: '',
+    errorMessageKey: '',
+    mode: 'unlock',
+    threshold: UNLOCK_PULL_THRESHOLD,
+  },
+);
+
+const emit = defineEmits<{
+  (
+    event: 'submit-password',
+    payload: { confirm: string; password: string },
+  ): void;
+}>();
 
 /**
  * 锁屏遮罩：盖住整个视口，把滚动与页面上的默认交互全部挡在下面。
@@ -171,9 +174,18 @@ function onPointerUp() {
       data-testid="lock-screen"
       @contextmenu.prevent
     >
+      <!-- 每次锁屏新生成的背景图：只在锁定期间存在，不抢表单焦点 -->
+      <img
+        v-if="props.artworkUrl"
+        :src="props.artworkUrl"
+        alt=""
+        aria-hidden="true"
+        class="pointer-events-none absolute inset-0 size-full object-cover opacity-35"
+        data-testid="lock-artwork"
+      />
       <div
         ref="cardEl"
-        class="lock-card flex w-[min(320px,calc(100vw-32px))] flex-col items-center px-6 py-8 text-center"
+        class="lock-card relative z-10 flex w-[min(320px,calc(100vw-32px))] flex-col items-center px-6 py-8 text-center"
       >
         <span
           class="lock-badge flex size-14 items-center justify-center rounded-full"
@@ -202,6 +214,11 @@ function onPointerUp() {
           {{ t(hintKey) }}
         </p>
 
+        <!--
+          两个框一律 autocomplete="off"：这里不是账号密码表单，不能让密码管理器
+          按 current-password / new-password 的语义分别填「已保存的旧密码」和
+          「新生成的密码」——那会让两个框看着都有圆点、实际值不同，提交必报不一致。
+        -->
         <form class="mt-6 w-full space-y-3 text-left" @submit.prevent="submit">
           <label class="block">
             <span class="mb-1 block text-xs text-muted-foreground">
@@ -209,7 +226,7 @@ function onPointerUp() {
             </span>
             <input
               v-model="password"
-              autocomplete="current-password"
+              autocomplete="off"
               class="lock-input w-full px-3 py-2 text-sm"
               data-lock-password-input
               data-testid="lock-password-input"
@@ -224,8 +241,9 @@ function onPointerUp() {
             </span>
             <input
               v-model="confirmPassword"
-              autocomplete="new-password"
+              autocomplete="off"
               class="lock-input w-full px-3 py-2 text-sm"
+              data-lock-password-confirm
               data-testid="lock-password-confirm"
               :placeholder="t('header.lockPasswordConfirmPlaceholder')"
               type="password"

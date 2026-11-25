@@ -48,18 +48,18 @@
 
 ### Minor Changes
 
-- f740d13: feat: 组件示例按 vben 的分类补齐四页，并把示例里的 API 用错处一次性修掉
+- f740d13: feat: 组件示例补齐四页，并把示例里的 API 用错处一次性修掉
 
-  诉求：**"组件示例中可以参考 vben 的示例"**。范围按之前确认的口径收敛为 **"只做不引新依赖的一批"** —— 全部用本项目已有的 antdv-next / `@antdv/ui` / `@antdv/directives` / `@antdv/shared`，不新增任何依赖。
+  诉求：**"组件示例"**。范围按之前确认的口径收敛为 **"只做不引新依赖的一批"** —— 全部用本项目已有的 antdv-next / `@antdv/ui` / `@antdv/directives` / `@antdv/shared`，不新增任何依赖。
 
   ## 新增的四页
 
-  | 路径 | 内容 |
-  | --- | --- |
-  | `/components/overview` | 卡片墙总览：清单**直接来自菜单**（不自己抄一份），可按名称/路径过滤，点卡片是真链接（走外壳标签页），无匹配给空状态 |
-  | `/components/feedback` | message / modal / popconfirm / notification / progress / result / watermark / alert |
+  | 路径                       | 内容                                                                                                                             |
+  | -------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+  | `/components/overview`     | 卡片墙总览：清单**直接来自菜单**（不自己抄一份），可按名称/路径过滤，点卡片是真链接（走外壳标签页），无匹配给空状态              |
+  | `/components/feedback`     | message / modal / popconfirm / notification / progress / result / watermark / alert                                              |
   | `/components/data-display` | descriptions / avatar / badge / segmented / tabs(editable-card + card) / collapse / timeline / steps / image / statistic / table |
-  | `/components/directive` | `v-permission` 判定矩阵 / `v-loading` 三种遮罩 / `v-lazy` 图片墙 / `v-safe-html` + `v-escape` |
+  | `/components/directive`    | `v-permission` 判定矩阵 / `v-loading` 三种遮罩 / `v-lazy` 图片墙 / `v-safe-html` + `v-escape`                                    |
 
   菜单在 `apps/backend-mock/server/api/menus.get.ts` 里挂了「反馈与工具」这一组，所以总览页与全站巡检都会自动带上新页，不需要改第二处。
 

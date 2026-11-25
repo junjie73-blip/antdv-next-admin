@@ -263,14 +263,15 @@ const errorTextOf = computed(() =>
 
     <ul class="flex flex-col gap-1" data-slot="ai-run-panel-nodes">
       <li v-for="row in rows" :key="row.id">
-        <button
-          class="flex w-full items-center justify-between gap-2 rounded px-1 py-0.5 text-left hover:bg-accent"
+        <Button
+          variant="ghost"
+          class="flex h-auto w-full items-center justify-between gap-2 px-1 py-0.5 text-left"
           type="button"
           @click="emit('select', row.id)"
         >
           <span class="truncate text-sm">{{ row.label }}</span>
           <Badge :variant="NODE_VARIANT[row.status]">{{ row.status }}</Badge>
-        </button>
+        </Button>
         <p
           v-if="streamByNode[row.id]"
           class="mt-1 max-h-32 overflow-auto whitespace-pre-wrap rounded bg-muted p-2 font-mono text-xs"

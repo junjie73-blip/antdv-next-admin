@@ -23,7 +23,7 @@
 @import '@antdv/icons/style.css';
 @import '@antdv/common-ui/style.css'; /* 再 ui-kit/* 按包名字母序；五个业务域已并入 common-ui */
 /* …common-ui / form-ui / im-ui / layout-ui / lowcode-ui / menu-ui */
-/* …popup-ui / report-ui / shadcn-ui / table-ui / tabs-ui / workflow-ui */
+/* …popup-ui / report-ui / shadcn-ui / table-ui / tabs-ui / common-ui */
 ```
 
 - 每一条 `@import '<pkg>/style.css'` 就是那个包自己的 `@source './';`：**工具类的扫描范围跟着功能模块走**，新增一个 ui 子包时改的是它自己的文件，外加在这里补一行。

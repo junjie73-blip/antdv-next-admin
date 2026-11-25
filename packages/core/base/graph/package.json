@@ -1,7 +1,7 @@
 {
   "name": "@antdv/graph",
   "version": "0.2.0",
-  "description": "图内核（纯 TS，无 vue / 无模板）：DAG 索引与拓扑、Tarjan 找环、结构体检，以及一套不 eval 的受限表达式求值器。工作流引擎与 AI 编排共用它的顶点/边语义",
+  "description": "图内核（纯 TS，无 vue / 无模板）：DAG 索引与拓扑、Tarjan 找环、结构体检，以及一套不 eval 的受限表达式求值器。AI 编排与低代码搭建共用它的顶点/边语义",
   "private": true,
   "type": "module",
   "scripts": {

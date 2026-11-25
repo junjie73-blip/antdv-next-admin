@@ -1,9 +1,9 @@
 import { del, get, post } from './request';
 
 /**
- * AI 开发接口层（对应 backend-mock 的 `server/api/ai/**`）。
+ * AI 配置接口层（对应 backend-mock 的 `server/api/ai/**`）。
  *
- * 四页（供应商 / 模型 / 知识库 / 编排）共用一份 SQLite 数据， CRUD 与统计都在后端完成；
+ * 五页（Agent / 供应商 / 模型 / 知识库 / 编排）各自独立存储，CRUD 与统计都在后端完成；
  * 前端只发请求与 reload，不在本地改数字或状态。
  *
  * 安全口径：供应商的 key 字段只有脱敏串（keyMasked）会回传到前端，
@@ -16,6 +16,19 @@ export type AiProviderStatus = 'disabled' | 'enabled';
 export type AiModelStatus = 'error' | 'offline' | 'online';
 export type AiKnowledgeStatus = 'disabled' | 'enabled';
 export type AiFlowStatus = 'draft' | 'published';
+export type AiAgentStatus = 'disabled' | 'draft' | 'running';
+
+/** Agent 自身配置：不含模型 / 供应商 / 知识库字段，那些由各自模块维护 */
+export interface AiAgent {
+  code: string;
+  description: string;
+  id: number;
+  name: string;
+  owner: string;
+  status: AiAgentStatus;
+  tags: string[];
+  updatedAt: string;
+}
 
 export interface AiProvider {
   code: string;
@@ -71,6 +84,9 @@ export interface AiFlow {
 
 /** 四页共用的总览统计（/ai/overview） */
 export interface AiOverview {
+  agentDraft: number;
+  agentRunning: number;
+  agentTotal: number;
   flowDraft: number;
   flowNodeCount: number;
   flowPublished: number;
@@ -99,6 +115,18 @@ type Params = Record<string, unknown>;
 
 export function getAiOverview() {
   return get<AiOverview>('/ai/overview');
+}
+
+/* ------------------------------ Agent ------------------------------ */
+
+export function getAiAgentList(params?: Params) {
+  return get<ListResult<AiAgent>>('/ai/agent/list', params);
+}
+export function saveAiAgent(data: Params) {
+  return post<AiAgent>('/ai/agent/save', data);
+}
+export function deleteAiAgent(id: number) {
+  return del<null>(`/ai/agent/${id}`);
 }
 
 /* ------------------------------ 模型供应商 ------------------------------ */

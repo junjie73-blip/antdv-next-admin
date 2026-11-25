@@ -28,7 +28,7 @@ import { createAiNodeRegistry } from './registry';
  * 1. **只解析表达式、不求值。** 条件里引用尚未产出的变量在运行期按 `undefined` 处理（宽松语义，
  *    设计如此）；若为了校验去 `evaluate('score > 0.8', {})`，草稿态的图会被成片误报成坏表达式。
  * 2. 不改图、不补 id、不"顺手修复"。校验器只报告，修复属于设计器。
- * 3. 不区分草稿与发布 —— 调用方按 `level` 自己决定拦不拦，与 workflow-ui 的 `WorkflowIssue` 同口径。
+ * 3. 不区分草稿与发布 —— 调用方按 `level` 自己决定拦不拦，与 lowcode 的 `LowcodeIssue` 同口径。
  */
 
 export interface ValidateAiFlowOptions {

@@ -16,6 +16,7 @@ import type { H3Event } from 'h3';
 
 import type { RouteManifestItem } from './store';
 
+import { randomUUID } from 'node:crypto';
 import { performance } from 'node:perf_hooks';
 
 import {
@@ -26,6 +27,9 @@ import {
   setResponseStatus,
 } from '#imports';
 
+import { resolveAccount } from './accounts';
+import { maskPolicySnapshot, recordAudit } from './db/security-advanced';
+import { sanitizePayload, stringifyPayload } from './security/masking';
 import { envelope } from './response';
 import { keyOf, methodOf, moduleOf, shouldInjectFailure } from './route-meta';
 import { pushLog, recordHit, registerManifest, resolveRuntime } from './store';
@@ -48,6 +52,10 @@ export interface MockRouteInput {
   path: string;
   /** 原始查询参数：同名多值是数组（login-log 的 dateRange 依赖该语义），与 legacy 一致不做拍平 */
   query: Record<string, string | string[] | undefined>;
+  /** 安全审计上下文：由 H3 事件解析，直接调用 handler 的单测可缺省 */
+  clientIp?: string;
+  traceId?: string;
+  userAgent?: string;
 }
 
 export type MockHandler = (
@@ -153,6 +161,52 @@ export async function executeWithRuntime(
   }
 }
 
+/** 审计台账的噪声端点：读审计自身会产生无限递归式的无意义记录 */
+const AUDIT_EXEMPT_PATHS = [
+  '/security/audit/list',
+  '/security/ai-calls/list',
+  '/mock/',
+];
+
+/**
+ * 统一审计落点：所有经 defineMockRoute 的请求都在这里生成一条
+ * actor / action / target / ip / result / traceId 记录。
+ * 请求体先过服务端脱敏策略，凭据字段无条件打码。
+ */
+function recordApiAudit(
+  route: { method: MockMethod; path: string },
+  context: MockRouteInput,
+  outcome: MockOutcome,
+): void {
+  const path = route.path;
+  if (AUDIT_EXEMPT_PATHS.some((item) => path.includes(item))) return;
+
+  const body = isEnvelopeLike(outcome.body)
+    ? (outcome.body as { code: number })
+    : null;
+  const code = body?.code ?? outcome.status ?? 200;
+  const failed = code >= 400 || (outcome.status ?? 200) >= 400;
+  const detailPayload =
+    route.method === 'GET'
+      ? { query: context.query, params: context.params }
+      : { body: context.body, query: context.query, params: context.params };
+  const detail = stringifyPayload(
+    sanitizePayload(detailPayload, maskPolicySnapshot()),
+  ).slice(0, 800);
+
+  recordAudit({
+    action: `${route.method} ${path}`,
+    actor: resolveAccount(context.headers).profile.username,
+    detail,
+    ip: context.clientIp ?? 'unknown',
+    method: route.method,
+    path,
+    result: failed ? 'error' : 'success',
+    risk: failed ? 'high' : /\/security|\/ai\/|\/auth\//.test(path) ? 'medium' : 'low',
+    traceId: context.traceId ?? 'unknown',
+  });
+}
+
 /**
  * 业务接口注册入口：模块加载即登记清单（配合 server/utils/registry.ts 的启动预注册，
  * 面板在任何请求发生前就能拿到全量列表），返回值直接作为 Nitro route file 的 default export。
@@ -191,8 +245,11 @@ export function defineMockRoute(definition: MockRouteDefinition) {
      */
     setResponseHeader(event, 'cache-control', 'no-store');
     setResponseHeader(event, 'vary', 'Authorization');
+    // 链路追踪号对客户端可见：前端报错时可直接带上它查审计
+    if (context.traceId) setResponseHeader(event, 'x-request-id', context.traceId);
     if (outcome.status !== undefined && outcome.status !== 200)
       setResponseStatus(event, outcome.status);
+    recordApiAudit({ ...route, method }, context, outcome);
     return outcome.body;
   });
 }
@@ -204,16 +261,23 @@ export async function toRouteInput(
 ): Promise<MockRouteInput> {
   const rawBody = await readBody(event).catch(() => null);
   const body = normalizeBody(rawBody);
+  const headers = normalizeValues(
+    event.node.req.headers as Record<string, string | string[] | undefined>,
+  );
+  const forwarded = headers['x-forwarded-for']?.split(',')[0]?.trim();
 
   return {
     body,
     data: body,
-    headers: normalizeValues(
-      event.node.req.headers as Record<string, string | string[] | undefined>,
-    ),
+    headers,
     params: normalizeValues(event.context.params ?? {}),
     path,
     query: getQuery(event) as Record<string, string | string[] | undefined>,
+    // 安全上下文：代理头优先，避免把负载均衡器地址当成真实来源
+    clientIp:
+      forwarded || headers['x-real-ip'] || event.node.req.socket?.remoteAddress,
+    traceId: headers['x-request-id'] || headers['x-trace-id'] || randomUUID(),
+    userAgent: headers['user-agent'],
   };
 }
 

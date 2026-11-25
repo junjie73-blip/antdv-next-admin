@@ -1,381 +1,180 @@
 <script setup lang="ts">
-import type { AiResourceItem, AiResourcesData } from '~/api/enterprise';
-
-import { computed, onMounted, onUnmounted, ref } from 'vue';
-
-import {
-  Card,
-  Descriptions,
-  DescriptionsItem,
-  PageHeader,
-  Segmented,
-  TabPane,
-  Tabs,
-  Tag,
+import type {
+  DataColumn,
+  DataFilter,
+  DataPageProps,
+  DataRow,
+  DataStat,
 } from '@antdv/common-ui';
-import { BasicDrawer, useDrawer } from '@antdv/popup-ui';
-import { Button, Input } from '@antdv/shadcn-ui';
-import { cn } from '@antdv/shared/utils/cn';
-import { Icon } from '@iconify/vue';
-import { getAiResources } from '~/api/enterprise';
-import { unwrapApi } from '~/utils/log-format';
+import type { FormSchema } from '@antdv/form-ui';
+import type { AiOverview } from '~/api/ai';
 
-import AsyncState from '../../system/components/AsyncState.vue';
-import ResourceCard from '../components/ResourceCard.vue';
+import { computed, onMounted, ref } from 'vue';
 
-/**
- * AI 资源中心（对应参考实现「Ai开发」分组的 Agent / 模型列表 / 知识库 / 模型供应商）。
- *
- * 四个 Tab 共用一次接口取数：卡片墙、状态与关键字筛选、指标行、详情抽屉，
- * 展示口径与参考实现一致；数据来自 backend-mock，不再散落在各页的 data.ts 里。
- */
+import { DataPage } from '@antdv/common-ui';
+import { message } from '@antdv/popup-ui';
+import {
+  deleteAiAgent,
+  getAiAgentList,
+  getAiOverview,
+  saveAiAgent,
+} from '~/api/ai';
+
 defineOptions({ name: 'EnterpriseAiResources' });
 
+const overview = ref<AiOverview | null>(null);
+
 const STATUS_LABELS: Record<string, string> = {
-  disabled: '已停用',
+  disabled: '停用',
   draft: '草稿',
   running: '运行中',
 };
-const STATUS_TONES: Record<
-  string,
-  'error' | 'info' | 'neutral' | 'success' | 'warning'
-> = {
-  disabled: 'neutral',
-  draft: 'warning',
-  running: 'success',
-};
-const STATUS_OPTIONS = ['全部状态', '运行中', '草稿', '已停用'];
-const STATUS_VALUE: Record<string, string> = {
-  全部状态: '',
-  运行中: 'running',
-  草稿: 'draft',
-  已停用: 'disabled',
+const STATUS_COLORS: Record<string, string> = {
+  disabled: 'default',
+  draft: 'amber',
+  running: 'green',
 };
 
-const containerClassName = cn('space-y-4');
-const cardClassName = cn('shadow-sm');
-const filterClassName = cn('flex flex-wrap items-center gap-3');
-const gridClassName = cn(
-  'grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4',
-);
-const metaClassName = cn('text-muted-foreground truncate text-xs');
-const hintClassName = cn('text-muted-foreground text-xs');
-const tableClassName = cn('w-full border-collapse text-sm');
-const headCellClassName = cn(
-  'border-border text-muted-foreground border-b py-2 text-left font-medium',
-);
-const bodyCellClassName = cn('border-border text-foreground border-b py-2');
+const columns = computed<DataColumn[]>(() => [
+  { key: 'code', title: '编号', width: '100px' },
+  { key: 'name', title: 'Agent 名称', width: '160px' },
+  { key: 'owner', title: '负责人', width: '120px' },
+  { key: 'tags', title: '标签', width: '160px' },
+  { key: 'status', title: '状态', width: '100px' },
+  { key: 'description', title: '职责描述', width: '260px' },
+  { key: 'updatedAt', title: '更新时间', width: '160px' },
+]);
 
-const activeTab = ref('agents');
-const keyword = ref('');
-const statusTab = ref('全部状态');
-const data = ref<AiResourcesData | null>(null);
-const loading = ref(false);
-const error = ref('');
-const viewing = ref<AiResourceItem | null>(null);
-const [drawerRegister, drawerMethods] = useDrawer();
+const filters = computed<DataFilter[]>(() => [
+  {
+    key: 'status',
+    label: '运行状态',
+    options: [
+      { label: '运行中', value: 'running' },
+      { label: '草稿', value: 'draft' },
+      { label: '停用', value: 'disabled' },
+    ],
+  },
+]);
 
-let searchTimer: ReturnType<typeof setTimeout> | undefined;
+const statsCards = computed<DataStat[]>(() => [
+  {
+    icon: 'carbon:machine-learning',
+    label: 'Agent 总数',
+    tone: 'blue',
+    value: String(overview.value?.agentTotal ?? 0),
+  },
+  {
+    icon: 'carbon:activity',
+    label: '运行中',
+    tone: 'green',
+    value: String(overview.value?.agentRunning ?? 0),
+  },
+  {
+    icon: 'carbon:edit',
+    label: '草稿',
+    tone: 'amber',
+    value: String(overview.value?.agentDraft ?? 0),
+  },
+]);
 
-const resources = computed<AiResourceItem[]>(() => {
-  if (!data.value) return [];
-  if (activeTab.value === 'models') return data.value.models;
-  if (activeTab.value === 'knowledge') return data.value.knowledgeBases;
-  if (activeTab.value === 'providers') return [];
-  return data.value.agents;
-});
-const runningCount = computed(
-  () => resources.value.filter((item) => item.status === 'running').length,
-);
+const createSchemas = computed<FormSchema[]>(() => [
+  { component: 'Input', field: 'name', label: 'Agent 名称', required: true },
+  { component: 'Input', field: 'owner', label: '负责人', required: true },
+  {
+    component: 'InputTextArea',
+    field: 'description',
+    label: '职责描述',
+    componentProps: { rows: 3 },
+  },
+  {
+    component: 'Input',
+    field: 'tags',
+    label: '标签',
+    componentProps: { placeholder: '多个标签用逗号分隔' },
+  },
+  {
+    component: 'Select',
+    componentProps: {
+      options: [
+        { label: '运行中', value: 'running' },
+        { label: '草稿', value: 'draft' },
+        { label: '停用', value: 'disabled' },
+      ],
+    },
+    field: 'status',
+    label: '状态',
+  },
+]);
 
-async function load() {
-  loading.value = true;
-  error.value = '';
+async function listApi(params: Record<string, any>) {
+  const result = await getAiAgentList(params);
+  return { list: result.list, total: result.total };
+}
+
+function handleError(error: unknown): void {
+  message.error(error instanceof Error ? error.message : '操作失败');
+}
+
+async function loadOverview() {
   try {
-    const res = await getAiResources({
-      keyword: keyword.value,
-      status: STATUS_VALUE[statusTab.value],
-    });
-    data.value = unwrapApi<AiResourcesData | null>(res) ?? null;
+    overview.value = await getAiOverview();
   } catch (error) {
-    error.value =
-      error instanceof Error ? error.message : 'AI 资源接口暂不可用';
-  } finally {
-    loading.value = false;
+    handleError(error);
   }
 }
 
-onMounted(load);
-onUnmounted(() => {
-  if (searchTimer) clearTimeout(searchTimer);
-});
-
-function onKeywordChange() {
-  if (searchTimer) clearTimeout(searchTimer);
-  searchTimer = setTimeout(load, 350);
+async function onSubmit(
+  values: Record<string, any>,
+  editingKey: null | string,
+) {
+  try {
+    await saveAiAgent(editingKey ? { ...values, id: Number(editingKey) } : values);
+    message.success(editingKey ? '保存成功' : '新建成功');
+    await loadOverview();
+    return true;
+  } catch (error) {
+    handleError(error);
+    return false;
+  }
 }
 
-function clearFilters() {
-  keyword.value = '';
-  statusTab.value = '全部状态';
-  load();
+async function onRemove(row: DataRow) {
+  try {
+    await deleteAiAgent(Number(row.id));
+    message.success('删除成功');
+    await loadOverview();
+    return true;
+  } catch (error) {
+    handleError(error);
+    return false;
+  }
 }
 
-function openDetail(item: AiResourceItem) {
-  viewing.value = item;
-  drawerMethods.openDrawer();
-}
+const config = computed<DataPageProps>(() => ({
+  actionWidth: 180,
+  api: listApi,
+  columns: columns.value,
+  createLabel: '新建 Agent',
+  createSchemas: createSchemas.value,
+  description:
+    '只维护 Agent 自身的身份、职责、负责人与状态；模型、供应商与知识库请到 AI 配置的对应模块维护。',
+  filters: filters.value,
+  icon: 'carbon:machine-learning',
+  onSubmit,
+  onRemove,
+  primaryKey: 'id',
+  showDelete: true,
+  stats: statsCards.value,
+  statusColors: STATUS_COLORS,
+  statusLabels: STATUS_LABELS,
+  statusKey: 'status',
+  title: 'Agent 配置',
+}));
 
-/** 供应商表格的操作列：详情走独立抽屉（供应商是只读快照，无新增/编辑接口） */
-type AiProvider = AiResourcesData['providers'][number];
-const viewingProvider = ref<AiProvider | null>(null);
-const [providerDrawerRegister, providerDrawerMethods] = useDrawer();
-function openProviderDetail(provider: AiProvider) {
-  viewingProvider.value = provider;
-  providerDrawerMethods.openDrawer();
-}
+onMounted(loadOverview);
 </script>
 
 <template>
-  <div data-page-view :class="containerClassName">
-    <PageHeader
-      title="AI 资源中心"
-      description="Agent、模型、知识库与模型供应商的统一台账，支持状态筛选与详情查看"
-      icon="carbon:machine-learning"
-    >
-      <template #extra>
-        <Button variant="outline" size="sm" :disabled="loading" @click="load">
-          <Icon icon="carbon:renew" />
-          刷新
-        </Button>
-      </template>
-    </PageHeader>
-
-    <Card :class="cardClassName">
-      <div :class="filterClassName">
-        <Input
-          v-model="keyword"
-          class="max-w-72"
-          placeholder="搜索名称、标签、描述或创建人"
-          @update:model-value="onKeywordChange"
-        />
-        <Segmented
-          v-model:value="statusTab"
-          :options="STATUS_OPTIONS"
-          size="small"
-          @update:value="load"
-        />
-        <Tag color="blue">{{ resources.length }} 项</Tag>
-        <span :class="hintClassName">{{ runningCount }} 项运行中</span>
-      </div>
-    </Card>
-
-    <Tabs v-model:active-key="activeTab">
-      <TabPane value="agents" tab="Agent">
-        <AsyncState
-          :loading="loading"
-          :error="error"
-          :empty="!loading && resources.length === 0"
-          empty-text="没有符合条件的 Agent"
-          @retry="load"
-        >
-          <template #empty>
-            <Icon icon="carbon:cube" class="size-8 text-muted-foreground" />
-            <p :class="hintClassName">没有符合条件的 Agent</p>
-            <Button variant="outline" size="sm" @click="clearFilters">
-              清除筛选
-            </Button>
-          </template>
-
-          <div :class="gridClassName">
-            <ResourceCard
-              v-for="item in resources"
-              :key="item.id"
-              :title="item.name"
-              :eyebrow="`${item.id} · ${item.owner}`"
-              :description="item.description"
-              :icon="item.icon"
-              :tags="item.tags"
-              :status-label="STATUS_LABELS[item.status]"
-              :status-tone="STATUS_TONES[item.status]"
-              :metrics="item.metrics"
-            >
-              <template #meta>
-                <span :class="metaClassName" :title="item.updatedAt">更新于 {{ item.updatedAt }}</span>
-              </template>
-              <template #actions>
-                <Button variant="link" size="sm" @click="openDetail(item)">
-                  查看详情
-                </Button>
-              </template>
-            </ResourceCard>
-          </div>
-        </AsyncState>
-      </TabPane>
-
-      <TabPane value="models" tab="模型列表">
-        <AsyncState
-          :loading="loading"
-          :error="error"
-          :empty="!loading && resources.length === 0"
-          @retry="load"
-        >
-          <div :class="gridClassName">
-            <ResourceCard
-              v-for="item in resources"
-              :key="item.id"
-              :title="item.name"
-              :eyebrow="item.owner"
-              :description="item.description"
-              :icon="item.icon"
-              :tags="item.tags"
-              :status-label="STATUS_LABELS[item.status]"
-              :status-tone="STATUS_TONES[item.status]"
-              :metrics="item.metrics"
-            >
-              <template #meta>
-                <span :class="metaClassName">更新于 {{ item.updatedAt }}</span>
-              </template>
-              <template #actions>
-                <Button variant="link" size="sm" @click="openDetail(item)">
-                  查看详情
-                </Button>
-              </template>
-            </ResourceCard>
-          </div>
-        </AsyncState>
-      </TabPane>
-
-      <TabPane value="knowledge" tab="知识库">
-        <AsyncState
-          :loading="loading"
-          :error="error"
-          :empty="!loading && resources.length === 0"
-          @retry="load"
-        >
-          <div :class="gridClassName">
-            <ResourceCard
-              v-for="item in resources"
-              :key="item.id"
-              :title="item.name"
-              :eyebrow="item.owner"
-              :description="item.description"
-              :icon="item.icon"
-              :tags="item.tags"
-              :status-label="STATUS_LABELS[item.status]"
-              :status-tone="STATUS_TONES[item.status]"
-              :metrics="item.metrics"
-            >
-              <template #meta>
-                <span :class="metaClassName">更新于 {{ item.updatedAt }}</span>
-              </template>
-              <template #actions>
-                <Button variant="link" size="sm" @click="openDetail(item)">
-                  查看详情
-                </Button>
-              </template>
-            </ResourceCard>
-          </div>
-        </AsyncState>
-      </TabPane>
-
-      <TabPane value="providers" tab="模型供应商">
-        <Card :class="cardClassName">
-          <div class="overflow-x-auto">
-            <table :class="tableClassName">
-              <thead>
-                <tr>
-                  <th :class="headCellClassName">供应商名称</th>
-                  <th :class="headCellClassName">调用协议</th>
-                  <th :class="headCellClassName">描述</th>
-                  <th :class="headCellClassName">创建时间</th>
-                  <th :class="headCellClassName">操作</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr
-                  v-for="provider in data?.providers ?? []"
-                  :key="provider.id"
-                >
-                  <td :class="bodyCellClassName">{{ provider.name }}</td>
-                  <td :class="bodyCellClassName">
-                    <Tag color="blue">{{ provider.protocol }}</Tag>
-                  </td>
-                  <td :class="bodyCellClassName">{{ provider.description }}</td>
-                  <td :class="bodyCellClassName">{{ provider.createdAt }}</td>
-                  <td :class="bodyCellClassName">
-                    <Button
-                      variant="link"
-                      class="h-auto px-0.5!"
-                      @click="openProviderDetail(provider)"
-                    >
-                      <Icon icon="ant-design:eye-outlined" /> 详情
-                    </Button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </Card>
-      </TabPane>
-    </Tabs>
-
-    <BasicDrawer
-      title="资源详情"
-      :width="600"
-      :show-footer="false"
-      @register="drawerRegister"
-    >
-      <template v-if="viewing">
-        <Descriptions :column="2" bordered size="middle">
-          <DescriptionsItem label="名称">{{ viewing.name }}</DescriptionsItem>
-          <DescriptionsItem label="编号">{{ viewing.id }}</DescriptionsItem>
-          <DescriptionsItem label="负责人">
-            {{ viewing.owner }}
-          </DescriptionsItem>
-          <DescriptionsItem label="状态">
-            {{ STATUS_LABELS[viewing.status] }}
-          </DescriptionsItem>
-          <DescriptionsItem label="标签" :span="2">
-            {{ viewing.tags.join('、') || '-' }}
-          </DescriptionsItem>
-          <DescriptionsItem label="描述" :span="2">
-            {{ viewing.description }}
-          </DescriptionsItem>
-          <DescriptionsItem label="更新时间" :span="2">
-            {{ viewing.updatedAt }}
-          </DescriptionsItem>
-        </Descriptions>
-      </template>
-      <p v-else :class="hintClassName">暂无资源详情</p>
-    </BasicDrawer>
-
-    <!-- 供应商详情抽屉：与资源详情一致，详情不跳出当前页 -->
-    <BasicDrawer
-      title="供应商详情"
-      :width="480"
-      :show-footer="false"
-      @register="providerDrawerRegister"
-    >
-      <Descriptions v-if="viewingProvider" :column="1" bordered size="middle">
-        <DescriptionsItem label="供应商名称">
-          {{ viewingProvider.name }}
-        </DescriptionsItem>
-        <DescriptionsItem label="编号">
-{{
-          viewingProvider.id
-        }}
-</DescriptionsItem>
-        <DescriptionsItem label="调用协议">
-          {{ viewingProvider.protocol }}
-        </DescriptionsItem>
-        <DescriptionsItem label="描述">
-          {{ viewingProvider.description }}
-        </DescriptionsItem>
-        <DescriptionsItem label="创建时间">
-          {{ viewingProvider.createdAt }}
-        </DescriptionsItem>
-      </Descriptions>
-    </BasicDrawer>
-  </div>
+  <DataPage v-bind="config" />
 </template>

@@ -68,6 +68,8 @@ export const DEFAULT_PREFERENCES = {
   /* ---------- 通用 ---------- */
   componentSize: 'medium',
   timezone: 'Asia/Shanghai',
+  timeFormat: 'YYYY-MM-DD HH:mm:ss',
+  customTimeFormat: 'YYYY-MM-DD HH:mm:ss',
   enableWatermark: false,
   watermarkContent: 'Admin',
   /* 通知默认右下角；轻提示不吃这个值，它固定在屏幕居中 */

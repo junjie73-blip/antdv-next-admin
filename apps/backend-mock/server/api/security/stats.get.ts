@@ -3,6 +3,7 @@
  * 原先每次请求即时取随机数，现在所有数值都来自持久化的事件记录。
  */
 
+import { SECURITY_AI_CALLS } from '../../utils/db/security-advanced';
 import { SECURITY_EVENTS } from '../../utils/db/security';
 import { countByDay, lastNDays } from '../../utils/derive';
 import { envelope } from '../../utils/response';
@@ -71,9 +72,19 @@ export default defineMockRoute({
       avgMs: 50 + daily[i]! * 20,
     }));
 
+    // AI 场景威胁：直接来自 AI 调用审计的分类，不造数
+    const aiCategoryCount = new Map<string, number>();
+    for (const call of SECURITY_AI_CALLS) {
+      for (const category of call.categories)
+        aiCategoryCount.set(category, (aiCategoryCount.get(category) ?? 0) + 1);
+    }
+    const aiThreats = [...aiCategoryCount.entries()]
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value);
+
     return envelope(
       200,
-      { threatDistribution, attackSources, dailyEvents, responseTime },
+      { threatDistribution, attackSources, dailyEvents, responseTime, aiThreats },
       'ok',
     );
   },

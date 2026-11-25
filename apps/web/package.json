@@ -14,6 +14,7 @@
     "type-check": "vue-tsc --noEmit -p tsconfig.app.json && vue-tsc --noEmit -p tsconfig.vitest.json"
   },
   "dependencies": {
+    "@antdv/ai-tools": "workspace:*",
     "@antdv/common-ui": "workspace:*",
     "@antdv/design": "workspace:*",
     "@antdv/directives": "workspace:*",
@@ -98,6 +99,7 @@
     "vue-demi": "catalog:",
     "vue-draggable-plus": "catalog:",
     "vue-i18n": "catalog:",
+    "vue-llm": "catalog:",
     "vue-pdf-embed": "catalog:",
     "vue-router": "catalog:",
     "vue-virtual-scroller": "catalog:"

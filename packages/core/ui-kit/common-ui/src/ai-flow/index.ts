@@ -1,7 +1,7 @@
 /**
  * `@antdv/common-ui/ai-flow` —— AI 工作流编排：模型/工具/分支节点的运行器 + Provider 与工具注册表 + 画布与运行面板。
  *
- * 分层与依赖口径（与同批的 `@antdv/common-ui/workflow`、`@antdv/common-ui/lowcode` 同一套骨架）：
+ * 分层与依赖口径（与 `@antdv/common-ui/lowcode` 同一套骨架）：
  * - `core/*` 是纯 TypeScript 运行时，**不认识 vue、也不认识 shadcn-ui**，可以被 Node 侧
  *   （保存前体检、批处理跑图、离线回放脚本）直接复用；`core/types.ts` 是本包类型的唯一出处，
  *   `core/runner.ts` 里不许出现 `node.type === 'llm'` 这类语义分支 —— 节点语义全在 `core/registry.ts` 的条目里；

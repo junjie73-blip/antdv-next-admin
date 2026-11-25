@@ -27,7 +27,7 @@ import { Popconfirm } from '../popconfirm';
 import { Tag } from '../tag';
 
 /**
- * 数据工作台：把「项目管理 / 模板中心 / AI 开发 / 审批流」这一批列表页
+ * 数据工作台：把「模板中心 / AI 配置 / 审批流」这一批列表页
  * 收敛成同一套骨架。表格及交互全部走 BasicTable 生态，与 system/user 列表
  * 的实现方式保持一致：
  *
@@ -52,7 +52,9 @@ const props = withDefaults(defineProps<DataPageProps>(), {
   onRemove: undefined,
   onRemoveSelected: undefined,
   primaryKey: 'id',
+  readonly: false,
   rows: () => [],
+  showCreate: true,
   showDelete: true,
   stats: () => [],
   statusColors: () => ({}),
@@ -309,7 +311,7 @@ defineExpose({
   <div class="space-y-4" data-page-view>
     <PageHeader :description="description" :icon="icon" :title="title">
       <template #extra>
-        <Button @click="openCreate">
+        <Button v-if="showCreate && !readonly" @click="openCreate">
           <Icon icon="carbon:add" /> {{ createLabel }}
         </Button>
       </template>
@@ -359,7 +361,7 @@ defineExpose({
           showSizeChanger: true,
         }"
         :row-key="primaryKey"
-        :row-selection="{
+        :row-selection="readonly ? undefined : {
           type: 'checkbox',
           onChange: handleSelectionChange,
         }"
@@ -378,6 +380,8 @@ defineExpose({
             <Icon icon="carbon:trash-can" /> 批量删除
           </Button>
           <span class="text-xs text-muted-foreground">已选 {{ selectedCount }} 项</span>
+          <!-- 宿主补充的工具栏动作（例如模型列表里就地配置供应商） -->
+          <slot name="toolbar-extra"></slot>
         </template>
 
         <!-- 状态列（statusKey 由页面侧声明，动态插槽名） -->
@@ -412,15 +416,17 @@ defineExpose({
             >
               <Icon icon="ant-design:eye-outlined" /> 详情
             </Button>
-            <Divider type="vertical" :class="dividerClassName" />
-            <Button
-              variant="link"
-              :class="btnClassName"
-              @click="openEdit(record)"
-            >
-              <Icon icon="ant-design:edit-outlined" /> 编辑
-            </Button>
-            <template v-if="showDelete">
+            <template v-if="!readonly">
+              <Divider type="vertical" :class="dividerClassName" />
+              <Button
+                variant="link"
+                :class="btnClassName"
+                @click="openEdit(record)"
+              >
+                <Icon icon="ant-design:edit-outlined" /> 编辑
+              </Button>
+            </template>
+            <template v-if="showDelete && !readonly">
               <Divider type="vertical" :class="dividerClassName" />
               <Popconfirm
                 title="确定删除该记录吗？"

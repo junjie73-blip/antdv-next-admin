@@ -42,7 +42,7 @@ describe('statusTag', () => {
   it('type 属性透传不改变渲染（迁移前即为未使用的保留 prop）', () => {
     const a = mount(StatusTag, { props: { status: '1' } }).text();
     const b = mount(StatusTag, {
-      props: { status: '1', type: 'workflow' },
+      props: { status: '1', type: 'task' },
     }).text();
     expect(a).toBe(b);
   });

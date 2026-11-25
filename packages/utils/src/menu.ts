@@ -65,6 +65,30 @@ export function visibleMenuTree(list?: MenuConfig[]): MenuConfig[] {
 }
 
 /**
+ * 按 name 摘掉导航节点，返回新树；原树不动。
+ *
+ * 与 `hidden` 的区别：`hidden` 是落库的菜单管理配置，这里只是运行期的一次性
+ * 降级（例如接口报错时收起次要入口）。授权集合由调用方拿**原树**单独收集，
+ * 所以摘掉的节点仍然可以直接输地址进入，只是导航里不再出现。
+ */
+export function withoutMenuNames(
+  list: MenuConfig[],
+  names: readonly string[],
+): MenuConfig[] {
+  if (!names.length) return list;
+  const denied = new Set(names);
+  const walk = (nodes: MenuConfig[]): MenuConfig[] =>
+    nodes
+      .filter((menu) => menu && !denied.has(menu.name ?? ''))
+      .map((menu) =>
+        menu.children?.length
+          ? { ...menu, children: walk(menu.children) }
+          : menu,
+      );
+  return walk(list);
+}
+
+/**
  * 框架级菜单/路由 name —— 不来自业务菜单，也不该被导航裁剪动到。
  *
  * 存在这份名单的原因很具体：`apps/web/src/router/index.ts` 在启动时就把 views 下

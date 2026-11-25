@@ -7,18 +7,23 @@ import type {
   DataStat,
 } from '@antdv/common-ui';
 import type { FormSchema } from '@antdv/form-ui';
-import type { AiOverview } from '~/api/ai';
+import type { AiOverview, AiProvider } from '~/api/ai';
 
 import { computed, onMounted, ref } from 'vue';
 
-import { DataPage } from '@antdv/common-ui';
-import { message } from '@antdv/popup-ui';
+import { DataPage, Popconfirm } from '@antdv/common-ui';
+import { BasicForm, useForm } from '@antdv/form-ui';
+import { BasicModal, message, useModal } from '@antdv/popup-ui';
+import { Button, NativeSelect } from '@antdv/shadcn-ui';
+import { Icon } from '@iconify/vue';
 import {
   deleteAiModel,
+  deleteAiProvider,
   getAiModelList,
   getAiOverview,
   getAiProviderList,
   saveAiModel,
+  saveAiProvider,
 } from '~/api/ai';
 
 defineOptions({ name: 'AiModelList' });
@@ -26,6 +31,12 @@ defineOptions({ name: 'AiModelList' });
 const overview = ref<AiOverview | null>(null);
 /** 供应商下拉选项：从 /ai/provider/list 拉取，模型只能挂到真实存在的供应商上 */
 const providerOptions = ref<Array<{ label: string; value: number }>>([]);
+/** 完整供应商记录：供「配置供应商」弹窗回填，避免二次请求 */
+const providers = ref<AiProvider[]>([]);
+const providerSelectId = ref(0);
+
+const [providerModalRegister, providerModalMethods] = useModal();
+const [providerFormRegister, providerFormMethods] = useForm();
 
 const STATUS_LABELS: Record<string, string> = {
   error: '异常',
@@ -143,6 +154,49 @@ const createSchemas = computed<FormSchema[]>(() => [
   },
 ]);
 
+/** 供应商就地配置表单：字段与 /ai/provider/save 的白名单一一对应 */
+const providerSchemas: FormSchema[] = [
+  { component: 'Input', field: 'name', label: '供应商名称', required: true },
+  { component: 'Input', field: 'code', label: '供应商编码', required: true },
+  {
+    component: 'Select',
+    componentProps: {
+      options: [
+        { label: 'OpenAI 兼容', value: 'openai-compatible' },
+        { label: 'DashScope', value: 'dashscope' },
+        { label: 'HTTP', value: 'http' },
+      ],
+    },
+    field: 'protocol',
+    label: '调用协议',
+    required: true,
+  },
+  {
+    component: 'Input',
+    field: 'endpoint',
+    label: '接口地址',
+    required: true,
+    componentProps: { placeholder: 'https://api.example.com/v1' },
+  },
+  {
+    component: 'Input',
+    field: 'key',
+    label: 'API Key',
+    componentProps: { placeholder: '写入后服务端立即脱敏，仅回传掩码' },
+  },
+  {
+    component: 'Select',
+    componentProps: {
+      options: [
+        { label: '启用', value: 'enabled' },
+        { label: '停用', value: 'disabled' },
+      ],
+    },
+    field: 'status',
+    label: '状态',
+  },
+];
+
 async function listApi(params: Record<string, any>) {
   const result = await getAiModelList(params);
   return {
@@ -169,10 +223,65 @@ async function loadOverview() {
 async function loadProviders() {
   try {
     const result = await getAiProviderList({ pageNum: 1, pageSize: 200 });
+    providers.value = result.list;
     providerOptions.value = result.list.map((item) => ({
       label: item.name,
       value: item.id,
     }));
+  } catch (error) {
+    handleError(error);
+  }
+}
+
+/** 模型页就地配置供应商：新建或编辑当前选中的供应商 */
+function onProviderSelect(value: unknown) {
+  const id = Number(value) || 0;
+  providerSelectId.value = id;
+  const provider = providers.value.find((item) => item.id === id);
+  providerFormMethods.setFieldsValue({
+    name: provider?.name ?? '',
+    code: provider?.code ?? '',
+    protocol: provider?.protocol ?? 'openai-compatible',
+    endpoint: provider?.endpoint ?? '',
+    key: provider?.keyMasked ?? '',
+    status: provider?.status ?? 'enabled',
+  });
+  providerFormMethods.clearValidate();
+}
+
+function openProviderConfig() {
+  providerSelectId.value = 0;
+  onProviderSelect(0);
+  providerModalMethods.openModal();
+}
+
+async function onProviderSubmit() {
+  const values = await providerFormMethods.validate();
+  if (!values) return;
+  try {
+    await saveAiProvider(
+      providerSelectId.value
+        ? { ...values, id: providerSelectId.value }
+        : values,
+    );
+    message.success(providerSelectId.value ? '供应商已更新' : '供应商已创建');
+    await loadProviders();
+    providerModalMethods.closeModal();
+  } catch (error) {
+    handleError(error);
+  }
+}
+
+async function onProviderRemove() {
+  if (!providerSelectId.value) {
+    message.warning('请先选择要删除的供应商');
+    return;
+  }
+  try {
+    await deleteAiProvider(providerSelectId.value);
+    message.success('供应商已删除');
+    await loadProviders();
+    onProviderSelect(0);
   } catch (error) {
     handleError(error);
   }
@@ -235,5 +344,58 @@ onMounted(() => {
 </script>
 
 <template>
-  <DataPage v-bind="config" />
+  <DataPage v-bind="config">
+    <template #toolbar-extra>
+      <Button size="sm" variant="outline" @click="openProviderConfig">
+        <Icon icon="carbon:api" />
+        配置供应商
+      </Button>
+    </template>
+  </DataPage>
+
+  <BasicModal
+    title="配置模型供应商"
+    :width="680"
+    @register="providerModalRegister"
+    @ok="onProviderSubmit"
+  >
+    <div class="mb-4 flex items-center gap-3">
+      <span class="text-sm font-medium">配置对象</span>
+      <NativeSelect
+        :model-value="providerSelectId"
+        class="w-56"
+        @update:model-value="onProviderSelect"
+      >
+        <option :value="0">＋ 新增供应商</option>
+        <option v-for="item in providers" :key="item.id" :value="item.id">
+          {{ item.name }}
+        </option>
+      </NativeSelect>
+      <span class="text-xs text-muted-foreground">
+        {{ providerSelectId ? '编辑已有供应商' : '将创建新供应商' }}
+      </span>
+    </div>
+    <BasicForm
+      :schemas="providerSchemas"
+      :label-width="90"
+      :show-action-button-group="false"
+      :grid="{ cols: 2, gutter: 16 }"
+      @register="providerFormRegister"
+    />
+    <template #appendFooter>
+      <Popconfirm
+        title="删除后关联模型将无法调用该供应商，确定删除吗？"
+        danger
+        @confirm="onProviderRemove"
+      >
+        <Button
+          variant="destructive"
+          :disabled="!providerSelectId"
+          type="button"
+        >
+          删除当前供应商
+        </Button>
+      </Popconfirm>
+    </template>
+  </BasicModal>
 </template>

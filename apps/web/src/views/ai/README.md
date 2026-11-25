@@ -1,4 +1,4 @@
-# AI 开发菜单：接线现状与扩展点说明
+# AI 配置菜单：接线现状与扩展点说明
 
 > 对齐 `AI集成度现状评估与缺口分析.md`（"引擎完备，接线为零"）。本目录说明**本仓库真实落地了什么**、**哪些仍需要外部依赖**，以及每个缺口该"接哪里、改哪个文件"。诚实口径：这里**没有**引入任何真实大模型 SDK、向量库或第三方服务，也没有联网。所谓"真实功能化"是指把 demo 页改成**真实配置管理 + SQLite 持久化 + 可替换的接入扩展点**。
 
@@ -11,10 +11,11 @@
 | 知识库配置管理 | 文档数/分片数/向量数/可见范围/启停的元数据 CRUD | `server/api/ai/knowledge/**`、本目录 `knowledge/index.vue` |
 | 编排应用元数据 | 流程定义（名称/节点数/版本/草稿→发布）CRUD，不碰引擎内核 | `server/api/ai/flow/**` |
 | 总览统计 | 四页共用 `/ai/overview`，stats 不再硬编码 | `server/api/ai/overview.get.ts` |
-| Chat 接线点 | 可选 `modelId` 入参；回复末尾带"当前选用模型/知识库"来源标注；`{ content }` 契约不变 | `server/api/ai/chat.post.ts`、`apps/web/src/api/ai-chat.ts`、本目录 `chat/index.vue` |
+| Agent 配置管理 | Agent 自身字段（名称 / 职责 / 负责人 / 状态 / 标签）独立 CRUD，不混入模型与知识库数据 | `server/api/ai/agent/**`、`../enterprise/ai/index.vue` |
+| Chat 接线点 | 全局右下角 AI 助手，可选 `modelId` 入参；回复末尾带"当前选用模型/知识库"来源标注；`{ content }` 契约不变 | `server/api/ai/chat.post.ts`、`apps/web/src/api/ai-chat.ts`、`apps/web/src/components/ai-assistant/index.vue` |
 | 引擎接线文档 | 编排页已注明 `configureAiFlow()` / `createFetchAiProvider()` 两个接线点，未改动引擎源码 | `../enterprise/ai-flow/index.vue` |
 
-数据层用 `defineCollection<T>` + 固定表名（`tb_ai_provider` / `tb_ai_model` / `tb_ai_knowledge` / `tb_ai_flow`），零随机种子，重启仍在。列表统一 `paginateList` 服务端切页，响应恒 HTTP 200、成败看 `code`。
+数据层用 `defineCollection<T>` + 固定表名（`tb_ai_agent` / `tb_ai_provider` / `tb_ai_model` / `tb_ai_knowledge` / `tb_ai_flow`），零随机种子，重启仍在。模型列表页的「配置供应商」可直接新建 / 编辑 / 删除供应商，保存后下拉选项即时刷新。列表统一 `paginateList` 服务端切页，响应恒 HTTP 200、成败看 `code`。
 
 ## 二、未落地（需要外部依赖，仓库当前不具备）
 
@@ -40,7 +41,7 @@
    - `chat.post.ts` 的 `resolveSourceNotes()` 从"读配置元数据"替换为"调用检索适配器"，把命中片段拼进 prompt 与来源标注。
 
 3. **接企业管控（阶段三）**
-   - `db/ai.ts` 四集合增加 `tenantId`，各 list handler 加租户过滤；`keyStatus` 已预留轮换状态流转。
+   - `db/ai.ts` 五集合增加 `tenantId`，各 list handler 加租户过滤；`keyStatus` 已预留轮换状态流转。
    - `overview.get.ts` 扩展成本/配额指标；审计表单独建表，不复用业务表。
 
 ## 四、安全口径

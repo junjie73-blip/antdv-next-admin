@@ -32,6 +32,14 @@ export interface RequestRuntime {
    * `forceLogout` 会调它，然后再做 hash 导航回登录页。
    */
   onLogout: () => Promise<void> | void;
+  /**
+   * 接口报错的统一上报出口。
+   *
+   * 请求包不依赖 pinia，错误状态由应用注入的回调落到自己的 store 里
+   * （见 `@antdv/stores` 的 `useApiHealthStore`）。业务码失败、HTTP 错误、
+   * 网络异常与会话失效都会经过这里。
+   */
+  onError?: (error: Error & { code?: number }) => void;
   /** 默认超时（毫秒），缺省 30 秒 */
   timeout?: number;
 }

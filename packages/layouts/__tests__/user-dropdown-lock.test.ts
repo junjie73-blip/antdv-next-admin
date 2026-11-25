@@ -85,10 +85,11 @@ function mountLockHarness() {
   return mountWith(() => {
     const state = useLockScreen();
     return () =>
-      h('div', [
+      h('div', { 'data-artwork': state.artworkUrl.value, 'data-testid': 'lock-harness' }, [
         h('button', { 'data-testid': 'harness-lock', onClick: state.lock }),
         state.locked.value
           ? h(LockScreen, {
+              artworkUrl: state.artworkUrl.value,
               errorMessageKey: state.errorMessageKey.value,
               mode: state.mode.value,
               onSubmitPassword: (payload: {
@@ -214,6 +215,48 @@ describe('锁屏密码 —— 校验与边界', () => {
     expect(inBody('lock-password-confirm')).not.toBeNull();
   });
 
+  it('两个密码框都关闭自动填充，不让管理器填出两个不同的密码', async () => {
+    mountLockHarness();
+    inBody('harness-lock')?.click();
+    await flushPromises();
+
+    const password = inBody('lock-password-input') as HTMLInputElement;
+    const confirm = inBody('lock-password-confirm') as HTMLInputElement;
+    // 一个 current-password + 一个 new-password 会让浏览器分别填「旧密码」
+    // 与「生成的新密码」：看着都有圆点，值却不同，提交必报 mismatch。
+    expect(password.autocomplete).toBe('off');
+    expect(confirm.autocomplete).toBe('off');
+  });
+
+  it('两个框都能经真实按键输入，两次一致即可设置成功', async () => {
+    mountLockHarness();
+    inBody('harness-lock')?.click();
+    await flushPromises();
+
+    /** 每个字符先过 keydown（捕获阶段不得吞掉），再写值触发 v-model */
+    function typeWithKeydown(testId: string, value: string) {
+      const input = inBody(testId) as HTMLInputElement;
+      for (const char of value) {
+        const event = new KeyboardEvent('keydown', {
+          bubbles: true,
+          cancelable: true,
+          key: char,
+        });
+        input.dispatchEvent(event);
+        expect(event.defaultPrevented).toBe(false);
+      }
+      typeInto(testId, value);
+    }
+
+    typeWithKeydown('lock-password-input', 'abcd');
+    typeWithKeydown('lock-password-confirm', 'abcd');
+    await submitForm();
+
+    expect(inBody('lock-password-hint')?.dataset.lockError).toBeUndefined();
+    // 设置成功切到解锁模式，确认框消失
+    expect(inBody('lock-password-confirm')).toBeNull();
+  });
+
   it('两次密码不一致被挡住，错误提示是 mismatch', async () => {
     mountLockHarness();
     inBody('harness-lock')?.click();
@@ -298,6 +341,28 @@ describe('锁屏密码 —— 校验与边界', () => {
   });
 });
 
+describe('锁屏背景图 —— 锁定时生成，解锁后移除', () => {
+  it('每次锁定得到一张本地 SVG 图，解锁后图片与 data URL 一起清掉', async () => {
+    mountLockHarness();
+    inBody('harness-lock')?.click();
+    await flushPromises();
+
+    const artwork = inBody('lock-artwork') as HTMLImageElement | null;
+    expect(artwork).not.toBeNull();
+    expect(artwork?.getAttribute('src')).toMatch(/^data:image\/svg\+xml,/u);
+    expect(inBody('lock-harness')?.dataset.artwork).toBeTruthy();
+
+    typeInto('lock-password-input', '1234');
+    typeInto('lock-password-confirm', '1234');
+    await submitForm();
+    typeInto('lock-password-input', '1234');
+    await submitForm();
+
+    expect(inBody('lock-screen')).toBeNull();
+    expect(inBody('lock-harness')?.dataset.artwork).toBe('');
+  });
+});
+
 describe('锁屏期间 —— 滚动与默认交互', () => {
   it('锁上时视口与 html 都滚不动，正确解锁后原样还回去', async () => {
     const viewport = seedViewport();
@@ -375,6 +440,17 @@ describe('锁屏期间 —— 滚动与默认交互', () => {
     });
     input?.dispatchEvent(allowed);
     expect(allowed.defaultPrevented).toBe(false);
+
+    // 设置模式的「确认密码」框同样必须放行：捕获阶段漏掉它，
+    // 用户打字被 preventDefault 吞掉，提交时必然误报「两次输入不一致」。
+    const confirm = inBody('lock-password-confirm');
+    const confirmAllowed = new KeyboardEvent('keydown', {
+      bubbles: true,
+      cancelable: true,
+      key: 'a',
+    });
+    confirm?.dispatchEvent(confirmAllowed);
+    expect(confirmAllowed.defaultPrevented).toBe(false);
   });
 
   it('遮罩是全屏固定层，滚动条与右键菜单都在它之下', async () => {

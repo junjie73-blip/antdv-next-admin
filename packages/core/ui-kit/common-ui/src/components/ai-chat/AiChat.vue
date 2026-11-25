@@ -122,15 +122,17 @@ function copy(content: string) {
                     v-if="examples.length"
                     class="flex flex-wrap justify-center gap-2"
                   >
-                    <button
+                    <Button
                       v-for="example in examples"
                       :key="example"
                       type="button"
-                      class="rounded-full border border-border px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted"
+                      variant="outline"
+                      size="sm"
+                      class="rounded-full text-muted-foreground"
                       @click="onExample(example)"
                     >
                       {{ example }}
-                    </button>
+                    </Button>
                   </div>
                 </div>
               </MessageScrollerItem>
@@ -201,9 +203,8 @@ function copy(content: string) {
 
     <!-- 输入区 -->
     <div class="shrink-0 px-4 pb-4">
-      <form
+      <div
         class="mx-auto w-full max-w-3xl rounded-xl border border-input bg-background p-2 shadow-sm"
-        @submit.prevent="submit"
       >
         <Textarea
           v-model="input"
@@ -225,11 +226,18 @@ function copy(content: string) {
           >
             <SquareIcon class="size-4" />
           </Button>
-          <Button v-else type="submit" size="icon" :disabled="!input.trim()">
+          <Button
+            v-else
+            type="button"
+            size="icon"
+            :disabled="!input.trim()"
+            aria-label="发送消息"
+            @click="submit"
+          >
             <ArrowUpIcon class="size-4" />
           </Button>
         </div>
-      </form>
+      </div>
     </div>
   </div>
 </template>

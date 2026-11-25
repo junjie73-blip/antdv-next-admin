@@ -37,6 +37,9 @@ interface RoleRecord {
   createdAt: string;
 }
 
+/** 表格插槽给到的 record 是宽松 Recordable，这里一处收窄，避免模板里散落断言 */
+const asRole = (record: Record<string, any>): RoleRecord => record as RoleRecord;
+
 const containerClassName = cn('space-y-4');
 const cardClassName = cn('shadow-sm');
 const tagClassName = cn('inline-flex items-center gap-1');
@@ -205,8 +208,7 @@ const drawerFormSchemas: FormSchema[] = [
 async function listApi(params: Record<string, any>) {
   try {
     const res = await getRoleList(params);
-    // 兼容 mock 直接返回完整响应或已解包的数据
-    const data = res?.data ?? res;
+    const data = res;
     return { items: data?.list || [], total: data?.total || 0 };
   } catch (error) {
     console.error('[Role] listApi error:', error);
@@ -243,8 +245,24 @@ function handleEdit(record: RoleRecord) {
 }
 
 function handlePermission(record: RoleRecord) {
-  currentRecord.value = record;
+  // 深拷贝一份，避免勾选过程中的临时改动直接污染表格行
+  currentRecord.value = { ...record, menuIds: [...record.menuIds] };
   permDrawerMethods.openDrawer();
+}
+
+/** 授权持久化：后端 PUT 会同步角色↔菜单关联表，刷新页面后仍然生效 */
+async function handleGrantSubmit() {
+  if (!currentRecord.value) return;
+  try {
+    await updateRole(currentRecord.value.id, {
+      menuIds: [...currentRecord.value.menuIds],
+    });
+    message.success('角色授权已保存');
+    permDrawerMethods.closeDrawer();
+    tableMethods.value?.reload();
+  } catch (error) {
+    message.error(error instanceof Error ? error.message : '授权保存失败');
+  }
 }
 
 async function handleDelete(record: RoleRecord) {
@@ -404,7 +422,7 @@ const columns: BasicColumn[] = [
             <Button
               variant="link"
               :class="btnClassName"
-              @click="() => handlePermission(record)"
+              @click="() => handlePermission(asRole(record))"
             >
               <Icon icon="ant-design:safety-certificate-outlined" />
               权限
@@ -413,7 +431,7 @@ const columns: BasicColumn[] = [
             <Button
               variant="link"
               :class="btnClassName"
-              @click="() => handleEdit(record)"
+              @click="() => handleEdit(asRole(record))"
             >
               <Icon icon="ant-design:edit-outlined" />
               编辑
@@ -421,7 +439,7 @@ const columns: BasicColumn[] = [
             <Divider type="vertical" :class="dividerClassName" />
             <Popconfirm
               :title="`确定要「${record.status === 1 ? '停用' : '启用'}」角色「${record.name}」吗？`"
-              @confirm="() => handleToggleStatus(record)"
+              @confirm="() => handleToggleStatus(asRole(record))"
             >
               <Button
                 v-if="record.status === 1"
@@ -438,7 +456,7 @@ const columns: BasicColumn[] = [
             <Popconfirm
               :title="`确定要删除角色「${record.name}」吗？`"
               danger
-              @confirm="() => handleDelete(record)"
+              @confirm="() => handleDelete(asRole(record))"
             >
               <Button
                 variant="link"
@@ -475,6 +493,7 @@ const columns: BasicColumn[] = [
       :title="`权限分配 - ${currentRecord?.name || ''}`"
       :width="480"
       @register="permDrawerRegister"
+      @ok="handleGrantSubmit"
     >
       <div class="space-y-4">
         <Alert

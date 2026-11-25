@@ -3,6 +3,9 @@
  * 维度名称与 status 档位保持不变，分数不再随机。
  */
 
+import {
+  summarizeSecurityOperations,
+} from '../../utils/db/security-advanced';
 import { SECURITY_ALERTS, SECURITY_EVENTS } from '../../utils/db/security';
 import { clampScore, countByDay, lastNDays } from '../../utils/derive';
 import { envelope } from '../../utils/response';
@@ -16,6 +19,10 @@ export default defineMockRoute({
       (event) => event.level === 'critical',
     ).length;
     const handledRatio = events.length > 0 ? 1 - pending / events.length : 1;
+    const operations = summarizeSecurityOperations();
+    const aiScore = clampScore(
+      95 - operations.aiBlocked * 4 - operations.aiHighRisk * 3,
+    );
 
     const dimensions = [
       {
@@ -33,6 +40,11 @@ export default defineMockRoute({
         name: '审计合规',
         score: clampScore(85 - critical * 3),
         status: 'warning',
+      },
+      {
+        name: 'AI 安全',
+        score: aiScore,
+        status: aiScore >= 85 ? 'excellent' : aiScore >= 70 ? 'good' : 'warning',
       },
     ];
 
@@ -52,6 +64,7 @@ export default defineMockRoute({
         totalScore: clampScore(60 + handledRatio * 35),
         dimensions,
         trend,
+        aiCalls: operations,
       },
       'ok',
     );

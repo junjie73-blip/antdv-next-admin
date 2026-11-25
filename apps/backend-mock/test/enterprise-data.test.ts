@@ -1,17 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-  AI_AGENTS,
-  createDefinition,
-  paginate,
-  selectResources,
-  selectWorkflowDefinitions,
-  summarizeWorkflowDefinitions,
-  summarizeWorkflowInstances,
-  WORKFLOW_DEFINITIONS,
-  WORKFLOW_INSTANCES,
-  WORKFLOW_STORE,
-} from '../server/utils/db/enterprise';
+import { paginate } from '../server/utils/db/enterprise';
 import {
   CAPTCHA_LOG_DB,
   CLIENT_LOG_DB,
@@ -48,89 +37,6 @@ describe('paginate：分页参数归一化', () => {
   it('超大 pageSize 被夹到 200，越界页返回空列表', () => {
     expect(paginate(items, 1, 10_000).pageSize).toBe(200);
     expect(paginate(items, 99, 10).list).toEqual([]);
-  });
-});
-
-describe('selectWorkflowDefinitions：筛选与排序', () => {
-  it('按状态 / 分类 / 负责人 / 关键字组合筛选', () => {
-    const result = selectWorkflowDefinitions(WORKFLOW_DEFINITIONS, {
-      category: '智能服务',
-      owner: '赵宁',
-      status: 'published',
-    });
-    expect(result.map((item) => item.name)).toEqual(['工单分类与升级']);
-  });
-
-  it('关键字命中名称、分类、负责人与描述，不区分大小写', () => {
-    expect(
-      selectWorkflowDefinitions(WORKFLOW_DEFINITIONS, { keyword: '发票' }).map(
-        (i) => i.name,
-      ),
-    ).toEqual(['发票验真与归档']);
-    expect(
-      selectWorkflowDefinitions(WORKFLOW_DEFINITIONS, { keyword: 'LEGAL' }),
-    ).toEqual([]);
-    expect(
-      selectWorkflowDefinitions(WORKFLOW_DEFINITIONS, { keyword: '张敏' }),
-    ).toHaveLength(3);
-  });
-
-  it('名称升序与运行次数排序生效，且不修改原数组', () => {
-    const byName = selectWorkflowDefinitions(WORKFLOW_DEFINITIONS, {
-      sort: 'name',
-    });
-    expect(
-      byName[0]!.name.localeCompare(byName[1]!.name, 'zh-CN'),
-    ).toBeLessThanOrEqual(0);
-    const byRuns = selectWorkflowDefinitions(WORKFLOW_DEFINITIONS, {
-      sort: 'runs',
-    });
-    expect(byRuns[0]!.runCount).toBeGreaterThanOrEqual(byRuns[1]!.runCount);
-    expect(WORKFLOW_DEFINITIONS[0]!.name).toBe('智能客服自动化');
-  });
-});
-
-describe('流程与实例统计', () => {
-  it('定义统计三态数量之和等于总数', () => {
-    const summary = summarizeWorkflowDefinitions(WORKFLOW_DEFINITIONS);
-    expect(summary.total).toBe(12);
-    expect(summary.published + summary.draft + summary.disabled).toBe(
-      summary.total,
-    );
-  });
-
-  it('实例成功率按一位小数计算', () => {
-    const summary = summarizeWorkflowInstances(WORKFLOW_INSTANCES);
-    expect(summary.total).toBe(8);
-    expect(summary.successRate).toBe(37.5);
-    expect(summary.unhandledAlerts).toBeGreaterThan(0);
-  });
-
-  it('空数据集不产生 NaN', () => {
-    expect(summarizeWorkflowInstances([]).successRate).toBe(0);
-  });
-});
-
-describe('aI 资源与流程定义工厂', () => {
-  it('关键字与状态筛选命中资源', () => {
-    expect(
-      selectResources(AI_AGENTS, { status: 'draft' }).map((i) => i.name),
-    ).toEqual(['合同审阅 Agent']);
-    expect(
-      selectResources(AI_AGENTS, { keyword: '客服' }).map((i) => i.name),
-    ).toEqual(['客服回复 Agent']);
-  });
-
-  it('新建定义缺字段时走安全默认值', () => {
-    const created = createDefinition({}, 'WF-NEW');
-    expect(created.name).toBe('未命名流程');
-    expect(created.status).toBe('draft');
-    expect(created.nodeCount).toBe(0);
-  });
-
-  it('可变存储与只读基准数据互相隔离', () => {
-    expect(WORKFLOW_STORE.items).not.toBe(WORKFLOW_DEFINITIONS);
-    expect(WORKFLOW_STORE.items).toHaveLength(WORKFLOW_DEFINITIONS.length);
   });
 });
 
