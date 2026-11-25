@@ -113,7 +113,12 @@ async function doRefreshToken(baseUrl: string): Promise<string> {
     headers,
     body: JSON.stringify({ refreshToken: refreshTokenValue }),
   });
-  const payload = (await res.json().catch(() => ({}))) as ApiResponse<{
+  // JSON null 是合法的解析结果：网关兜底返回 null 时，旧代码读 payload.code
+  // 会抛 "Cannot read properties of null"，把「刷新服务不可用」变成前端异常。
+  const parsed: unknown = await res.json().catch(() => null);
+  const payload = (parsed && typeof parsed === 'object'
+    ? parsed
+    : {}) as ApiResponse<{
     accessToken: string;
     refreshToken?: string;
   }>;

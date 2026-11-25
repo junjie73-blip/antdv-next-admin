@@ -109,8 +109,17 @@ export const useUserStore = defineStore('user', () => {
         message: string;
       }>('/auth/login', { username, password });
 
+      // 线上静态托管没接 /api 时，网关兜底可能直接返回 JSON null；
+      // 旧代码直接读 response.code 会把「服务不可用」伪装成前端 TypeError。
+      if (!response || typeof response.code !== 'number') {
+        return { success: false, message: '登录服务暂不可用，请稍后重试' };
+      }
+
       if (response.code === 200) {
-        const { user } = response.data;
+        const user = response.data?.user;
+        if (!user?.token) {
+          return { success: false, message: '登录响应缺少凭证，请稍后重试' };
+        }
         /**
          * 先作废上一个账号的派生授权，再写入新会话。
          *

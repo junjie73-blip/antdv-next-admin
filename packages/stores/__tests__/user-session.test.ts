@@ -143,6 +143,34 @@ describe('useUserStore.login —— 换账号时作废旧授权', () => {
     expect(route.isLoaded).toBe(true);
     expect([...route.allowedNames]).toContain('SystemUser');
   });
+
+  it('接口返回 null 时给出可读提示，而不是抛 code 读取异常', async () => {
+    const { route, user } = seedPreviousSession();
+    post.mockResolvedValueOnce(null);
+
+    const result = await user.login('admin', 'admin123');
+
+    expect(result.success).toBe(false);
+    expect(result.message).toBe('登录服务暂不可用，请稍后重试');
+    expect(result.message).not.toContain('Cannot read properties');
+    expect(user.token).toBe('mock_token_admin_1');
+    expect(route.isLoaded).toBe(true);
+  });
+
+  it('成功信封缺 token 时不写入半截会话', async () => {
+    const { user } = seedPreviousSession();
+    post.mockResolvedValueOnce({
+      code: 200,
+      data: { user: { id: 2, username: 'custom' } },
+      message: '登录成功',
+    });
+
+    const result = await user.login('custom', 'custom123');
+
+    expect(result.success).toBe(false);
+    expect(result.message).toBe('登录响应缺少凭证，请稍后重试');
+    expect(user.token).toBe('mock_token_admin_1');
+  });
 });
 
 describe('useUserStore —— 凭证的存储与还原', () => {
